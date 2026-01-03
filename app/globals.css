@@ -881,3 +881,19 @@ a:focus-visible {
     padding: 16px !important;
   }
 }
+
+/* Fix input icon overlap - increase left padding */
+input[type="text"],
+input[type="email"],
+input[type="password"] {
+  padding-left: 48px !important;
+}
+
+/* Mobile specific - even more padding if needed */
+@media (max-width: 640px) {
+  input[type="text"],
+  input[type="email"],
+  input[type="password"] {
+    padding-left: 52px !important;
+  }
+}
