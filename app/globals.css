@@ -882,7 +882,6 @@ a:focus-visible {
   }
 }
 
-/* Fix input icon overlap - increase left padding */
 input[type="text"],
 input[type="email"],
 input[type="password"] {
@@ -895,5 +894,21 @@ input[type="password"] {
   input[type="email"],
   input[type="password"] {
     padding-left: 52px !important;
+  }
+}
+
+/* Fix input icon overlap - MORE padding */
+input[type="text"],
+input[type="email"],
+input[type="password"] {
+  padding-left: 56px !important;
+}
+
+/* Mobile specific - even MORE padding */
+@media (max-width: 640px) {
+  input[type="text"],
+  input[type="email"],
+  input[type="password"] {
+    padding-left: 60px !important;
   }
 }
