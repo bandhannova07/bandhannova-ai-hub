@@ -576,3 +576,71 @@ a:focus-visible {
   height: 44px;
   border-radius: 8px;
 }
+
+/* ============================================
+   CARD ASPECT RATIO & MOBILE TEXT SCALING
+   ============================================ */
+
+/* Card aspect ratio 1:1.2 (portrait) */
+.card-aspect {
+  aspect-ratio: 1 / 1.2;
+  width: 100%;
+}
+
+/* Dynamic text scaling based on viewport */
+@media (max-width: 640px) {
+  /* Small phones - extra small text */
+  .card-title {
+    font-size: clamp(0.875rem, 3vw, 1.125rem) !important;
+  }
+  
+  .card-description {
+    font-size: clamp(0.75rem, 2.5vw, 0.875rem) !important;
+  }
+  
+  .card-badge {
+    font-size: clamp(0.625rem, 2vw, 0.75rem) !important;
+    padding: 0.25rem 0.5rem !important;
+  }
+}
+
+@media (max-width: 374px) {
+  /* Extra small phones - tiny text */
+  .card-title {
+    font-size: clamp(0.75rem, 3vw, 1rem) !important;
+  }
+  
+  .card-description {
+    font-size: clamp(0.6875rem, 2.5vw, 0.8125rem) !important;
+  }
+  
+  .card-badge {
+    font-size: clamp(0.5625rem, 2vw, 0.6875rem) !important;
+  }
+}
+
+/* Responsive grid - single column on mobile */
+.ai-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+@media (max-width: 640px) {
+  .ai-cards-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .ai-cards-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .ai-cards-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
