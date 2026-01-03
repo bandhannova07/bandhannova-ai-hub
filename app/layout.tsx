@@ -40,6 +40,17 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+        <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#667eea" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-title" content="BandhanNova" />
+        <link rel="apple-touch-icon" href="/favicon.ico" />
+      </head>
       <body
         className={`${inter.variable} ${outfit.variable} ${spaceGrotesk.variable} antialiased`}
       >
