@@ -1,0 +1,6 @@
+{
+    "scripts": {
+        "register-shards": "tsx scripts/register-shards.ts",
+        "health-check": "tsx scripts/health-monitor.ts"
+    }
+}
