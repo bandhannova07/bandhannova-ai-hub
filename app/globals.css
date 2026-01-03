@@ -685,3 +685,85 @@ a:focus-visible {
     font-size: 9px !important;
   }
 }
+
+/* ============================================
+   PREMIUM AI CARD ANIMATIONS
+   ============================================ */
+
+/* Sliding text animation for AI names */
+@keyframes slide-text {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.slide-text {
+  display: inline-block;
+  white-space: nowrap;
+  animation: slide-text 8s linear infinite;
+}
+
+.slide-text-container {
+  overflow: hidden;
+  position: relative;
+  width: 100%;
+}
+
+.slide-text-wrapper {
+  display: flex;
+}
+
+/* Tag animation - appear one by one */
+@keyframes tag-appear {
+  from {
+    opacity: 0;
+    transform: scale(0.8) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.tag-animate {
+  animation: tag-appear 0.4s ease-out forwards;
+  opacity: 0;
+}
+
+/* Premium button gradient (sidebar style) */
+.premium-button {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  transition: all 0.3s ease;
+}
+
+.premium-button:hover {
+  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+}
+
+.premium-button:active {
+  transform: translateY(0);
+}
+
+/* Compact card for mobile */
+@media (max-width: 640px) {
+  .compact-card {
+    padding: 16px !important;
+    min-height: auto !important;
+  }
+  
+  .compact-card-title {
+    font-size: 15px !important;
+    margin-bottom: 8px !important;
+  }
+  
+  .compact-card-tags {
+    padding: 8px !important;
+    margin-bottom: 12px !important;
+  }
+  
+  .compact-card-button {
+    padding: 10px 16px !important;
+    font-size: 13px !important;
+  }
+}
