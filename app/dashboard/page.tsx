@@ -256,7 +256,7 @@ export default function DashboardPage() {
                 }}
             >
                 <div
-                    className="flex flex-col h-full"
+                    className="flex flex-col h-full sidebar-content-wrapper"
                     style={{ padding: '24px 16px' }}
                 >
                     {/* Logo */}
@@ -469,18 +469,19 @@ export default function DashboardPage() {
                 />
             )}
 
-            {/* Sidebar Toggle Button - All Screens */}
+            {/* Sidebar Toggle Button - Improved Design */}
             <button
                 onClick={() => setSidebarOpen(!sidebarOpen)}
-                className="fixed rounded-2xl glass z-50"
+                className="sidebar-toggle-btn"
                 style={{
-                    top: '24px',
-                    left: sidebarOpen ? '380px' : '24px',
-                    padding: '12px',
-                    transition: 'left 0.3s ease'
+                    left: sidebarOpen && isDesktop ? '400px' : '20px',
                 }}
             >
-                {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+                {sidebarOpen ? (
+                    <X className="w-8 h-8" style={{ color: 'var(--foreground)' }} />
+                ) : (
+                    <Menu className="w-8 h-8" style={{ color: 'var(--foreground)' }} />
+                )}
             </button>
 
             {/* Main Content */}
@@ -552,81 +553,24 @@ export default function DashboardPage() {
                                                     initial={{ opacity: 0, y: 20 }}
                                                     animate={{ opacity: 1, y: 0 }}
                                                     transition={{ delay: index * 0.1 }}
-                                                    whileHover={{ scale: 1.03, y: -8 }}
-                                                    className="group cursor-pointer"
                                                     onClick={() => router.push(`/chat/${agent.id}`)}
                                                 >
-                                                    <div
-                                                        className="glass rounded-3xl flex flex-col h-full border transition-all"
-                                                        style={{
-                                                            padding: '28px',
-                                                            borderColor: 'rgba(255, 255, 255, 0.1)',
-                                                            backdropFilter: 'blur(20px)',
-                                                        }}
-                                                    >
+                                                    <div className="ai-card-new">
                                                         <div
-                                                            className="rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform ai-icon-mobile"
-                                                            style={{
-                                                                width: '72px',
-                                                                height: '72px',
-                                                                background: agent.gradient,
-                                                                marginBottom: '20px',
-                                                                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)'
-                                                            }}
+                                                            className="ai-card-icon-badge"
+                                                            style={{ background: agent.gradient }}
                                                         >
-                                                            <Icon className="w-9 h-9 text-white" />
+                                                            <Icon className="w-6 h-6 text-white" style={{ position: 'relative', zIndex: 1 }} />
                                                         </div>
-                                                        <h3
-                                                            className="font-bold"
-                                                            style={{
-                                                                fontSize: '18px',
-                                                                color: 'var(--foreground)',
-                                                                marginBottom: '8px',
-                                                                lineHeight: '1.3'
-                                                            }}
-                                                        >
-                                                            {agent.name}
-                                                        </h3>
-                                                        <p
-                                                            style={{
-                                                                fontSize: '14px',
-                                                                color: 'var(--foreground-secondary)',
-                                                                marginBottom: '16px',
-                                                                lineHeight: '1.6'
-                                                            }}
-                                                        >
-                                                            {agent.description}
-                                                        </p>
-                                                        <div
-                                                            className="flex flex-wrap"
-                                                            style={{ gap: '8px', marginBottom: '20px' }}
-                                                        >
-                                                            {agent.features.map((feature, i) => (
-                                                                <span
-                                                                    key={i}
-                                                                    className="rounded-lg"
-                                                                    style={{
-                                                                        padding: '4px 10px',
-                                                                        fontSize: '12px',
-                                                                        background: 'rgba(255, 255, 255, 0.05)',
-                                                                        color: 'var(--foreground-tertiary)',
-                                                                        border: '1px solid rgba(255, 255, 255, 0.1)'
-                                                                    }}
-                                                                >
-                                                                    {feature}
-                                                                </span>
-                                                            ))}
-                                                        </div>
-                                                        <div
-                                                            className="flex items-center gap-2 font-medium group-hover:gap-3 transition-all"
-                                                            style={{
-                                                                fontSize: '14px',
-                                                                color: 'var(--primary-purple)'
-                                                            }}
-                                                        >
-                                                            <span>Tap to Start Chat</span>
+                                                        <h3 className="ai-card-title">{agent.name}</h3>
+                                                        <p className="ai-card-desc">{agent.description}</p>
+                                                        <button className="ai-card-action-btn">
+                                                            {agent.id === 'search-engine' ? 'Start Searching' :
+                                                                agent.id === 'image-maker' ? 'Create Image' :
+                                                                    agent.id === 'kitchen-recipe' ? 'Get Recipe' :
+                                                                        'Start Chatting'}
                                                             <ArrowRight className="w-4 h-4" />
-                                                        </div>
+                                                        </button>
                                                     </div>
                                                 </motion.div>
                                             );
@@ -662,81 +606,24 @@ export default function DashboardPage() {
                                                     initial={{ opacity: 0, y: 20 }}
                                                     animate={{ opacity: 1, y: 0 }}
                                                     transition={{ delay: 0.2 + index * 0.1 }}
-                                                    whileHover={{ scale: 1.03, y: -8 }}
-                                                    className="group cursor-pointer"
                                                     onClick={() => router.push(`/chat/${agent.id}`)}
                                                 >
-                                                    <div
-                                                        className="glass rounded-3xl h-full border transition-all"
-                                                        style={{
-                                                            padding: '28px',
-                                                            borderColor: 'rgba(255, 255, 255, 0.1)',
-                                                            backdropFilter: 'blur(20px)',
-                                                        }}
-                                                    >
+                                                    <div className="ai-card-new">
                                                         <div
-                                                            className="rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform ai-icon-mobile"
-                                                            style={{
-                                                                width: '72px',
-                                                                height: '72px',
-                                                                background: agent.gradient,
-                                                                marginBottom: '20px',
-                                                                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)'
-                                                            }}
+                                                            className="ai-card-icon-badge"
+                                                            style={{ background: agent.gradient }}
                                                         >
-                                                            <Icon className="w-9 h-9 text-white" />
+                                                            <Icon className="w-6 h-6 text-white" style={{ position: 'relative', zIndex: 1 }} />
                                                         </div>
-                                                        <h3
-                                                            className="font-bold"
-                                                            style={{
-                                                                fontSize: '18px',
-                                                                color: 'var(--foreground)',
-                                                                marginBottom: '8px',
-                                                                lineHeight: '1.3'
-                                                            }}
-                                                        >
-                                                            {agent.name}
-                                                        </h3>
-                                                        <p
-                                                            style={{
-                                                                fontSize: '14px',
-                                                                color: 'var(--foreground-secondary)',
-                                                                marginBottom: '16px',
-                                                                lineHeight: '1.6'
-                                                            }}
-                                                        >
-                                                            {agent.description}
-                                                        </p>
-                                                        <div
-                                                            className="flex flex-wrap"
-                                                            style={{ gap: '8px', marginBottom: '20px' }}
-                                                        >
-                                                            {agent.features.map((feature, i) => (
-                                                                <span
-                                                                    key={i}
-                                                                    className="rounded-lg"
-                                                                    style={{
-                                                                        padding: '4px 10px',
-                                                                        fontSize: '12px',
-                                                                        background: 'rgba(255, 255, 255, 0.05)',
-                                                                        color: 'var(--foreground-tertiary)',
-                                                                        border: '1px solid rgba(255, 255, 255, 0.1)'
-                                                                    }}
-                                                                >
-                                                                    {feature}
-                                                                </span>
-                                                            ))}
-                                                        </div>
-                                                        <div
-                                                            className="flex items-center gap-2 font-medium group-hover:gap-3 transition-all"
-                                                            style={{
-                                                                fontSize: '14px',
-                                                                color: 'var(--primary-purple)'
-                                                            }}
-                                                        >
-                                                            <span>Tap to Start Chat</span>
+                                                        <h3 className="ai-card-title">{agent.name}</h3>
+                                                        <p className="ai-card-desc">{agent.description}</p>
+                                                        <button className="ai-card-action-btn">
+                                                            {agent.id === 'search-engine' ? 'Start Searching' :
+                                                                agent.id === 'image-maker' ? 'Create Image' :
+                                                                    agent.id === 'kitchen-recipe' ? 'Get Recipe' :
+                                                                        'Start Chatting'}
                                                             <ArrowRight className="w-4 h-4" />
-                                                        </div>
+                                                        </button>
                                                     </div>
                                                 </motion.div>
                                             );
