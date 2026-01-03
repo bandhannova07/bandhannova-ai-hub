@@ -502,3 +502,77 @@ a:focus-visible {
   outline: 2px solid var(--primary-purple);
   outline-offset: 2px;
 }
+/* ============================================
+   MOBILE OPTIMIZATION FOR SMALL SMARTPHONES
+   ============================================ */
+
+@media (max-width: 640px) {
+  body { font-size: 14px; }
+  .display { font-size: clamp(1.75rem, 8vw, 2.5rem); }
+  .h1 { font-size: clamp(1.5rem, 6vw, 2rem); }
+  .h2 { font-size: clamp(1.25rem, 5vw, 1.75rem); }
+  .h3 { font-size: clamp(1.125rem, 4vw, 1.5rem); }
+  .body-large { font-size: 1rem; }
+  .body { font-size: 0.875rem; }
+  .small { font-size: 0.75rem; }
+  .container { padding: 0 var(--space-3); }
+  button, .btn { font-size: 0.875rem !important; padding: 0.625rem 1rem !important; }
+  input, textarea, select { font-size: 14px !important; padding: 0.625rem 0.75rem !important; }
+  .glass, .glass-strong { padding: 1rem !important; }
+}
+
+@media (max-width: 374px) {
+  body { font-size: 13px; }
+  .display { font-size: 1.5rem; }
+  .h1 { font-size: 1.375rem; }
+  .h2 { font-size: 1.125rem; }
+  .h3 { font-size: 1rem; }
+  button, .btn { font-size: 0.8125rem !important; padding: 0.5rem 0.875rem !important; }
+}
+
+/* ============================================
+   SKELETON LOADING UI
+   ============================================ */
+
+@keyframes skeleton-loading {
+  0% { background-position: -200px 0; }
+  100% { background-position: calc(200px + 100%) 0; }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, 
+    rgba(255, 255, 255, 0.05) 0px,
+    rgba(255, 255, 255, 0.1) 40px,
+    rgba(255, 255, 255, 0.05) 80px
+  );
+  background-size: 200px 100%;
+  animation: skeleton-loading 1.5s ease-in-out infinite;
+  border-radius: 8px;
+}
+
+.skeleton-text {
+  height: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.skeleton-title {
+  height: 1.5rem;
+  width: 60%;
+  margin-bottom: 1rem;
+}
+
+.skeleton-card {
+  height: 200px;
+  border-radius: 16px;
+}
+
+.skeleton-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+}
+
+.skeleton-button {
+  height: 44px;
+  border-radius: 8px;
+}

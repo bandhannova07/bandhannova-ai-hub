@@ -545,7 +545,7 @@ export default function DashboardPage() {
                                     >
                                         Default <span style={{ color: 'var(--foreground-tertiary)', fontSize: '16px', fontWeight: 'normal' }}>(Free Now)</span>
                                     </h3>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3" style={{ gap: '24px' }}>
+                                    <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3" style={{ gap: '16px' }}>
                                         {AI_AGENTS.filter(agent => ['conversational', 'search-engine'].includes(agent.id)).map((agent, index) => {
                                             const Icon = agent.icon;
                                             return (
@@ -653,7 +653,7 @@ export default function DashboardPage() {
                                     >
                                         Featured <span style={{ color: 'var(--foreground-tertiary)', fontSize: '16px', fontWeight: 'normal' }}>(Free Limited)</span>
                                     </h3>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3" style={{ gap: '24px' }}>
+                                    <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3" style={{ gap: '16px' }}>
                                         {AI_AGENTS.filter(agent =>
                                             ['study-learning', 'creative-productivity', 'psychology-personality', 'creator-social', 'business-career', 'image-maker', 'kitchen-recipe'].includes(agent.id)
                                         ).map((agent, index) => {
@@ -762,7 +762,7 @@ export default function DashboardPage() {
                                     >
                                         Coming Soon
                                     </h3>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3" style={{ gap: '24px' }}>
+                                    <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3" style={{ gap: '16px' }}>
                                         {AI_AGENTS.filter(agent => agent.id === 'website-builder').map((agent, index) => {
                                             const Icon = agent.icon;
                                             return (
