@@ -893,15 +893,12 @@ input[type="password"] {
   input[type="text"],
   input[type="email"],
   input[type="password"] {
-    padding-left: 52px !important;
   }
 }
 
-/* Fix input icon overlap - MORE padding */
 input[type="text"],
 input[type="email"],
 input[type="password"] {
-  padding-left: 56px !important;
 }
 
 /* Mobile specific - even MORE padding */
@@ -910,5 +907,21 @@ input[type="password"] {
   input[type="email"],
   input[type="password"] {
     padding-left: 60px !important;
+  }
+}
+
+/* Fix input icon overlap - Balanced padding */
+input[type="text"],
+input[type="email"],
+input[type="password"] {
+  padding-left: 50px !important;
+}
+
+/* Mobile specific - slightly more padding */
+@media (max-width: 640px) {
+  input[type="text"],
+  input[type="email"],
+  input[type="password"] {
+    padding-left: 54px !important;
   }
 }
