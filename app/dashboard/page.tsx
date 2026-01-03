@@ -257,7 +257,7 @@ export default function DashboardPage() {
             >
                 <div
                     className="flex flex-col h-full"
-                    style={{ padding: '32px 24px' }}
+                    style={{ padding: '24px 16px' }}
                 >
                     {/* Logo */}
                     <div style={{ marginBottom: '40px', marginTop: '24px' }}>
@@ -291,7 +291,7 @@ export default function DashboardPage() {
                                     {user?.email?.[0].toUpperCase() || 'U'}
                                 </span>
                             </div>
-                            <div>
+                            <div style={{ overflow: 'hidden', flex: 1 }}>
                                 <p
                                     className="font-semibold"
                                     style={{
@@ -302,7 +302,13 @@ export default function DashboardPage() {
                                 >
                                     {user?.user_metadata?.full_name || 'User'}
                                 </p>
-                                <p style={{ color: 'var(--foreground-tertiary)', fontSize: '15px' }}>
+                                <p style={{
+                                    color: 'var(--foreground-tertiary)',
+                                    fontSize: '14px',
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                    whiteSpace: 'nowrap'
+                                }}>
                                     {user?.email}
                                 </p>
                             </div>
@@ -469,7 +475,7 @@ export default function DashboardPage() {
                 className="fixed rounded-2xl glass z-50"
                 style={{
                     top: '24px',
-                    left: sidebarOpen ? '400px' : '24px',
+                    left: sidebarOpen ? '380px' : '24px',
                     padding: '12px',
                     transition: 'left 0.3s ease'
                 }}
@@ -485,6 +491,7 @@ export default function DashboardPage() {
                 }}
             >
                 <div
+                    className="mobile-container"
                     style={{ padding: '48px 32px' }}
                 >
                     {/* Dashboard View - AI Agents */}
@@ -494,7 +501,7 @@ export default function DashboardPage() {
                             <motion.div
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                style={{ marginBottom: '48px', marginTop: '120px' }}
+                                style={{ marginBottom: '48px', marginTop: '120px', padding: '8px' }}
                             >
                                 <h1
                                     className="font-bold"
@@ -524,7 +531,7 @@ export default function DashboardPage() {
                                 <motion.div
                                     initial={{ opacity: 0, y: 20 }}
                                     animate={{ opacity: 1, y: 0 }}
-                                    style={{ marginBottom: '40px' }}
+                                    style={{ marginBottom: '40px', padding: '4px' }}
                                 >
                                     <h3
                                         className="font-bold"
@@ -550,7 +557,7 @@ export default function DashboardPage() {
                                                     onClick={() => router.push(`/chat/${agent.id}`)}
                                                 >
                                                     <div
-                                                        className="glass rounded-3xl h-full border transition-all"
+                                                        className="glass rounded-3xl flex flex-col h-full border transition-all"
                                                         style={{
                                                             padding: '28px',
                                                             borderColor: 'rgba(255, 255, 255, 0.1)',
@@ -558,7 +565,7 @@ export default function DashboardPage() {
                                                         }}
                                                     >
                                                         <div
-                                                            className="rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform"
+                                                            className="rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform ai-icon-mobile"
                                                             style={{
                                                                 width: '72px',
                                                                 height: '72px',
@@ -572,7 +579,7 @@ export default function DashboardPage() {
                                                         <h3
                                                             className="font-bold"
                                                             style={{
-                                                                fontSize: '20px',
+                                                                fontSize: '18px',
                                                                 color: 'var(--foreground)',
                                                                 marginBottom: '8px',
                                                                 lineHeight: '1.3'
@@ -599,7 +606,7 @@ export default function DashboardPage() {
                                                                     key={i}
                                                                     className="rounded-lg"
                                                                     style={{
-                                                                        padding: '6px 12px',
+                                                                        padding: '4px 10px',
                                                                         fontSize: '12px',
                                                                         background: 'rgba(255, 255, 255, 0.05)',
                                                                         color: 'var(--foreground-tertiary)',
@@ -617,7 +624,7 @@ export default function DashboardPage() {
                                                                 color: 'var(--primary-purple)'
                                                             }}
                                                         >
-                                                            <span>Start Chat</span>
+                                                            <span>Tap to Start Chat</span>
                                                             <ArrowRight className="w-4 h-4" />
                                                         </div>
                                                     </div>
@@ -668,7 +675,7 @@ export default function DashboardPage() {
                                                         }}
                                                     >
                                                         <div
-                                                            className="rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform"
+                                                            className="rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform ai-icon-mobile"
                                                             style={{
                                                                 width: '72px',
                                                                 height: '72px',
@@ -682,7 +689,7 @@ export default function DashboardPage() {
                                                         <h3
                                                             className="font-bold"
                                                             style={{
-                                                                fontSize: '20px',
+                                                                fontSize: '18px',
                                                                 color: 'var(--foreground)',
                                                                 marginBottom: '8px',
                                                                 lineHeight: '1.3'
@@ -709,7 +716,7 @@ export default function DashboardPage() {
                                                                     key={i}
                                                                     className="rounded-lg"
                                                                     style={{
-                                                                        padding: '6px 12px',
+                                                                        padding: '4px 10px',
                                                                         fontSize: '12px',
                                                                         background: 'rgba(255, 255, 255, 0.05)',
                                                                         color: 'var(--foreground-tertiary)',
@@ -727,7 +734,7 @@ export default function DashboardPage() {
                                                                 color: 'var(--primary-purple)'
                                                             }}
                                                         >
-                                                            <span>Start Chat</span>
+                                                            <span>Tap to Start Chat</span>
                                                             <ArrowRight className="w-4 h-4" />
                                                         </div>
                                                     </div>
@@ -804,7 +811,7 @@ export default function DashboardPage() {
                                                         <h3
                                                             className="font-bold"
                                                             style={{
-                                                                fontSize: '20px',
+                                                                fontSize: '28px',
                                                                 color: 'var(--foreground)',
                                                                 marginBottom: '8px',
                                                                 lineHeight: '1.3'
@@ -831,7 +838,7 @@ export default function DashboardPage() {
                                                                     key={i}
                                                                     className="rounded-lg"
                                                                     style={{
-                                                                        padding: '6px 12px',
+                                                                        padding: '4px 10px',
                                                                         fontSize: '12px',
                                                                         background: 'rgba(255, 255, 255, 0.05)',
                                                                         color: 'var(--foreground-tertiary)',
@@ -899,7 +906,7 @@ export default function DashboardPage() {
 
                             {/* Pricing Cards */}
                             <div
-                                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4"
+                                className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 plans-grid-mobile"
                                 style={{ gap: '48px', marginBottom: '60px' }}
                             >
                                 {[
