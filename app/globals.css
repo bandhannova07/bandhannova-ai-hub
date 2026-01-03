@@ -644,3 +644,44 @@ a:focus-visible {
     grid-template-columns: repeat(3, 1fr);
   }
 }
+
+/* Mobile card text scaling - VERY IMPORTANT */
+@media (max-width: 640px) {
+  .ai-card-title {
+    font-size: 14px !important;
+  }
+  
+  .ai-card-description {
+    font-size: 11px !important;
+    line-height: 1.4 !important;
+  }
+  
+  .ai-card-badge {
+    font-size: 10px !important;
+    padding: 4px 8px !important;
+  }
+  
+  .ai-card-icon {
+    width: 48px !important;
+    height: 48px !important;
+  }
+  
+  .ai-card-icon svg {
+    width: 24px !important;
+    height: 24px !important;
+  }
+}
+
+@media (max-width: 374px) {
+  .ai-card-title {
+    font-size: 13px !important;
+  }
+  
+  .ai-card-description {
+    font-size: 10px !important;
+  }
+  
+  .ai-card-badge {
+    font-size: 9px !important;
+  }
+}

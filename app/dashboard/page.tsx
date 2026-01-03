@@ -224,21 +224,11 @@ export default function DashboardPage() {
         router.push('/');
     }
 
+    // Show skeleton while loading
     if (loading) {
         return (
-            <div
-                className="min-h-screen flex items-center justify-center"
-                style={{ background: 'var(--background)' }}
-            >
-                <div className="text-center">
-                    <div
-                        className="w-16 h-16 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto"
-                        style={{ marginBottom: '16px' }}
-                    ></div>
-                    <p style={{ color: 'var(--foreground-secondary)', fontSize: '15px' }}>
-                        Loading your dashboard...
-                    </p>
-                </div>
+            <div className="min-h-screen" style={{ background: 'var(--background)', padding: '2rem' }}>
+                <SkeletonDashboard />
             </div>
         );
     }
@@ -259,7 +249,7 @@ export default function DashboardPage() {
                 className={`fixed inset-y-0 left-0 z-50 glass border-r transition-all duration-300 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'
                     }`}
                 style={{
-                    width: '380px',
+                    width: isDesktop ? '380px' : '70vw',
                     borderColor: 'var(--background-tertiary)',
                     backdropFilter: 'blur(20px)',
                 }}
@@ -545,7 +535,7 @@ export default function DashboardPage() {
                                     >
                                         Default <span style={{ color: 'var(--foreground-tertiary)', fontSize: '16px', fontWeight: 'normal' }}>(Free Now)</span>
                                     </h3>
-                                    <div className="ai-cards-grid">
+                                    <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3" style={{ gap: '12px' }}>
                                         {AI_AGENTS.filter(agent => ['conversational', 'search-engine'].includes(agent.id)).map((agent, index) => {
                                             const Icon = agent.icon;
                                             return (
@@ -653,7 +643,7 @@ export default function DashboardPage() {
                                     >
                                         Featured <span style={{ color: 'var(--foreground-tertiary)', fontSize: '16px', fontWeight: 'normal' }}>(Free Limited)</span>
                                     </h3>
-                                    <div className="ai-cards-grid">
+                                    <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3" style={{ gap: '12px' }}>
                                         {AI_AGENTS.filter(agent =>
                                             ['study-learning', 'creative-productivity', 'psychology-personality', 'creator-social', 'business-career', 'image-maker', 'kitchen-recipe'].includes(agent.id)
                                         ).map((agent, index) => {
@@ -762,7 +752,7 @@ export default function DashboardPage() {
                                     >
                                         Coming Soon
                                     </h3>
-                                    <div className="ai-cards-grid">
+                                    <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3" style={{ gap: '12px' }}>
                                         {AI_AGENTS.filter(agent => agent.id === 'website-builder').map((agent, index) => {
                                             const Icon = agent.icon;
                                             return (
