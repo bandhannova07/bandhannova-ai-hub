@@ -444,11 +444,13 @@ export default function Home() {
             <div className="flex flex-col items-center sm:flex-row gap-4 justify-center mb-8">
               <button
                 onClick={goToSignup}
-                className="w-[28rem] group relative px-10 py-5 h-12 rounded-2xl font-bold text-xl overflow-hidden transition-all duration-300 hover:scale-105"
+                className="w-auto group relative px-10 py-5 h-12 rounded-2xl font-bold text-xl overflow-hidden transition-all duration-300 hover:scale-105"
                 style={{
                   background: 'var(--gradient-hero)',
                   color: 'white',
-                  marginBottom: '36px',
+                  marginBottom: '2rem',
+                  paddingLeft: '8px',
+                  paddingRight: '8px'
                 }}
               >
                 <span className="relative z-10 flex items-center gap-2 justify-center">
@@ -460,13 +462,15 @@ export default function Home() {
 
               <Link
                 href="/about"
-                className="w-[28rem] group relative px-10 py-5 h-12 rounded-2xl font-bold text-xl overflow-hidden transition-all duration-300 hover:scale-105 flex items-center justify-center"
+                className="w-auto group relative px-10 py-5 h-12 rounded-2xl font-bold text-xl overflow-hidden transition-all duration-300 hover:scale-105 flex items-center justify-center"
                 style={{
                   background: 'rgba(255, 255, 255, 0.1)',
                   color: 'var(--foreground)',
                   border: '2px solid rgba(255, 255, 255, 0.2)',
-                  marginBottom: '36px',
-                  backdropFilter: 'blur(10px)'
+                  marginBottom: '2rem',
+                  backdropFilter: 'blur(10px)',
+                  paddingLeft: '8px',
+                  paddingRight: '8px'
                 }}
               >
                 <span className="relative z-10 flex items-center gap-2 justify-center">

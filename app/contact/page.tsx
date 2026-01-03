@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Mail, MessageSquare, Send } from 'lucide-react';
+import { Mail, MessageSquare, Send, User, FileText } from 'lucide-react';
 import { useState } from 'react';
 import Link from 'next/link';
 
@@ -74,29 +74,51 @@ export default function ContactPage() {
                                             <label className="block text-sm font-medium mb-3" style={{ color: 'var(--foreground)', marginBottom: '10px' }}>
                                                 Name *
                                             </label>
-                                            <input
-                                                type="text"
-                                                required
-                                                value={formData.name}
-                                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                                className="w-full px-5 h-13 py-4 rounded-xl glass border-0 focus:ring-2 focus:ring-purple-500 transition-all"
-                                                style={{ color: 'var(--foreground)', background: 'var(--background-secondary)', paddingLeft: '10px' }}
-                                                placeholder="Your name"
-                                            />
+                                            <div className="relative">
+                                                <User
+                                                    className="absolute w-5 h-5"
+                                                    style={{
+                                                        left: '16px',
+                                                        top: '50%',
+                                                        transform: 'translateY(-50%)',
+                                                        color: 'var(--foreground-tertiary)'
+                                                    }}
+                                                />
+                                                <input
+                                                    type="text"
+                                                    required
+                                                    value={formData.name}
+                                                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                                    className="w-full px-5 h-13 py-4 rounded-xl glass border-0 focus:ring-2 focus:ring-purple-500 transition-all"
+                                                    style={{ color: 'var(--foreground)', background: 'var(--background-secondary)', paddingLeft: '50px' }}
+                                                    placeholder="Your name"
+                                                />
+                                            </div>
                                         </div>
                                         <div>
                                             <label className="block text-sm font-medium mb-3" style={{ color: 'var(--foreground)', marginBottom: '10px' }}>
                                                 Email *
                                             </label>
-                                            <input
-                                                type="email"
-                                                required
-                                                value={formData.email}
-                                                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                                className="w-full h-13 px-5 py-4 rounded-xl glass border-0 focus:ring-2 focus:ring-purple-500 transition-all"
-                                                style={{ color: 'var(--foreground)', background: 'var(--background-secondary)', paddingLeft: '10px' }}
-                                                placeholder="your@email.com"
-                                            />
+                                            <div className="relative">
+                                                <Mail
+                                                    className="absolute w-5 h-5"
+                                                    style={{
+                                                        left: '16px',
+                                                        top: '50%',
+                                                        transform: 'translateY(-50%)',
+                                                        color: 'var(--foreground-tertiary)'
+                                                    }}
+                                                />
+                                                <input
+                                                    type="email"
+                                                    required
+                                                    value={formData.email}
+                                                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                                    className="w-full h-13 px-5 py-4 rounded-xl glass border-0 focus:ring-2 focus:ring-purple-500 transition-all"
+                                                    style={{ color: 'var(--foreground)', background: 'var(--background-secondary)', paddingLeft: '50px' }}
+                                                    placeholder="your@email.com"
+                                                />
+                                            </div>
                                         </div>
                                     </div>
 
@@ -124,15 +146,27 @@ export default function ContactPage() {
                                         <label className="block text-sm font-medium mb-3" style={{ color: 'var(--foreground)', marginBottom: '10px' }}>
                                             Subject *
                                         </label>
-                                        <input
-                                            type="text"
-                                            required
-                                            value={formData.subject}
-                                            onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                                            className="w-full h-13 px-5 py-4 rounded-xl glass border-0 focus:ring-2 focus:ring-purple-500 transition-all"
-                                            style={{ color: 'var(--foreground)', background: 'var(--background-secondary)', marginBottom: '10px', paddingLeft: '10px' }}
-                                            placeholder="How can we help?"
-                                        />
+                                        <div className="relative">
+                                            <FileText
+                                                className="absolute w-5 h-5"
+                                                style={{
+                                                    left: '16px',
+                                                    top: '40%',
+                                                    bottom: '50%',
+                                                    transform: 'translateY(-50%)',
+                                                    color: 'var(--foreground-tertiary)'
+                                                }}
+                                            />
+                                            <input
+                                                type="text"
+                                                required
+                                                value={formData.subject}
+                                                onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+                                                className="w-full h-13 px-5 py-4 rounded-xl glass border-0 focus:ring-2 focus:ring-purple-500 transition-all"
+                                                style={{ color: 'var(--foreground)', background: 'var(--background-secondary)', marginBottom: '10px', paddingLeft: '50px' }}
+                                                placeholder="How can we help?"
+                                            />
+                                        </div>
                                     </div>
 
                                     {/* Message */}
