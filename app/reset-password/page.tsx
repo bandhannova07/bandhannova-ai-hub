@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { motion } from 'framer-motion';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
@@ -9,7 +9,7 @@ import { getAllDBs } from '@/lib/database/multi-db';
 
 export const dynamic = 'force-dynamic';
 
-export default function ResetPasswordPage() {
+function ResetPasswordContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const [password, setPassword] = useState('');
@@ -290,5 +290,19 @@ export default function ResetPasswordPage() {
                 )}
             </motion.div>
         </main>
+    );
+}
+
+export default function ResetPasswordPage() {
+    return (
+        <Suspense fallback={
+            <main className="min-h-screen flex items-center justify-center">
+                <div className="text-center">
+                    <p style={{ color: 'var(--foreground)' }}>Loading...</p>
+                </div>
+            </main>
+        }>
+            <ResetPasswordContent />
+        </Suspense>
     );
 }
