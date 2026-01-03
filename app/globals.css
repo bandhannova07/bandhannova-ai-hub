@@ -767,3 +767,117 @@ a:focus-visible {
     font-size: 13px !important;
   }
 }
+
+/* Mobile container - reduce left/right padding */
+@media (max-width: 640px) {
+  .mobile-container {
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+  }
+  
+  .mobile-grid-compact {
+    gap: 8px !important;
+  }
+  
+  /* Small AI icons on mobile */
+  .ai-icon-mobile {
+    width: 48px !important;
+    height: 48px !important;
+  }
+  
+  .ai-icon-mobile svg {
+    width: 24px !important;
+    height: 24px !important;
+  }
+}
+
+/* Mobile Plans Card Optimization */
+@media (max-width: 640px) {
+  /* Reduce gap between plans cards */
+  .plans-grid-mobile {
+    gap: 16px !important;
+  }
+  
+  /* Smaller plan card icons */
+  .plan-icon-mobile {
+    width: 48px !important;
+    height: 48px !important;
+    margin-bottom: 12px !important;
+  }
+  
+  .plan-icon-mobile svg {
+    width: 24px !important;
+    height: 24px !important;
+  }
+  
+  /* Smaller text in plan cards */
+  .plan-title-mobile {
+    font-size: 18px !important;
+  }
+  
+  .plan-price-mobile {
+    font-size: 28px !important;
+  }
+  
+  .plan-feature-mobile {
+    font-size: 13px !important;
+  }
+  
+  .plan-button-mobile {
+    font-size: 14px !important;
+    padding: 12px 20px !important;
+  }
+  
+  /* Compact plan card padding */
+  .plan-card-mobile {
+    padding: 20px !important;
+  }
+}
+
+/* Mobile Plans Card - Extra Small Optimization */
+@media (max-width: 640px) {
+  /* Much smaller plan card icons */
+  .plan-icon-mobile {
+    width: 40px !important;
+    height: 40px !important;
+    margin-bottom: 8px !important;
+  }
+  
+  .plan-icon-mobile svg {
+    width: 20px !important;
+    height: 20px !important;
+  }
+  
+  /* Smaller plan title */
+  .plan-title-mobile {
+    font-size: 16px !important;
+  }
+  
+  /* Smaller plan price */
+  .plan-price-mobile {
+    font-size: 22px !important;
+  }
+  
+  /* Much smaller feature text and checkmark */
+  .plan-feature-mobile {
+    font-size: 11px !important;
+    line-height: 1.4 !important;
+  }
+  
+  .plan-feature-mobile svg {
+    width: 14px !important;
+    height: 14px !important;
+    min-width: 14px !important;
+  }
+  
+  /* Smaller button */
+  .plan-button-mobile {
+    font-size: 13px !important;
+    padding: 10px 16px !important;
+  }
+  
+  /* Compact plan card */
+  .plan-card-mobile {
+    padding: 16px !important;
+  }
+}
