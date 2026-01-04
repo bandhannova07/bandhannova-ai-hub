@@ -7,6 +7,9 @@ import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import Script from 'next/script';
 import { SkeletonDashboard } from '@/components/Skeleton';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import {
     Sparkles,
     Lightbulb,
@@ -46,7 +49,8 @@ const AI_AGENTS = [
         icon: Sparkles,
         gradient: 'linear-gradient(135deg, #a855f7 0%, #ec4899 100%)',
         description: 'Content creation, social media posts, viral captions',
-        features: ['Instagram Posts', 'YouTube Scripts', 'Viral Content']
+        features: ['Instagram Posts', 'YouTube Scripts', 'Viral Content'],
+        buttonText: 'Create Content'
     },
     {
         id: 'creative-productivity',
@@ -54,7 +58,8 @@ const AI_AGENTS = [
         icon: Lightbulb,
         gradient: 'linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%)',
         description: 'Brainstorming, writing, productivity optimization',
-        features: ['Idea Generation', 'Writing Help', 'Task Planning']
+        features: ['Idea Generation', 'Writing Help', 'Task Planning'],
+        buttonText: 'Get Ideas'
     },
     {
         id: 'psychology-personality',
@@ -62,7 +67,8 @@ const AI_AGENTS = [
         icon: Brain,
         gradient: 'linear-gradient(135deg, #ec4899 0%, #f43f5e 100%)',
         description: 'Personality insights, mental health, self-improvement',
-        features: ['Personality Test', 'Mental Health', 'Self Growth']
+        features: ['Personality Test', 'Mental Health', 'Self Growth'],
+        buttonText: 'Discover Yourself'
     },
     {
         id: 'study-learning',
@@ -70,7 +76,8 @@ const AI_AGENTS = [
         icon: BookOpen,
         gradient: 'linear-gradient(135deg, #10b981 0%, #14b8a6 100%)',
         description: 'Study help, explanations, exam preparation',
-        features: ['Homework Help', 'Concept Clarity', 'Exam Prep']
+        features: ['Homework Help', 'Concept Clarity', 'Exam Prep'],
+        buttonText: 'Start Learning'
     },
     {
         id: 'business-career',
@@ -78,7 +85,8 @@ const AI_AGENTS = [
         icon: Briefcase,
         gradient: 'linear-gradient(135deg, #f97316 0%, #fb923c 100%)',
         description: 'Business strategy, career guidance, growth tips',
-        features: ['Business Plan', 'Career Advice', 'Resume Help']
+        features: ['Business Plan', 'Career Advice', 'Resume Help'],
+        buttonText: 'Grow Business'
     },
     {
         id: 'conversational',
@@ -86,7 +94,8 @@ const AI_AGENTS = [
         icon: MessageCircle,
         gradient: 'linear-gradient(135deg, #06b6d4 0%, #0891b2 100%)',
         description: 'General chat, questions, friendly assistance',
-        features: ['General Chat', 'Q&A', 'Daily Help']
+        features: ['General Chat', 'Q&A', 'Daily Help'],
+        buttonText: 'Start Chatting'
     },
     {
         id: 'website-builder',
@@ -94,7 +103,8 @@ const AI_AGENTS = [
         icon: Code,
         gradient: 'linear-gradient(135deg, #ef4444 0%, #f97316 100%)',
         description: 'Code generation, web development, debugging',
-        features: ['Code Gen', 'Bug Fixes', 'Web Design']
+        features: ['Code Gen', 'Bug Fixes', 'Web Design'],
+        buttonText: 'Build Website'
     },
     {
         id: 'image-maker',
@@ -102,7 +112,8 @@ const AI_AGENTS = [
         icon: ImageIcon,
         gradient: '#FF6B9D',
         description: 'Create stunning images, graphics, and visual content from text',
-        features: ['Image Generation', 'Graphics Design', 'Visual Content']
+        features: ['Image Generation', 'Graphics Design', 'Visual Content'],
+        buttonText: 'Create Image'
     },
     {
         id: 'kitchen-recipe',
@@ -110,7 +121,8 @@ const AI_AGENTS = [
         icon: ChefHat,
         gradient: '#00D9FF',
         description: 'Get delicious recipes, cooking tips, and meal planning',
-        features: ['Recipes', 'Cooking Tips', 'Meal Planning']
+        features: ['Recipes', 'Cooking Tips', 'Meal Planning'],
+        buttonText: 'Get Recipe'
     },
     {
         id: 'search-engine',
@@ -118,7 +130,8 @@ const AI_AGENTS = [
         icon: Globe,
         gradient: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
         description: 'Web research, information discovery, knowledge exploration',
-        features: ['Web Research', 'Discovery', 'Knowledge']
+        features: ['Web Research', 'Discovery', 'Knowledge'],
+        buttonText: 'Start Searching'
     },
 ];
 
@@ -127,8 +140,10 @@ export default function DashboardPage() {
     const [user, setUser] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [comingSoonOpen, setComingSoonOpen] = useState(false);
     const [isDesktop, setIsDesktop] = useState(false);
     const [activeView, setActiveView] = useState<'dashboard' | 'plans' | 'about'>('dashboard');
+    const [recentAgents, setRecentAgents] = useState<string[]>([]);
     const [stats, setStats] = useState({
         conversations: 0,
         messages: 0,
@@ -154,6 +169,30 @@ export default function DashboardPage() {
         window.addEventListener('resize', handleResize);
 
         return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+    // Disable body scroll when sidebar is open on mobile
+    useEffect(() => {
+        if (sidebarOpen && !isDesktop) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = 'unset';
+        }
+
+        return () => {
+            document.body.style.overflow = 'unset';
+        };
+    }, [sidebarOpen, isDesktop]);
+
+    // Load recent agents from localStorage
+    useEffect(() => {
+        const loadRecentAgents = () => {
+            const recent = localStorage.getItem('recentAgents');
+            if (recent) {
+                setRecentAgents(JSON.parse(recent));
+            }
+        };
+        loadRecentAgents();
     }, []);
 
     async function checkAuth() {
@@ -225,6 +264,25 @@ export default function DashboardPage() {
         router.push('/');
     }
 
+    // Handle view change and close sidebar on mobile
+    const handleViewChange = (view: 'dashboard' | 'plans' | 'about') => {
+        setActiveView(view);
+        if (!isDesktop) {
+            setSidebarOpen(false);
+        }
+    };
+
+    // Track recently used agents
+    const handleAgentClick = (agentId: string) => {
+        // Update recent agents list
+        const updatedRecents = [agentId, ...recentAgents.filter(id => id !== agentId)].slice(0, 5); // Keep max 5 recent
+        setRecentAgents(updatedRecents);
+        localStorage.setItem('recentAgents', JSON.stringify(updatedRecents));
+
+        // Navigate to chat
+        router.push(`/chat/${agentId}`);
+    };
+
     // Show skeleton while loading
     if (loading) {
         return (
@@ -260,7 +318,7 @@ export default function DashboardPage() {
                     style={{ padding: '24px 16px' }}
                 >
                     {/* Logo */}
-                    <div style={{ marginBottom: '40px', marginTop: '24px' }}>
+                    <div style={{ marginBottom: '40px', marginTop: '36px' }}>
                         <Image
                             src="/bandhannova-logo-final.svg"
                             alt="BandhanNova AI Hub"
@@ -268,7 +326,7 @@ export default function DashboardPage() {
                             height={80}
                             style={{ marginBottom: '8px' }}
                         />
-                        <p style={{ color: 'var(--foreground-tertiary)', fontSize: '18px' }}>
+                        <p className="sidebar-subtitle" style={{ color: 'var(--foreground-tertiary)', fontSize: '18px' }}>
                             AI Hub Dashboard
                         </p>
                     </div>
@@ -293,7 +351,7 @@ export default function DashboardPage() {
                             </div>
                             <div style={{ overflow: 'hidden', flex: 1 }}>
                                 <p
-                                    className="font-semibold"
+                                    className="font-semibold sidebar-user-name"
                                     style={{
                                         color: 'white',
                                         fontSize: '18px',
@@ -359,6 +417,7 @@ export default function DashboardPage() {
                     <nav className="flex-1" style={{ marginBottom: '24px' }}>
                         <div style={{ marginBottom: '8px' }}>
                             <p
+                                className="sidebar-menu-label"
                                 style={{
                                     color: 'var(--foreground-tertiary)',
                                     fontSize: '18px',
@@ -374,79 +433,71 @@ export default function DashboardPage() {
                         </div>
 
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                            <button
-                                onClick={() => setActiveView('dashboard')}
-                                className="flex items-center gap-3 rounded-xl transition-all hover:scale-105"
+                            <Button
+                                onClick={() => handleViewChange('dashboard')}
+                                variant="ghost"
+                                className="flex items-center gap-3 rounded-xl transition-all hover:scale-105 justify-start text-white"
                                 style={{
                                     padding: '14px 16px',
                                     background: activeView === 'dashboard' ? 'var(--gradient-hero)' : 'rgba(255, 255, 255, 0.1)',
-                                    color: 'white',
-                                    border: 'none',
-                                    cursor: 'pointer',
-                                    width: '100%',
-                                    textAlign: 'left'
+                                    width: '100%'
                                 }}
                             >
                                 <Home className="w-5 h-5" />
-                                <span style={{ fontSize: '18px', fontWeight: '500' }}>Dashboard</span>
-                            </button>
+                                <span className="sidebar-nav-text" style={{ fontSize: '18px', fontWeight: '500' }}>Dashboard</span>
+                            </Button>
 
-                            <button
-                                onClick={() => setActiveView('plans')}
-                                className="flex items-center gap-3 rounded-xl transition-all hover:scale-105 w-full text-left"
+                            <Button
+                                onClick={() => handleViewChange('plans')}
+                                variant="ghost"
+                                className="flex items-center gap-3 rounded-xl transition-all hover:scale-105 justify-start text-white"
                                 style={{
                                     padding: '14px 16px',
                                     background: activeView === 'plans' ? 'var(--gradient-hero)' : 'rgba(255, 255, 255, 0.1)',
-                                    color: 'white',
-                                    border: 'none',
-                                    cursor: 'pointer'
+                                    width: '100%'
                                 }}
                             >
                                 <CreditCard className="w-5 h-5" />
-                                <span style={{ fontSize: '18px', fontWeight: '500' }}>Plans</span>
-                            </button>
+                                <span className="sidebar-nav-text" style={{ fontSize: '18px', fontWeight: '500' }}>Plans</span>
+                            </Button>
 
-                            <button
-                                onClick={() => setActiveView('about')}
-                                className="flex items-center gap-3 rounded-xl transition-all hover:scale-105"
+                            <Button
+                                onClick={() => handleViewChange('about')}
+                                variant="ghost"
+                                className="flex items-center gap-3 rounded-xl transition-all hover:scale-105 justify-start text-white"
                                 style={{
                                     padding: '14px 16px',
                                     background: activeView === 'about' ? 'var(--gradient-hero)' : 'rgba(255, 255, 255, 0.1)',
-                                    color: 'white',
-                                    border: 'none',
-                                    cursor: 'pointer',
-                                    width: '100%',
-                                    textAlign: 'left'
+                                    width: '100%'
                                 }}
                             >
                                 <Info className="w-5 h-5" />
-                                <span style={{ fontSize: '18px', fontWeight: '500' }}>About</span>
-                            </button>
+                                <span className="sidebar-nav-text" style={{ fontSize: '18px', fontWeight: '500' }}>About</span>
+                            </Button>
 
-                            <Link
-                                href="/contact"
-                                className="flex items-center gap-3 rounded-xl transition-all hover:scale-105"
+                            <Button
+                                asChild
+                                variant="ghost"
+                                className="flex items-center gap-3 rounded-xl transition-all hover:scale-105 justify-start text-white"
                                 style={{
-                                    padding: '14px 16px',
+                                    padding: '12px 16px',
                                     background: 'rgba(255, 255, 255, 0.1)',
-                                    color: 'white',
-                                    border: 'none',
-                                    cursor: 'pointer',
-                                    width: '100%',
-                                    textAlign: 'left',
-                                    textDecoration: 'none'
+                                    width: '100%'
                                 }}
                             >
-                                <MessageSquare className="w-5 h-5" />
-                                <span style={{ fontSize: '18px', fontWeight: '500' }}>Feedback</span>
-                            </Link>
+                                <Link href="/contact">
+                                    <MessageSquare className="w-5 h-5" />
+                                    <span className="sidebar-nav-text" style={{ fontSize: '18px', fontWeight: '500' }}>Feedback</span>
+                                </Link>
+                            </Button>
                         </div>
                     </nav>
 
                     {/* Sign Out */}
-                    <button
+                    <Button
                         onClick={handleSignOut}
-                        className="flex items-center gap-3 rounded-xl transition-all hover:scale-105 text-red-500"
+                        variant="ghost"
+                        className="flex items-center gap-3 rounded-xl transition-all hover:scale-105 text-red-500 justify-start"
                         style={{
                             padding: '14px 16px',
                             width: '100%',
@@ -454,8 +505,8 @@ export default function DashboardPage() {
                         }}
                     >
                         <LogOut className="w-5 h-5" />
-                        <span style={{ fontSize: '18px', fontWeight: '500' }}>Sign Out</span>
-                    </button>
+                        <span className="sidebar-nav-text" style={{ fontSize: '18px', fontWeight: '500' }}>Sign Out</span>
+                    </Button>
                 </div>
             </aside>
 
@@ -486,7 +537,7 @@ export default function DashboardPage() {
 
             {/* Main Content */}
             <div
-                className="relative flex-1 overflow-y-auto transition-all duration-300"
+                className={`relative flex-1 transition-all duration-300 ${sidebarOpen && !isDesktop ? '' : 'overflow-y-auto'}`}
                 style={{
                     marginLeft: isDesktop && sidebarOpen ? '380px' : '0'
                 }}
@@ -513,7 +564,7 @@ export default function DashboardPage() {
                                         lineHeight: '1.2'
                                     }}
                                 >
-                                    Welcome back, <span className="bg-gradient-to-r from-purple-500 to-cyan-500 bg-clip-text text-transparent">{user?.user_metadata?.full_name?.split(' ')[0] || 'there'}</span>! 👋
+                                    Welcome back, <br /><span className="bg-gradient-to-r from-purple-500 to-cyan-500 bg-clip-text text-transparent">{user?.user_metadata?.full_name?.split(' ')[0] || 'there'}</span>! 👋
                                 </h1>
                                 <p
                                     style={{
@@ -526,6 +577,77 @@ export default function DashboardPage() {
                                 </p>
                             </motion.div>
 
+                            {/* Recents Section - Only show if user has recent agents */}
+                            {recentAgents.length > 0 && (
+                                <motion.div
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    style={{ marginBottom: '48px' }}
+                                >
+                                    <h3
+                                        className="font-bold dashboard-section-header"
+                                        style={{
+                                            fontSize: '24px',
+                                            color: 'var(--foreground)',
+                                            marginBottom: '16px'
+                                        }}
+                                    >
+                                        Recents
+                                    </h3>
+                                    <div
+                                        className="flex gap-4 overflow-x-auto pb-4"
+                                        style={{
+                                            scrollbarWidth: 'thin',
+                                            scrollbarColor: 'rgba(255, 255, 255, 0.3) transparent'
+                                        }}
+                                    >
+                                        {recentAgents.map((agentId) => {
+                                            const agent = AI_AGENTS.find(a => a.id === agentId);
+                                            if (!agent) return null;
+                                            const Icon = agent.icon;
+                                            return (
+                                                <motion.div
+                                                    key={agent.id}
+                                                    whileHover={{ scale: 1.05 }}
+                                                    whileTap={{ scale: 0.95 }}
+                                                    onClick={() => handleAgentClick(agent.id)}
+                                                    style={{ cursor: 'pointer' }}
+                                                >
+                                                    <div
+                                                        className="flex flex-col items-center gap-2"
+                                                        style={{ minWidth: '80px' }}
+                                                    >
+                                                        <div
+                                                            className="rounded-2xl flex items-center justify-center transition-all hover:shadow-lg"
+                                                            style={{
+                                                                width: '64px',
+                                                                height: '64px',
+                                                                background: agent.gradient,
+                                                                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)'
+                                                            }}
+                                                        >
+                                                            <Icon className="w-8 h-8 text-white" />
+                                                        </div>
+                                                        <p
+                                                            className="text-center text-xs font-medium"
+                                                            style={{
+                                                                color: 'var(--foreground-secondary)',
+                                                                maxWidth: '80px',
+                                                                overflow: 'hidden',
+                                                                textOverflow: 'ellipsis',
+                                                                whiteSpace: 'nowrap'
+                                                            }}
+                                                        >
+                                                            {agent.name.split(' ')[0]}
+                                                        </p>
+                                                    </div>
+                                                </motion.div>
+                                            );
+                                        })}
+                                    </div>
+                                </motion.div>
+                            )}
+
                             {/* AI Agents - Categorized */}
                             <div style={{ marginBottom: '60px' }}>
                                 {/* Default (Free Now) */}
@@ -535,7 +657,7 @@ export default function DashboardPage() {
                                     style={{ marginBottom: '40px', padding: '4px' }}
                                 >
                                     <h3
-                                        className="font-bold"
+                                        className="font-bold dashboard-section-header"
                                         style={{
                                             fontSize: '24px',
                                             color: 'var(--foreground)',
@@ -553,7 +675,7 @@ export default function DashboardPage() {
                                                     initial={{ opacity: 0, y: 20 }}
                                                     animate={{ opacity: 1, y: 0 }}
                                                     transition={{ delay: index * 0.1 }}
-                                                    onClick={() => router.push(`/chat/${agent.id}`)}
+                                                    onClick={() => handleAgentClick(agent.id)}
                                                 >
                                                     <div className="ai-card-new">
                                                         <div
@@ -564,13 +686,13 @@ export default function DashboardPage() {
                                                         </div>
                                                         <h3 className="ai-card-title">{agent.name}</h3>
                                                         <p className="ai-card-desc">{agent.description}</p>
-                                                        <button className="ai-card-action-btn">
-                                                            {agent.id === 'search-engine' ? 'Start Searching' :
-                                                                agent.id === 'image-maker' ? 'Create Image' :
-                                                                    agent.id === 'kitchen-recipe' ? 'Get Recipe' :
-                                                                        'Start Chatting'}
+                                                        <Button
+                                                            size="sm"
+                                                            className="ai-card-action-btn"
+                                                        >
+                                                            {agent.buttonText}
                                                             <ArrowRight className="w-4 h-4" />
-                                                        </button>
+                                                        </Button>
                                                     </div>
                                                 </motion.div>
                                             );
@@ -586,7 +708,7 @@ export default function DashboardPage() {
                                     style={{ marginBottom: '40px' }}
                                 >
                                     <h3
-                                        className="font-bold"
+                                        className="font-bold dashboard-section-header"
                                         style={{
                                             fontSize: '24px',
                                             color: 'var(--foreground)',
@@ -606,7 +728,7 @@ export default function DashboardPage() {
                                                     initial={{ opacity: 0, y: 20 }}
                                                     animate={{ opacity: 1, y: 0 }}
                                                     transition={{ delay: 0.2 + index * 0.1 }}
-                                                    onClick={() => router.push(`/chat/${agent.id}`)}
+                                                    onClick={() => handleAgentClick(agent.id)}
                                                 >
                                                     <div className="ai-card-new">
                                                         <div
@@ -617,13 +739,13 @@ export default function DashboardPage() {
                                                         </div>
                                                         <h3 className="ai-card-title">{agent.name}</h3>
                                                         <p className="ai-card-desc">{agent.description}</p>
-                                                        <button className="ai-card-action-btn">
-                                                            {agent.id === 'search-engine' ? 'Start Searching' :
-                                                                agent.id === 'image-maker' ? 'Create Image' :
-                                                                    agent.id === 'kitchen-recipe' ? 'Get Recipe' :
-                                                                        'Start Chatting'}
-                                                            <ArrowRight className="w-4 h-4" />
-                                                        </button>
+                                                        <Button
+                                                            size="sm"
+                                                            className="ai-card-action-btn w-full whitespace-nowrap text-[11px] sm:text-xs transition-all duration-300"
+                                                        >
+                                                            Start Chat
+                                                            <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 ml-2" />
+                                                        </Button>
                                                     </div>
                                                 </motion.div>
                                             );
@@ -638,7 +760,7 @@ export default function DashboardPage() {
                                     transition={{ delay: 0.8 }}
                                 >
                                     <h3
-                                        className="font-bold"
+                                        className="font-bold dashboard-section-header"
                                         style={{
                                             fontSize: '24px',
                                             color: 'var(--foreground)',
@@ -658,24 +780,17 @@ export default function DashboardPage() {
                                                     transition={{ delay: 0.8 + index * 0.1 }}
                                                     className="group cursor-not-allowed opacity-60"
                                                 >
-                                                    <div
-                                                        className="glass rounded-3xl h-full border transition-all relative overflow-hidden"
-                                                        style={{
-                                                            padding: '28px',
-                                                            borderColor: 'rgba(255, 255, 255, 0.1)',
-                                                            backdropFilter: 'blur(20px)',
-                                                        }}
-                                                    >
+                                                    <div className="ai-card-new opacity-70">
                                                         {/* Coming Soon Ribbon */}
                                                         <div
                                                             className="absolute font-bold text-xs"
                                                             style={{
-                                                                top: '30px',
-                                                                right: '-50px',
+                                                                top: '32px',
+                                                                right: '-85px',
                                                                 background: 'var(--gradient-hero)',
                                                                 color: 'white',
-                                                                padding: '6px 48px',
-                                                                transform: 'rotate(45deg)',
+                                                                padding: '4px 80px',
+                                                                transform: 'rotate(50deg)',
                                                                 boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
                                                                 zIndex: 10
                                                             }}
@@ -684,67 +799,21 @@ export default function DashboardPage() {
                                                         </div>
 
                                                         <div
-                                                            className="rounded-2xl flex items-center justify-center"
-                                                            style={{
-                                                                width: '72px',
-                                                                height: '72px',
-                                                                background: agent.gradient,
-                                                                marginBottom: '20px',
-                                                                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)'
-                                                            }}
+                                                            className="ai-card-icon-badge"
+                                                            style={{ background: agent.gradient }}
                                                         >
-                                                            <Icon className="w-9 h-9 text-white" />
+                                                            <Icon className="w-6 h-6 text-white" style={{ position: 'relative', zIndex: 1 }} />
                                                         </div>
-                                                        <h3
-                                                            className="font-bold"
-                                                            style={{
-                                                                fontSize: '28px',
-                                                                color: 'var(--foreground)',
-                                                                marginBottom: '8px',
-                                                                lineHeight: '1.3'
-                                                            }}
+                                                        <h3 className="ai-card-title">{agent.name}</h3>
+                                                        <p className="ai-card-desc">{agent.description}</p>
+                                                        <Button
+                                                            size="sm"
+                                                            disabled
+                                                            className="ai-card-action-btn opacity-50 cursor-not-allowed"
                                                         >
-                                                            {agent.name}
-                                                        </h3>
-                                                        <p
-                                                            style={{
-                                                                fontSize: '14px',
-                                                                color: 'var(--foreground-secondary)',
-                                                                marginBottom: '16px',
-                                                                lineHeight: '1.6'
-                                                            }}
-                                                        >
-                                                            {agent.description}
-                                                        </p>
-                                                        <div
-                                                            className="flex flex-wrap"
-                                                            style={{ gap: '8px', marginBottom: '20px' }}
-                                                        >
-                                                            {agent.features.map((feature, i) => (
-                                                                <span
-                                                                    key={i}
-                                                                    className="rounded-lg"
-                                                                    style={{
-                                                                        padding: '4px 10px',
-                                                                        fontSize: '12px',
-                                                                        background: 'rgba(255, 255, 255, 0.05)',
-                                                                        color: 'var(--foreground-tertiary)',
-                                                                        border: '1px solid rgba(255, 255, 255, 0.1)'
-                                                                    }}
-                                                                >
-                                                                    {feature}
-                                                                </span>
-                                                            ))}
-                                                        </div>
-                                                        <div
-                                                            className="flex items-center gap-2 font-medium"
-                                                            style={{
-                                                                fontSize: '14px',
-                                                                color: 'var(--foreground-tertiary)'
-                                                            }}
-                                                        >
-                                                            <span>Coming Soon</span>
-                                                        </div>
+                                                            {agent.buttonText}
+                                                            <ArrowRight className="w-4 h-4" />
+                                                        </Button>
                                                     </div>
                                                 </motion.div>
                                             );
@@ -971,7 +1040,7 @@ export default function DashboardPage() {
                                                 ))}
                                             </ul>
 
-                                            <button
+                                            <Button
                                                 onClick={async () => {
                                                     if (plan.name === 'Free') {
                                                         alert('You are currently on the Free plan!');
@@ -1049,6 +1118,7 @@ export default function DashboardPage() {
                                                 className="w-full rounded-xl font-semibold transition-all hover:scale-105"
                                                 style={{
                                                     padding: '14px',
+                                                    height: 'auto',
                                                     background: plan.name === stats.plan
                                                         ? 'rgba(76, 175, 80, 0.2)' // Green for current plan
                                                         : (plan.name === 'Free' && stats.plan !== 'Free')
@@ -1063,7 +1133,6 @@ export default function DashboardPage() {
                                                     cursor: (plan.name === stats.plan || (plan.name === 'Free' && stats.plan !== 'Free')) ? 'not-allowed' : 'pointer',
                                                     opacity: (plan.name === stats.plan || (plan.name === 'Free' && stats.plan !== 'Free')) ? 0.7 : 1
                                                 }}
-                                                type="button"
                                                 disabled={plan.name === stats.plan || (plan.name === 'Free' && stats.plan !== 'Free')}
                                             >
                                                 {plan.name === stats.plan
@@ -1071,7 +1140,7 @@ export default function DashboardPage() {
                                                     : (plan.name === 'Free' && stats.plan !== 'Free')
                                                         ? 'Not Available'
                                                         : 'Upgrade Now'}
-                                            </button>
+                                            </Button>
                                         </motion.div>
                                     );
                                 })}
@@ -1165,18 +1234,20 @@ export default function DashboardPage() {
                                     >
                                         Understand your rights and responsibilities when using our AI platform. Review our comprehensive terms of service and usage guidelines.
                                     </p>
-                                    <Link
-                                        href="/terms"
-                                        className="flex items-center gap-2 font-medium transition-all"
-                                        style={{
-                                            fontSize: '14px',
-                                            color: 'var(--primary-purple)',
-                                            textDecoration: 'none'
-                                        }}
-                                    >
-                                        <span>View Terms</span>
-                                        <ArrowRight className="w-4 h-4" />
-                                    </Link>
+                                    <Button asChild variant="link" className="p-0 h-auto hover:no-underline">
+                                        <Link
+                                            href="/terms"
+                                            className="flex items-center gap-2 font-medium transition-all hover:gap-3"
+                                            style={{
+                                                fontSize: '14px',
+                                                color: 'var(--primary-purple)',
+                                                textDecoration: 'none'
+                                            }}
+                                        >
+                                            <span>View Terms</span>
+                                            <ArrowRight className="w-4 h-4" />
+                                        </Link>
+                                    </Button>
                                 </motion.div>
 
                                 {/* Privacy & Policies Card */}
@@ -1226,18 +1297,20 @@ export default function DashboardPage() {
                                     >
                                         Your privacy matters to us. Learn how we collect, use, and protect your personal data with industry-leading security standards.
                                     </p>
-                                    <Link
-                                        href="/privacy"
-                                        className="flex items-center gap-2 font-medium transition-all"
-                                        style={{
-                                            fontSize: '14px',
-                                            color: 'var(--primary-purple)',
-                                            textDecoration: 'none'
-                                        }}
-                                    >
-                                        <span>View Privacy Policy</span>
-                                        <ArrowRight className="w-4 h-4" />
-                                    </Link>
+                                    <Button asChild variant="link" className="p-0 h-auto hover:no-underline">
+                                        <Link
+                                            href="/privacy"
+                                            className="flex items-center gap-2 font-medium transition-all hover:gap-3"
+                                            style={{
+                                                fontSize: '14px',
+                                                color: 'var(--primary-purple)',
+                                                textDecoration: 'none'
+                                            }}
+                                        >
+                                            <span>View Privacy Policy</span>
+                                            <ArrowRight className="w-4 h-4" />
+                                        </Link>
+                                    </Button>
                                 </motion.div>
 
                                 {/* About BandhanNova Card */}
@@ -1287,18 +1360,20 @@ export default function DashboardPage() {
                                     >
                                         Discover our mission to democratize AI for India. Learn about our vision, values, and the team behind BandhanNova AI Hub.
                                     </p>
-                                    <Link
-                                        href="/about"
-                                        className="flex items-center gap-2 font-medium transition-all"
-                                        style={{
-                                            fontSize: '14px',
-                                            color: 'var(--primary-purple)',
-                                            textDecoration: 'none'
-                                        }}
-                                    >
-                                        <span>Learn More</span>
-                                        <ArrowRight className="w-4 h-4" />
-                                    </Link>
+                                    <Button asChild variant="link" className="p-0 h-auto hover:no-underline">
+                                        <Link
+                                            href="/about"
+                                            className="flex items-center gap-2 font-medium transition-all hover:gap-3"
+                                            style={{
+                                                fontSize: '14px',
+                                                color: 'var(--primary-purple)',
+                                                textDecoration: 'none'
+                                            }}
+                                        >
+                                            <span>Learn More</span>
+                                            <ArrowRight className="w-4 h-4" />
+                                        </Link>
+                                    </Button>
                                 </motion.div>
 
                                 {/* FAQ Card */}
@@ -1346,18 +1421,20 @@ export default function DashboardPage() {
                                     >
                                         Get instant answers to common questions about features, billing, privacy, and technical support for our AI platform.
                                     </p>
-                                    <Link
-                                        href="/faq"
-                                        className="flex items-center gap-2 font-medium transition-all"
-                                        style={{
-                                            fontSize: '14px',
-                                            color: 'var(--primary-purple)',
-                                            textDecoration: 'none'
-                                        }}
-                                    >
-                                        <span>View FAQ</span>
-                                        <ArrowRight className="w-4 h-4" />
-                                    </Link>
+                                    <Button asChild variant="link" className="p-0 h-auto hover:no-underline">
+                                        <Link
+                                            href="/faq"
+                                            className="flex items-center gap-2 font-medium transition-all hover:gap-3"
+                                            style={{
+                                                fontSize: '14px',
+                                                color: 'var(--primary-purple)',
+                                                textDecoration: 'none'
+                                            }}
+                                        >
+                                            <span>View FAQ</span>
+                                            <ArrowRight className="w-4 h-4" />
+                                        </Link>
+                                    </Button>
                                 </motion.div>
                             </div>
                         </>

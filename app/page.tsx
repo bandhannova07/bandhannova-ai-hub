@@ -6,6 +6,9 @@ import Link from 'next/link';
 import { ArrowRight, Sparkles, Info } from 'lucide-react';
 import ParticleBackground from '@/components/ParticleBackground';
 import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function Home() {
   const router = useRouter();
@@ -61,13 +64,13 @@ export default function Home() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.3 }}
-            className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-2xl h-8 w-80 glass"
+            className="inline-flex justify-center"
             style={{ marginBottom: '20px' }}
           >
-            <Sparkles className="w-4 h-4 text-accent-cyan" style={{ color: 'var(--accent-cyan)' }} />
-            <span className="text-sm font-medium" style={{ color: 'var(--foreground-secondary)' }}>
+            <Badge variant="outline" className="px-4 py-2 h-8 w-80 glass flex items-center gap-2 text-sm font-medium rounded-2xl" style={{ color: 'var(--foreground-secondary)' }}>
+              <Sparkles className="w-4 h-4 text-accent-cyan" style={{ color: 'var(--accent-cyan)' }} />
               India's Next Generation AI Ecosystem
-            </span>
+            </Badge>
           </motion.div>
 
           {/* Main Headline - MORE SPACE */}
@@ -107,31 +110,30 @@ export default function Home() {
             className="flex flex-col sm:flex-row gap-5 justify-center items-center"
             style={{ marginTop: '0px', marginBottom: '40px' }}
           >
-            <button
+            <Button
               onClick={goToSignup}
-              className="group relative px-14 py-5 rounded-2xl h-12 font-bold text-xl overflow-hidden transition-all duration-300 hover:scale-105 min-w-[280px]"
-              style={{
-                background: 'var(--gradient-hero)',
-                color: 'white',
-              }}
+              size="lg"
+              className="group relative px-14 py-5 rounded-2xl h-12 font-bold text-xl text-white overflow-hidden transition-all duration-300 hover:scale-105 min-w-[280px]"
+              style={{ background: 'var(--gradient-hero)' }}
             >
               <span className="relative z-10 flex items-center gap-2 justify-center">
                 Start Growing (Free)
                 <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
               </span>
               <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity" />
-            </button>
+            </Button>
 
-            <button
+            <Button
               onClick={scrollToPlatformOverview}
-              className="group px-14 py-5 rounded-2xl h-12 font-bold text-xl glass transition-all duration-300 hover:scale-105 hover:glass-strong min-w-[280px]"
-              style={{ color: 'var(--foreground)' }}
+              variant="outline"
+              size="lg"
+              className="group px-14 py-5 rounded-2xl h-12 font-bold text-xl glass transition-all duration-300 hover:scale-105 hover:glass-strong min-w-[280px] flex items-center justify-center"
             >
               <span className="flex items-center gap-2 justify-center">
                 Explore Features
                 <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
               </span>
-            </button>
+            </Button>
           </motion.div>
 
           {/* Scroll Indicator */}
@@ -364,7 +366,7 @@ export default function Home() {
               <motion.div
                 key={index}
                 whileHover={{ scale: 1.1 }}
-                className="glass px-8 py-4 rounded-2xl min-w-[120px] flex items-center justify-center font-medium text-lg"
+                className="glass px-4 md:px-8 py-2 md:py-4 rounded-2xl min-w-[80px] md:min-w-[120px] flex items-center justify-center font-medium text-sm md:text-lg"
                 style={{ color: 'var(--foreground)' }}
               >
                 {lang}
@@ -384,15 +386,15 @@ export default function Home() {
             transition={{ duration: 0.8 }}
             className="text-center"
           >
-            <h2 className="h1 mb-8" style={{ color: 'var(--foreground)', marginBottom: '30px', fontSize: '2.8rem' }}>
+            <h2 className="h1 mb-8" style={{ color: 'var(--foreground)', marginBottom: '30px', fontSize: '2rem' }}>
               Our <span className="gradient-text">Vision</span>
             </h2>
 
             <div className="glass p-12 rounded-3xl mb-12">
-              <blockquote className="text-2xl font-medium mb-6 italic" style={{ color: 'var(--foreground)', paddingBlock: '20px', marginLeft: '8px', marginRight: '10px' }}>
+              <blockquote className="text-lg md:text-2xl font-medium mb-6 italic" style={{ color: 'var(--foreground)', paddingBlock: '20px', marginLeft: '8px', marginRight: '10px' }}>
                 "BandhanNova is not just an AI app—it is a life-operating system."
               </blockquote>
-              <p className="body-large mb-8" style={{ color: 'var(--foreground-secondary)', paddingBlock: '20px', marginLeft: '5px', marginRight: '5px' }}>
+              <p className="body text-sm md:text-base mb-8" style={{ color: 'var(--foreground-secondary)', paddingBlock: '20px', marginLeft: '5px', marginRight: '5px' }}>
                 Our long-term vision is to help millions of users learn faster, think clearer,
                 grow smarter, and build skills, confidence, and careers—all through one intelligent,
                 responsive, and emotionally aware AI platform.
@@ -414,8 +416,8 @@ export default function Home() {
                   transition={{ duration: 0.5, delay: index * 0.1 }}
                   className="text-center"
                 >
-                  <div className="text-6xl font-bold gradient-text">{stat.number}</div>
-                  <div className="body" style={{ color: 'var(--foreground-secondary)', marginBottom: '18px' }}>
+                  <div className="text-4xl md:text-6xl font-bold gradient-text">{stat.number}</div>
+                  <div className="body text-sm md:text-base" style={{ color: 'var(--foreground-secondary)', marginBottom: '18px' }}>
                     {stat.label}
                   </div>
                 </motion.div>
@@ -441,44 +443,19 @@ export default function Home() {
               Join thousands growing smarter every day with India's first AI life-growing platform
             </p>
 
-            <div className="flex flex-col items-center sm:flex-row gap-4 justify-center mb-8">
-              <button
+            <div className="flex flex-col items-center justify-center" style={{ marginBottom: '3rem' }}>
+              <Button
                 onClick={goToSignup}
-                className="w-auto group relative px-10 py-5 h-12 rounded-2xl font-bold text-xl overflow-hidden transition-all duration-300 hover:scale-105"
-                style={{
-                  background: 'var(--gradient-hero)',
-                  color: 'white',
-                  marginBottom: '2rem',
-                  paddingLeft: '8px',
-                  paddingRight: '8px'
-                }}
+                size="lg"
+                className="w-auto group relative px-10 py-5 h-12 rounded-2xl font-bold text-xl text-white overflow-hidden transition-all duration-300 hover:scale-105"
+                style={{ background: 'var(--gradient-hero)' }}
               >
                 <span className="relative z-10 flex items-center gap-2 justify-center">
                   Start Your Journey (Free)
                   <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
                 </span>
                 <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity" />
-              </button>
-
-              <Link
-                href="/about"
-                className="w-auto group relative px-10 py-5 h-12 rounded-2xl font-bold text-xl overflow-hidden transition-all duration-300 hover:scale-105 flex items-center justify-center"
-                style={{
-                  background: 'rgba(255, 255, 255, 0.1)',
-                  color: 'var(--foreground)',
-                  border: '2px solid rgba(255, 255, 255, 0.2)',
-                  marginBottom: '2rem',
-                  backdropFilter: 'blur(10px)',
-                  paddingLeft: '8px',
-                  paddingRight: '8px'
-                }}
-              >
-                <span className="relative z-10 flex items-center gap-2 justify-center">
-                  About BandhanNova
-                  <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
-                </span>
-                <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-10 transition-opacity" />
-              </Link>
+              </Button>
             </div>
           </motion.div>
         </div>
@@ -503,9 +480,36 @@ export default function Home() {
               <p className="body mb-4" style={{ color: 'var(--foreground-secondary)' }}>
                 Where AI Doesn't Just Answer—It Inspires Action.
               </p>
-              <p className="small" style={{ color: 'var(--foreground-tertiary)', marginBottom: '30px' }}>
+              <p className="small" style={{ color: 'var(--foreground-tertiary)' }}>
                 India's first AI life-growing platform for all Indians
               </p>
+            </div>
+
+            {/* Quick Links */}
+            <div style={{ marginBottom: '30px' }}>
+              <h3 className="font-bold mb-6" style={{ color: 'var(--foreground)', marginTop: '5px' }}>Quick Links</h3>
+              <ul className="space-y-2">
+                <li>
+                  <Link href="/about" className="small hover:underline" style={{ color: 'var(--foreground-secondary)' }}>
+                    About
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/terms" className="small hover:underline" style={{ color: 'var(--foreground-secondary)' }}>
+                    Terms & Conditions
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/privacy" className="small hover:underline" style={{ color: 'var(--foreground-secondary)' }}>
+                    Privacy & Policy
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/faq" className="small hover:underline" style={{ color: 'var(--foreground-secondary)' }}>
+                    FAQs
+                  </Link>
+                </li>
+              </ul>
             </div>
           </div>
 

@@ -4,8 +4,10 @@ import { motion } from 'framer-motion';
 import { ChevronDown, HelpCircle, Search } from 'lucide-react';
 import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 export default function FAQPage() {
+    const router = useRouter();
     const [searchQuery, setSearchQuery] = useState('');
     const [openIndex, setOpenIndex] = useState<number | null>(0);
 
@@ -335,6 +337,32 @@ export default function FAQPage() {
                             >
                                 Contact Support
                             </Link>
+                        </motion.div>
+                    </div>
+                </section>
+
+                {/* Back Button */}
+                <section className="relative px-4 sm:px-6 lg:px-8" style={{ paddingTop: '20px', paddingBottom: '40px' }}>
+                    <div className="container mx-auto max-w-3xl">
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ duration: 0.8, delay: 0.6 }}
+                            className="text-center"
+                        >
+                            <button
+                                onClick={() => router.back()}
+                                className="text-sm font-medium transition-all duration-300 hover:text-white hover:scale-105 cursor-pointer"
+                                style={{
+                                    color: 'var(--foreground-tertiary)',
+                                    display: 'inline-block',
+                                    background: 'transparent',
+                                    border: 'none',
+                                    padding: '8px 16px'
+                                }}
+                            >
+                                ← Back
+                            </button>
                         </motion.div>
                     </div>
                 </section>

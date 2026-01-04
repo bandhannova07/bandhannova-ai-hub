@@ -4,8 +4,10 @@ import { motion } from 'framer-motion';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Target, Eye, Heart, Zap, Users, Globe, Shield, Sparkles } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 export default function AboutPage() {
+    const router = useRouter();
     const values = [
         {
             icon: Heart,
@@ -581,23 +583,25 @@ export default function AboutPage() {
                         </div>
                     </motion.div>
 
-                    {/* Back to Dashboard */}
+                    {/* Back Button */}
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ delay: 2.0 }}
                         className="flex flex-col items-center text-center"
                     >
-                        <Link
-                            href="/dashboard"
-                            className="flex flex-col items-center gap-3 rounded-xl transition-all hover:bg-white/5"
+                        <button
+                            onClick={() => router.back()}
+                            className="flex flex-col items-center gap-3 rounded-xl transition-all hover:bg-white/5 cursor-pointer"
                             style={{
                                 padding: '14px 16px',
-                                color: 'var(--foreground-secondary)'
+                                color: 'var(--foreground-secondary)',
+                                background: 'transparent',
+                                border: 'none'
                             }}
                         >
-                            Back to Dashboard
-                        </Link>
+                            ← Back
+                        </button>
                     </motion.div>
                 </div>
             </div>

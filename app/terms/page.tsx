@@ -2,8 +2,10 @@
 
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 export default function TermsPage() {
+    const router = useRouter();
     return (
         <main className="relative min-h-screen overflow-hidden" style={{ padding: '48px 0' }}>
             {/* Gradient Mesh Background */}
@@ -196,13 +198,19 @@ export default function TermsPage() {
                     transition={{ duration: 0.8, delay: 0.4 }}
                     className="text-center"
                 >
-                    <Link
-                        href="/"
-                        className="text-sm font-medium transition-all duration-300 hover:text-white hover:scale-105"
-                        style={{ color: 'var(--foreground-tertiary)', display: 'inline-block' }}
+                    <button
+                        onClick={() => router.back()}
+                        className="text-sm font-medium transition-all duration-300 hover:text-white hover:scale-105 cursor-pointer"
+                        style={{
+                            color: 'var(--foreground-tertiary)',
+                            display: 'inline-block',
+                            background: 'transparent',
+                            border: 'none',
+                            padding: '8px 16px'
+                        }}
                     >
-                        ← Back to Home
-                    </Link>
+                        ← Back
+                    </button>
                 </motion.div>
             </div>
         </main>
