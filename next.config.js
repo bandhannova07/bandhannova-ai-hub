@@ -20,8 +20,15 @@ const withPWA = require('next-pwa')({
 /** @type {import('next').NextConfig} */
 const nextConfig = {
     reactStrictMode: true,
+    // Add empty turbopack config to silence the warning
+    turbopack: {},
     images: {
-        domains: ['localhost'],
+        remotePatterns: [
+            {
+                protocol: 'https',
+                hostname: 'localhost',
+            },
+        ],
     },
 };
 
