@@ -16,7 +16,6 @@ interface Particle {
 export default function ParticleBackground() {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [particles, setParticles] = useState<Particle[]>([]);
-    const mouseRef = useRef({ x: 0, y: 0 });
     const animationRef = useRef<number | null>(null);
 
     useEffect(() => {
@@ -54,12 +53,6 @@ export default function ParticleBackground() {
         }
         setParticles(newParticles);
 
-        // Mouse move handler
-        const handleMouseMove = (e: MouseEvent) => {
-            mouseRef.current = { x: e.clientX, y: e.clientY };
-        };
-        window.addEventListener('mousemove', handleMouseMove);
-
         // Animation loop
         const animate = () => {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -72,23 +65,6 @@ export default function ParticleBackground() {
                 // Bounce off edges
                 if (particle.x < 0 || particle.x > canvas.width) particle.vx *= -1;
                 if (particle.y < 0 || particle.y > canvas.height) particle.vy *= -1;
-
-                // Mouse interaction - particles move towards cursor
-                const dx = mouseRef.current.x - particle.x;
-                const dy = mouseRef.current.y - particle.y;
-                const distance = Math.sqrt(dx * dx + dy * dy);
-                const maxDistance = 200;
-
-                if (distance < maxDistance) {
-                    const force = (maxDistance - distance) / maxDistance;
-                    particle.x += (dx / distance) * force * 2;
-                    particle.y += (dy / distance) * force * 2;
-                }
-
-                // Return to base position slowly
-                const returnForce = 0.02;
-                particle.x += (particle.baseX - particle.x) * returnForce;
-                particle.y += (particle.baseY - particle.y) * returnForce;
 
                 // Draw particle
                 ctx.beginPath();
@@ -121,7 +97,6 @@ export default function ParticleBackground() {
 
         return () => {
             window.removeEventListener('resize', resizeCanvas);
-            window.removeEventListener('mousemove', handleMouseMove);
             if (animationRef.current) {
                 cancelAnimationFrame(animationRef.current);
             }

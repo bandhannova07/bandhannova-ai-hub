@@ -1,390 +1,455 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import Link from 'next/link';
 import Image from 'next/image';
-import { useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Mail, Lock, Eye, EyeOff, User } from 'lucide-react';
+import { useState } from 'react';
+import { ArrowRight, Mail, Lock, Eye, EyeOff, AlertCircle, User, Check, X } from 'lucide-react';
+import ParticleBackground from '@/components/ParticleBackground';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { signUp } from '@/lib/auth-simple';
 
 export default function SignupPage() {
     const router = useRouter();
+    const [fullName, setFullName] = useState('');
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [agreeToTerms, setAgreeToTerms] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
-    const [formData, setFormData] = useState({
-        name: '',
-        email: '',
-        password: '',
-        confirmPassword: '',
-        agreeToTerms: false,
-    });
+
+    // Password strength calculation
+    const getPasswordStrength = (pwd: string) => {
+        let strength = 0;
+        if (pwd.length >= 8) strength++;
+        if (pwd.length >= 12) strength++;
+        if (/[a-z]/.test(pwd) && /[A-Z]/.test(pwd)) strength++;
+        if (/\d/.test(pwd)) strength++;
+        if (/[^a-zA-Z\d]/.test(pwd)) strength++;
+        return strength;
+    };
+
+    const passwordStrength = getPasswordStrength(password);
+    const getStrengthLabel = () => {
+        if (passwordStrength === 0) return '';
+        if (passwordStrength <= 2) return 'Weak';
+        if (passwordStrength <= 3) return 'Medium';
+        return 'Strong';
+    };
+
+    const getStrengthColor = () => {
+        if (passwordStrength <= 2) return '#EF4444';
+        if (passwordStrength <= 3) return '#F59E0B';
+        return '#10B981';
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setLoading(true);
         setError('');
+        setLoading(true);
 
-        // Validate passwords match
-        if (formData.password !== formData.confirmPassword) {
-            setError('Passwords do not match');
-            setLoading(false);
-            return;
-        }
-
-        // Validate terms agreement
-        if (!formData.agreeToTerms) {
-            setError('Please agree to Terms & Conditions');
-            setLoading(false);
-            return;
-        }
-
-        const { user, error: authError } = await signUp({
-            email: formData.email,
-            password: formData.password,
-            fullName: formData.name,
-        });
-
-        if (authError) {
-            setError(authError);
-            setLoading(false);
-            return;
-        }
-
-        // Success! Send welcome email via API
-        console.log(`✅ User created: ${formData.email}`);
-
-        // Send welcome email via server API (non-blocking)
-        fetch('/api/emails/send-welcome', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                email: formData.email,
-                name: formData.name
-            })
-        }).then(res => {
-            if (res.ok) {
-                console.log(`📧 Welcome email sent to ${formData.email}`);
+        try {
+            // Validate inputs
+            if (!fullName || !email || !password || !confirmPassword) {
+                setError('Please fill in all fields');
+                setLoading(false);
+                return;
             }
-        }).catch(err => {
-            console.error('❌ Error sending welcome email:', err);
-        });
 
-        router.push('/dashboard');
+            // Name validation
+            if (fullName.trim().length < 2) {
+                setError('Please enter your full name');
+                setLoading(false);
+                return;
+            }
+
+            // Email validation
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                setError('Please enter a valid email address');
+                setLoading(false);
+                return;
+            }
+
+            // Password validation
+            if (password.length < 8) {
+                setError('Password must be at least 8 characters long');
+                setLoading(false);
+                return;
+            }
+
+            // Password match validation
+            if (password !== confirmPassword) {
+                setError('Passwords do not match');
+                setLoading(false);
+                return;
+            }
+
+            // Terms validation
+            if (!agreeToTerms) {
+                setError('Please agree to the Terms & Conditions');
+                setLoading(false);
+                return;
+            }
+
+            // Sign up
+            const { user, error: signUpError } = await signUp({
+                email,
+                password,
+                fullName: fullName.trim(),
+            });
+
+            if (signUpError) {
+                setError(signUpError);
+                setLoading(false);
+                return;
+            }
+
+            if (user) {
+                // Redirect to dashboard
+                router.push('/dashboard');
+            }
+        } catch (err: any) {
+            setError(err.message || 'An error occurred during signup');
+            setLoading(false);
+        }
     };
 
+
+
     return (
-        <main className="relative min-h-screen overflow-hidden flex items-center justify-center" style={{ padding: '48px 0' }}>
+        <main className="relative min-h-screen overflow-hidden flex items-center justify-center">
+            {/* Particle Background */}
+            <ParticleBackground />
+
             {/* Gradient Mesh Background */}
             <div
                 className="fixed inset-0 opacity-30"
                 style={{ background: 'var(--gradient-mesh)' }}
             />
 
-            {/* Content Container */}
-            <div className="relative z-10 w-full" style={{ maxWidth: '700px', padding: '0 24px' }}>
+            {/* Main Content */}
+            <div className="relative z-10 w-full" style={{ padding: '48px 32px' }}>
                 <motion.div
-                    initial={{ opacity: 0, y: 30 }}
+                    initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.8 }}
-                    className="glass rounded-3xl"
-                    style={{ padding: '48px 40px' }}
+                    transition={{ duration: 0.6 }}
+                    className="container mx-auto max-w-md"
                 >
-                    {/* Logo Section */}
-                    <Link href="/" className="flex justify-center" style={{ marginBottom: '40px' }}>
-                        <div className="relative">
-                            <div className="absolute inset-0 blur-xl opacity-50" style={{ background: 'var(--gradient-hero)' }} />
+                    {/* Logo */}
+                    <div className="flex justify-center mb-12">
+                        <Link href="/">
                             <Image
                                 src="/bandhannova-logo-final.svg"
-                                alt="BandhanNova"
-                                width={250}
-                                height={250}
-                                className="relative z-10"
+                                alt="BandhanNova Logo"
+                                width={350}
+                                height={350}
+                                className="cursor-pointer hover:scale-105 transition-transform"
+                                style={{ padding: '20px' }}
+                                priority
                             />
-                        </div>
-                    </Link>
-
-                    {/* Title Section */}
-                    <div style={{ marginBottom: '40px' }}>
-                        <h1 className="h1 text-center" style={{ color: 'var(--foreground)', marginBottom: '12px' }}>
-                            Start Growing Today
-                        </h1>
-                        <p className="body text-center" style={{ color: 'var(--foreground-secondary)', fontSize: '16px' }}>
-                            Create your free account and unlock AI-powered growth
-                        </p>
+                        </Link>
                     </div>
 
-                    {/* Form Section */}
-                    <form onSubmit={handleSubmit}>
-                        {/* Name Field */}
-                        <div style={{ marginBottom: '24px' }}>
-                            <label
-                                className="block text-sm font-medium"
-                                style={{ color: 'var(--foreground)', marginBottom: '12px' }}
-                            >
-                                Full Name
-                            </label>
-                            <div className="relative">
-                                <User
-                                    className="absolute w-5 h-5"
-                                    style={{
-                                        left: '16px',
-                                        top: '50%',
-                                        transform: 'translateY(-50%)',
-                                        color: 'var(--foreground-tertiary)'
-                                    }}
-                                />
-                                <input
-                                    type="text"
-                                    required
-                                    value={formData.name}
-                                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                    className="w-full glass border-0 focus:ring-2 focus:ring-purple-500 transition-all rounded-2xl"
-                                    style={{
-                                        paddingLeft: '48px',
-                                        paddingRight: '16px',
-                                        paddingTop: '16px',
-                                        paddingBottom: '16px',
-                                        color: 'var(--foreground)',
-                                        background: 'var(--background-secondary)',
-                                        fontSize: '15px'
-                                    }}
-                                    placeholder="Your full name"
-                                />
-                            </div>
-                        </div>
+                    {/* Signup Card */}
+                    <Card className="glass-strong border-0" style={{ padding: '32px' }}>
+                        <CardHeader style={{ padding: '0 0 24px 0' }}>
+                            <CardTitle className="h1 text-center" style={{ color: 'var(--foreground)', marginBottom: '8px' }}>
+                                Create Your Account
+                            </CardTitle>
+                            <CardDescription className="body text-center" style={{ color: 'var(--foreground-secondary)' }}>
+                                Start your AI-powered journey today
+                            </CardDescription>
+                        </CardHeader>
 
-                        {/* Email Field */}
-                        <div style={{ marginBottom: '24px' }}>
-                            <label
-                                className="block text-sm font-medium"
-                                style={{ color: 'var(--foreground)', marginBottom: '12px' }}
-                            >
-                                Email Address
-                            </label>
-                            <div className="relative">
-                                <Mail
-                                    className="absolute w-5 h-5"
-                                    style={{
-                                        left: '16px',
-                                        top: '50%',
-                                        transform: 'translateY(-50%)',
-                                        color: 'var(--foreground-tertiary)'
-                                    }}
-                                />
-                                <input
-                                    type="email"
-                                    required
-                                    value={formData.email}
-                                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                    className="w-full glass border-0 focus:ring-2 focus:ring-purple-500 transition-all rounded-2xl"
-                                    style={{
-                                        paddingLeft: '48px',
-                                        paddingRight: '16px',
-                                        paddingTop: '16px',
-                                        paddingBottom: '16px',
-                                        color: 'var(--foreground)',
-                                        background: 'var(--background-secondary)',
-                                        fontSize: '15px'
-                                    }}
-                                    placeholder="your@email.com"
-                                />
-                            </div>
-                        </div>
+                        <CardContent style={{ padding: '0' }}>
+                            <form onSubmit={handleSubmit} className="space-y-4">
+                                {/* Error Message */}
+                                {error && (
+                                    <motion.div
+                                        initial={{ opacity: 0, y: -10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        className="flex items-center gap-2 p-3 rounded-lg"
+                                        style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)' }}
+                                    >
+                                        <AlertCircle className="w-4 h-4 text-red-500" />
+                                        <p className="small text-red-500">{error}</p>
+                                    </motion.div>
+                                )}
 
-                        {/* Password Field */}
-                        <div style={{ marginBottom: '24px' }}>
-                            <label
-                                className="block text-sm font-medium"
-                                style={{ color: 'var(--foreground)', marginBottom: '12px' }}
-                            >
-                                Password
-                            </label>
-                            <div className="relative">
-                                <Lock
-                                    className="absolute w-5 h-5"
-                                    style={{
-                                        left: '16px',
-                                        top: '50%',
-                                        transform: 'translateY(-50%)',
-                                        color: 'var(--foreground-tertiary)'
-                                    }}
-                                />
-                                <input
-                                    type={showPassword ? 'text' : 'password'}
-                                    required
-                                    value={formData.password}
-                                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                                    className="w-full glass border-0 focus:ring-2 focus:ring-purple-500 transition-all rounded-2xl"
-                                    style={{
-                                        paddingLeft: '48px',
-                                        paddingRight: '48px',
-                                        paddingTop: '16px',
-                                        paddingBottom: '16px',
-                                        color: 'var(--foreground)',
-                                        background: 'var(--background-secondary)',
-                                        fontSize: '15px'
-                                    }}
-                                    placeholder="••••••••"
-                                />
-                                <button
-                                    type="button"
-                                    onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute"
-                                    style={{
-                                        right: '16px',
-                                        top: '50%',
-                                        transform: 'translateY(-50%)',
-                                        color: 'var(--foreground-tertiary)'
-                                    }}
+                                {/* Full Name Field */}
+                                <div className="space-y-2">
+                                    <Label htmlFor="fullName" className="body" style={{ color: 'var(--foreground)' }}>
+                                        Full Name
+                                    </Label>
+                                    <div className="relative">
+                                        <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5" style={{ color: 'var(--foreground-tertiary)' }} />
+                                        <Input
+                                            id="fullName"
+                                            type="text"
+                                            placeholder="Your Name"
+                                            value={fullName}
+                                            onChange={(e) => setFullName(e.target.value)}
+                                            className="pl-10 h-12 body"
+                                            style={{
+                                                background: 'rgba(255, 255, 255, 0.05)',
+                                                border: '1px solid rgba(255, 255, 255, 0.1)',
+                                                color: 'var(--foreground)'
+                                            }}
+                                            disabled={loading}
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Email Field */}
+                                <div className="space-y-2">
+                                    <Label htmlFor="email" className="body" style={{ color: 'var(--foreground)' }}>
+                                        Email Address
+                                    </Label>
+                                    <div className="relative">
+                                        <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5" style={{ color: 'var(--foreground-tertiary)' }} />
+                                        <Input
+                                            id="email"
+                                            type="email"
+                                            placeholder="your@email.com"
+                                            value={email}
+                                            onChange={(e) => setEmail(e.target.value)}
+                                            className="pl-10 h-12 body"
+                                            style={{
+                                                background: 'rgba(255, 255, 255, 0.05)',
+                                                border: '1px solid rgba(255, 255, 255, 0.1)',
+                                                color: 'var(--foreground)'
+                                            }}
+                                            disabled={loading}
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Password Field */}
+                                <div className="space-y-2">
+                                    <Label htmlFor="password" className="body" style={{ color: 'var(--foreground)' }}>
+                                        Password
+                                    </Label>
+                                    <div className="relative">
+                                        <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5" style={{ color: 'var(--foreground-tertiary)' }} />
+                                        <Input
+                                            id="password"
+                                            type={showPassword ? 'text' : 'password'}
+                                            placeholder="Create a strong password"
+                                            value={password}
+                                            onChange={(e) => setPassword(e.target.value)}
+                                            className="pl-10 pr-10 h-12 body"
+                                            style={{
+                                                background: 'rgba(255, 255, 255, 0.05)',
+                                                border: '1px solid rgba(255, 255, 255, 0.1)',
+                                                color: 'var(--foreground)'
+                                            }}
+                                            disabled={loading}
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowPassword(!showPassword)}
+                                            className="absolute right-3 top-1/2 transform -translate-y-1/2"
+                                            disabled={loading}
+                                        >
+                                            {showPassword ? (
+                                                <EyeOff className="w-5 h-5" style={{ color: 'var(--foreground-tertiary)' }} />
+                                            ) : (
+                                                <Eye className="w-5 h-5" style={{ color: 'var(--foreground-tertiary)' }} />
+                                            )}
+                                        </button>
+                                    </div>
+
+                                    {/* Password Strength Indicator */}
+                                    {password && (
+                                        <motion.div
+                                            initial={{ opacity: 0, height: 0 }}
+                                            animate={{ opacity: 1, height: 'auto' }}
+                                            className="space-y-2"
+                                        >
+                                            <div className="flex items-center gap-2">
+                                                <div className="flex-1 h-2 rounded-full" style={{ background: 'rgba(255, 255, 255, 0.1)' }}>
+                                                    <div
+                                                        className="h-full rounded-full transition-all duration-300"
+                                                        style={{
+                                                            width: `${(passwordStrength / 5) * 100}%`,
+                                                            background: getStrengthColor()
+                                                        }}
+                                                    />
+                                                </div>
+                                                <span className="small font-medium" style={{ color: getStrengthColor() }}>
+                                                    {getStrengthLabel()}
+                                                </span>
+                                            </div>
+                                            <div className="space-y-1">
+                                                <div className="flex items-center gap-2">
+                                                    {password.length >= 8 ? (
+                                                        <Check className="w-3 h-3 text-green-500" />
+                                                    ) : (
+                                                        <X className="w-3 h-3 text-red-500" />
+                                                    )}
+                                                    <span className="small" style={{ color: 'var(--foreground-tertiary)' }}>
+                                                        At least 8 characters
+                                                    </span>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    {/[a-z]/.test(password) && /[A-Z]/.test(password) ? (
+                                                        <Check className="w-3 h-3 text-green-500" />
+                                                    ) : (
+                                                        <X className="w-3 h-3 text-red-500" />
+                                                    )}
+                                                    <span className="small" style={{ color: 'var(--foreground-tertiary)' }}>
+                                                        Uppercase & lowercase letters
+                                                    </span>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    {/\d/.test(password) ? (
+                                                        <Check className="w-3 h-3 text-green-500" />
+                                                    ) : (
+                                                        <X className="w-3 h-3 text-red-500" />
+                                                    )}
+                                                    <span className="small" style={{ color: 'var(--foreground-tertiary)' }}>
+                                                        At least one number
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </motion.div>
+                                    )}
+                                </div>
+
+                                {/* Confirm Password Field */}
+                                <div className="space-y-2">
+                                    <Label htmlFor="confirmPassword" className="body" style={{ color: 'var(--foreground)' }}>
+                                        Confirm Password
+                                    </Label>
+                                    <div className="relative">
+                                        <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5" style={{ color: 'var(--foreground-tertiary)' }} />
+                                        <Input
+                                            id="confirmPassword"
+                                            type={showConfirmPassword ? 'text' : 'password'}
+                                            placeholder="Confirm your password"
+                                            value={confirmPassword}
+                                            onChange={(e) => setConfirmPassword(e.target.value)}
+                                            className="pl-10 pr-10 h-12 body"
+                                            style={{
+                                                background: 'rgba(255, 255, 255, 0.05)',
+                                                border: '1px solid rgba(255, 255, 255, 0.1)',
+                                                color: 'var(--foreground)'
+                                            }}
+                                            disabled={loading}
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                            className="absolute right-3 top-1/2 transform -translate-y-1/2"
+                                            disabled={loading}
+                                        >
+                                            {showConfirmPassword ? (
+                                                <EyeOff className="w-5 h-5" style={{ color: 'var(--foreground-tertiary)' }} />
+                                            ) : (
+                                                <Eye className="w-5 h-5" style={{ color: 'var(--foreground-tertiary)' }} />
+                                            )}
+                                        </button>
+                                    </div>
+                                    {confirmPassword && password !== confirmPassword && (
+                                        <p className="small text-red-500 flex items-center gap-1">
+                                            <X className="w-3 h-3" />
+                                            Passwords do not match
+                                        </p>
+                                    )}
+                                    {confirmPassword && password === confirmPassword && (
+                                        <p className="small text-green-500 flex items-center gap-1">
+                                            <Check className="w-3 h-3" />
+                                            Passwords match
+                                        </p>
+                                    )}
+                                </div>
+
+                                {/* Terms & Conditions */}
+                                <div className="flex items-start gap-3" style={{ marginTop: '16px' }}>
+                                    <input
+                                        type="checkbox"
+                                        id="terms"
+                                        checked={agreeToTerms}
+                                        onChange={(e) => setAgreeToTerms(e.target.checked)}
+                                        disabled={loading}
+                                        className="mt-1 cursor-pointer"
+                                        style={{
+                                            width: '18px',
+                                            height: '18px',
+                                            minWidth: '18px',
+                                            minHeight: '18px',
+                                        }}
+                                    />
+                                    <Label htmlFor="terms" className="small cursor-pointer flex-1" style={{ color: 'var(--foreground-secondary)', lineHeight: '1.6' }}>
+                                        I agree to the{' '}
+                                        <Link href="/terms" className="hover:underline" style={{ color: 'var(--primary-purple)' }}>
+                                            Terms & Conditions
+                                        </Link>
+                                        {' '}and{' '}
+                                        <Link href="/privacy" className="hover:underline" style={{ color: 'var(--primary-purple)' }}>
+                                            Privacy Policy
+                                        </Link>
+                                    </Label>
+                                </div>
+
+                                {/* Sign Up Button */}
+                                <Button
+                                    type="submit"
+                                    className="w-full h-12 rounded-xl font-semibold text-white transition-all duration-300 hover:scale-105"
+                                    style={{ background: 'var(--gradient-hero)', marginTop: '24px' }}
+                                    disabled={loading}
                                 >
-                                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                                </button>
-                            </div>
-                        </div>
+                                    {loading ? (
+                                        <span className="flex items-center gap-2">
+                                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                            Creating account...
+                                        </span>
+                                    ) : (
+                                        <span className="flex items-center gap-2 justify-center">
+                                            Create Account
+                                            <ArrowRight className="w-5 h-5" />
+                                        </span>
+                                    )}
+                                </Button>
 
-                        {/* Confirm Password Field */}
-                        <div style={{ marginBottom: '24px' }}>
-                            <label
-                                className="block text-sm font-medium"
-                                style={{ color: 'var(--foreground)', marginBottom: '12px' }}
-                            >
-                                Confirm Password
-                            </label>
-                            <div className="relative">
-                                <Lock
-                                    className="absolute w-5 h-5"
-                                    style={{
-                                        left: '16px',
-                                        top: '50%',
-                                        transform: 'translateY(-50%)',
-                                        color: 'var(--foreground-tertiary)'
-                                    }}
-                                />
-                                <input
-                                    type={showConfirmPassword ? 'text' : 'password'}
-                                    required
-                                    value={formData.confirmPassword}
-                                    onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                                    className="w-full glass border-0 focus:ring-2 focus:ring-purple-500 transition-all rounded-2xl"
-                                    style={{
-                                        paddingLeft: '48px',
-                                        paddingRight: '48px',
-                                        paddingTop: '16px',
-                                        paddingBottom: '16px',
-                                        color: 'var(--foreground)',
-                                        background: 'var(--background-secondary)',
-                                        fontSize: '15px'
-                                    }}
-                                    placeholder="••••••••"
-                                />
-                                <button
-                                    type="button"
-                                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                    className="absolute"
-                                    style={{
-                                        right: '16px',
-                                        top: '50%',
-                                        transform: 'translateY(-50%)',
-                                        color: 'var(--foreground-tertiary)'
-                                    }}
-                                >
-                                    {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                                </button>
-                            </div>
-                        </div>
 
-                        {/* Terms & Conditions */}
-                        <div className="flex items-start gap-3" style={{ marginBottom: '32px' }}>
-                            <input
-                                type="checkbox"
-                                id="terms"
-                                required
-                                checked={formData.agreeToTerms}
-                                onChange={(e) => setFormData({ ...formData, agreeToTerms: e.target.checked })}
-                                className="rounded border-2 focus:ring-2 focus:ring-purple-500"
-                                style={{
-                                    marginTop: '4px',
-                                    width: '16px',
-                                    height: '16px',
-                                    borderColor: 'var(--foreground-tertiary)'
-                                }}
-                            />
-                            <label htmlFor="terms" className="text-sm" style={{ color: 'var(--foreground-secondary)', lineHeight: '1.6' }}>
-                                I agree to the{' '}
-                                <Link href="/terms" className="font-semibold transition-colors hover:text-white" style={{ color: 'var(--accent-cyan)' }}>
-                                    Terms & Conditions
-                                </Link>{' '}
-                                and{' '}
-                                <Link href="/privacy" className="font-semibold transition-colors hover:text-white" style={{ color: 'var(--accent-cyan)' }}>
-                                    Privacy Policy
+                            </form>
+                        </CardContent>
+
+                        <CardFooter style={{ padding: '24px 0 0 0' }}>
+                            <p className="body text-center w-full" style={{ color: 'var(--foreground-secondary)' }}>
+                                Already have an account?{' '}
+                                <Link href="/login" className="font-semibold hover:underline" style={{ color: 'var(--primary-purple)' }}>
+                                    Sign in
                                 </Link>
-                            </label>
-                        </div>
+                            </p>
+                        </CardFooter>
+                    </Card>
 
-                        {/* Error Message */}
-                        {error && (
-                            <div
-                                className="rounded-xl"
+                    {/* Back to Home */}
+                    <div className="flex flex items-center justify-center mt-8" style={{ padding: '20px' }}>
+                        <Link href="/">
+                            <Button
+                                variant="outline"
+                                className="w-50 h-12 rounded-xl font-semibold text-lg transition-all duration-300 hover:scale-105 px-8"
                                 style={{
-                                    padding: '12px 16px',
-                                    marginBottom: '24px',
-                                    background: 'rgba(239, 68, 68, 0.1)',
-                                    border: '1px solid rgba(239, 68, 68, 0.3)',
-                                    color: '#ef4444'
+                                    background: 'rgba(255, 255, 255, 0.05)',
+                                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                                    color: 'var(--foreground)'
                                 }}
                             >
-                                {error}
-                            </div>
-                        )}
-
-                        {/* Submit Button */}
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className="w-full rounded-2xl font-semibold transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
-                            style={{
-                                padding: '16px 32px',
-                                background: loading ? 'var(--background-secondary)' : 'var(--gradient-hero)',
-                                color: 'white',
-                                fontSize: '16px',
-                                marginBottom: '32px'
-                            }}
-                        >
-                            {loading ? 'Creating Account...' : 'Create Account'}
-                        </button>
-                    </form>
-
-                    {/* Login Link */}
-                    <p className="text-center text-sm" style={{ color: 'var(--foreground-secondary)', marginTop: '32px' }}>
-                        Already have an account?{' '}
-                        <Link
-                            href="/login"
-                            className="font-semibold transition-colors hover:text-white"
-                            style={{ color: 'var(--accent-cyan)' }}
-                        >
-                            Login here
+                                ← Back to Home
+                            </Button>
                         </Link>
-                    </p>
-                </motion.div>
-
-                {/* Back to Home */}
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 0.8, delay: 0.3 }}
-                    className="text-center"
-                    style={{ marginTop: '32px' }}
-                >
-                    <Link
-                        href="/"
-                        className="text-lg font-sm transition-all duration-300 hover:text-white hover:scale-105"
-                        style={{ color: 'var(--foreground-tertiary)', display: 'inline-block' }}
-                    >
-                        ← Back to Home
-                    </Link>
+                    </div>
                 </motion.div>
             </div>
         </main>

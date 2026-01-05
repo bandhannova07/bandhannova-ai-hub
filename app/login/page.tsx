@@ -1,244 +1,256 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import Link from 'next/link';
 import Image from 'next/image';
-import { useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
+import { useState } from 'react';
+import { ArrowRight, Mail, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react';
+import ParticleBackground from '@/components/ParticleBackground';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { signIn } from '@/lib/auth-simple';
 
 export default function LoginPage() {
     const router = useRouter();
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
+    const [rememberMe, setRememberMe] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
-    const [formData, setFormData] = useState({
-        email: '',
-        password: '',
-    });
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setLoading(true);
         setError('');
+        setLoading(true);
 
-        const { user, error: authError } = await signIn(formData.email, formData.password);
+        try {
+            // Validate inputs
+            if (!email || !password) {
+                setError('Please fill in all fields');
+                setLoading(false);
+                return;
+            }
 
-        if (authError) {
-            setError(authError);
+            // Email validation
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                setError('Please enter a valid email address');
+                setLoading(false);
+                return;
+            }
+
+            // Sign in
+            const { user, error: signInError } = await signIn(email, password);
+
+            if (signInError) {
+                setError(signInError);
+                setLoading(false);
+                return;
+            }
+
+            if (user) {
+                // Store remember me preference
+                if (rememberMe) {
+                    localStorage.setItem('rememberMe', 'true');
+                }
+
+                // Redirect to dashboard
+                router.push('/dashboard');
+            }
+        } catch (err: any) {
+            setError(err.message || 'An error occurred during login');
             setLoading(false);
-            return;
         }
-
-        // Success! Redirect to dashboard
-        router.push('/dashboard');
     };
 
+
+
     return (
-        <main className="relative min-h-screen overflow-hidden flex items-center justify-center" style={{ padding: '48px 0' }}>
+        <main className="relative min-h-screen overflow-hidden flex items-center justify-center">
+            {/* Particle Background */}
+            <ParticleBackground />
+
             {/* Gradient Mesh Background */}
             <div
                 className="fixed inset-0 opacity-30"
                 style={{ background: 'var(--gradient-mesh)' }}
             />
 
-            {/* Content Container */}
-            <div className="relative z-10 w-full" style={{ maxWidth: '650px', padding: '0 24px' }}>
+            {/* Main Content */}
+            <div className="relative z-10 w-full" style={{ padding: '48px 32px' }}>
                 <motion.div
-                    initial={{ opacity: 0, y: 30 }}
+                    initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.8 }}
-                    className="glass rounded-3xl"
-                    style={{ padding: '48px 40px' }}
+                    transition={{ duration: 0.6 }}
+                    className="container mx-auto max-w-md"
                 >
-                    {/* Logo Section */}
-                    <Link href="/" className="flex justify-center" style={{ marginBottom: '40px' }}>
-                        <div className="relative">
-                            <div className="absolute inset-0 blur-xl opacity-50" style={{ background: 'var(--gradient-hero)' }} />
+                    {/* Logo */}
+                    <div className="flex justify-center mb-12">
+                        <Link href="/">
                             <Image
                                 src="/bandhannova-logo-final.svg"
-                                alt="BandhanNova"
-                                width={250}
-                                height={250}
-                                className="relative z-10"
+                                alt="BandhanNova Logo"
+                                width={350}
+                                height={350}
+                                className="cursor-pointer hover:scale-105 transition-transform"
+                                style={{ padding: '20px' }}
+                                priority
                             />
-                        </div>
-                    </Link>
-
-                    {/* Title Section */}
-                    <div style={{ marginBottom: '40px' }}>
-                        <h1 className="h1 text-center" style={{ color: 'var(--foreground)', marginBottom: '12px' }}>
-                            Welcome Back
-                        </h1>
-                        <p className="body text-center" style={{ color: 'var(--foreground-secondary)', fontSize: '16px' }}>
-                            Login to continue your growth journey
-                        </p>
+                        </Link>
                     </div>
 
-                    {/* Form Section */}
-                    <form onSubmit={handleSubmit}>
-                        {/* Email Field */}
-                        <div style={{ marginBottom: '24px' }}>
-                            <label
-                                className="block text-sm font-medium"
-                                style={{ color: 'var(--foreground)', marginBottom: '12px' }}
-                            >
-                                Email Address
-                            </label>
-                            <div className="relative">
-                                <Mail
-                                    className="absolute w-5 h-5"
-                                    style={{
-                                        left: '16px',
-                                        top: '50%',
-                                        transform: 'translateY(-50%)',
-                                        color: 'var(--foreground-tertiary)'
-                                    }}
-                                />
-                                <input
-                                    type="email"
-                                    required
-                                    value={formData.email}
-                                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                    className="w-full glass border-0 focus:ring-2 focus:ring-purple-500 transition-all rounded-2xl"
-                                    style={{
-                                        paddingLeft: '48px',
-                                        paddingRight: '16px',
-                                        paddingTop: '16px',
-                                        paddingBottom: '16px',
-                                        color: 'var(--foreground)',
-                                        background: 'var(--background-secondary)',
-                                        fontSize: '15px'
-                                    }}
-                                    placeholder="your@email.com"
-                                />
-                            </div>
-                        </div>
+                    {/* Login Card */}
+                    <Card className="glass-strong border-0" style={{ padding: '32px' }}>
+                        <CardHeader style={{ padding: '0 0 24px 0' }}>
+                            <CardTitle className="h1 text-center" style={{ color: 'var(--foreground)', marginBottom: '8px' }}>
+                                Welcome Back
+                            </CardTitle>
+                            <CardDescription className="body text-center" style={{ color: 'var(--foreground-secondary)' }}>
+                                Sign in to continue your AI journey
+                            </CardDescription>
+                        </CardHeader>
 
-                        {/* Password Field */}
-                        <div style={{ marginBottom: '16px' }}>
-                            <label
-                                className="block text-sm font-medium"
-                                style={{ color: 'var(--foreground)', marginBottom: '12px' }}
-                            >
-                                Password
-                            </label>
-                            <div className="relative">
-                                <Lock
-                                    className="absolute w-5 h-5"
-                                    style={{
-                                        left: '16px',
-                                        top: '50%',
-                                        transform: 'translateY(-50%)',
-                                        color: 'var(--foreground-tertiary)'
-                                    }}
-                                />
-                                <input
-                                    type={showPassword ? 'text' : 'password'}
-                                    required
-                                    value={formData.password}
-                                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                                    className="w-full glass border-0 focus:ring-2 focus:ring-purple-500 transition-all rounded-2xl"
-                                    style={{
-                                        paddingLeft: '48px',
-                                        paddingRight: '48px',
-                                        paddingTop: '16px',
-                                        paddingBottom: '16px',
-                                        color: 'var(--foreground)',
-                                        background: 'var(--background-secondary)',
-                                        fontSize: '15px'
-                                    }}
-                                    placeholder="••••••••"
-                                />
-                                <button
-                                    type="button"
-                                    onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute"
-                                    style={{
-                                        right: '16px',
-                                        top: '50%',
-                                        transform: 'translateY(-50%)',
-                                        color: 'var(--foreground-tertiary)'
-                                    }}
+                        <CardContent style={{ padding: '0' }}>
+                            <form onSubmit={handleSubmit} className="space-y-4">
+                                {/* Error Message */}
+                                {error && (
+                                    <motion.div
+                                        initial={{ opacity: 0, y: -10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        className="flex items-center gap-2 p-3 rounded-lg"
+                                        style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)' }}
+                                    >
+                                        <AlertCircle className="w-4 h-4 text-red-500" />
+                                        <p className="small text-red-500">{error}</p>
+                                    </motion.div>
+                                )}
+
+                                {/* Email Field */}
+                                <div className="space-y-2">
+                                    <Label htmlFor="email" className="body" style={{ color: 'var(--foreground)' }}>
+                                        Email Address
+                                    </Label>
+                                    <div className="relative">
+                                        <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5" style={{ color: 'var(--foreground-tertiary)' }} />
+                                        <Input
+                                            id="email"
+                                            type="email"
+                                            placeholder="your@email.com"
+                                            value={email}
+                                            onChange={(e) => setEmail(e.target.value)}
+                                            className="pl-10 h-12 body"
+                                            style={{
+                                                background: 'rgba(255, 255, 255, 0.05)',
+                                                border: '1px solid rgba(255, 255, 255, 0.1)',
+                                                color: 'var(--foreground)'
+                                            }}
+                                            disabled={loading}
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Password Field */}
+                                <div className="space-y-2">
+                                    <Label htmlFor="password" className="body" style={{ color: 'var(--foreground)' }}>
+                                        Password
+                                    </Label>
+                                    <div className="relative">
+                                        <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5" style={{ color: 'var(--foreground-tertiary)' }} />
+                                        <Input
+                                            id="password"
+                                            type={showPassword ? 'text' : 'password'}
+                                            placeholder="Enter your password"
+                                            value={password}
+                                            onChange={(e) => setPassword(e.target.value)}
+                                            className="pl-10 pr-10 h-12 body"
+                                            style={{
+                                                background: 'rgba(255, 255, 255, 0.05)',
+                                                border: '1px solid rgba(255, 255, 255, 0.1)',
+                                                color: 'var(--foreground)'
+                                            }}
+                                            disabled={loading}
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowPassword(!showPassword)}
+                                            className="absolute right-3 top-1/2 transform -translate-y-1/2"
+                                            disabled={loading}
+                                        >
+                                            {showPassword ? (
+                                                <EyeOff className="w-5 h-5" style={{ color: 'var(--foreground-tertiary)' }} />
+                                            ) : (
+                                                <Eye className="w-5 h-5" style={{ color: 'var(--foreground-tertiary)' }} />
+                                            )}
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Forgot Password */}
+                                <div className="flex justify-end">
+                                    <Link
+                                        href="/forgot-password"
+                                        className="small hover:underline"
+                                        style={{ color: 'var(--primary-purple)', marginTop: '5px' }}
+                                    >
+                                        Forgot password?
+                                    </Link>
+                                </div>
+
+                                {/* Sign In Button */}
+                                <Button
+                                    type="submit"
+                                    className="w-full h-12 rounded-xl font-semibold text-white transition-all duration-300 hover:scale-105"
+                                    style={{ background: 'var(--gradient-hero)', marginTop: '24px' }}
+                                    disabled={loading}
                                 >
-                                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                                </button>
-                            </div>
-                        </div>
+                                    {loading ? (
+                                        <span className="flex items-center gap-2">
+                                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                            Signing in...
+                                        </span>
+                                    ) : (
+                                        <span className="flex items-center gap-2 justify-center">
+                                            Sign In
+                                            <ArrowRight className="w-5 h-5" />
+                                        </span>
+                                    )}
+                                </Button>
 
-                        {/* Forgot Password Link */}
-                        <div className="flex justify-end" style={{ marginBottom: '32px' }}>
-                            <Link
-                                href="/forgot-password"
-                                className="text-sm font-medium transition-colors hover:text-white"
-                                style={{ color: 'var(--accent-cyan)' }}
-                            >
-                                Forgot password?
-                            </Link>
-                        </div>
 
-                        {/* Error Message */}
-                        {error && (
-                            <div
-                                className="rounded-xl"
+                            </form>
+                        </CardContent>
+
+                        <CardFooter style={{ padding: '24px 0 0 0' }}>
+                            <p className="body text-center w-full" style={{ color: 'var(--foreground-secondary)' }}>
+                                Don't have an account?{' '}
+                                <Link href="/signup" className="font-semibold hover:underline" style={{ color: 'var(--primary-purple)' }}>
+                                    Sign up
+                                </Link>
+                            </p>
+                        </CardFooter>
+                    </Card>
+
+                    {/* Back to Home */}
+                    <div className="flex flex items-center justify-center mt-8" style={{ padding: '20px' }}>
+                        <Link href="/">
+                            <Button
+                                variant="outline"
+                                className="w-50 h-12 rounded-xl font-semibold text-lg transition-all duration-300 hover:scale-105 px-8"
                                 style={{
-                                    padding: '12px 16px',
-                                    marginBottom: '24px',
-                                    background: 'rgba(239, 68, 68, 0.1)',
-                                    border: '1px solid rgba(239, 68, 68, 0.3)',
-                                    color: '#ef4444'
+                                    background: 'rgba(255, 255, 255, 0.05)',
+                                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                                    color: 'var(--foreground)'
                                 }}
                             >
-                                {error}
-                            </div>
-                        )}
-
-                        {/* Submit Button */}
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className="w-full rounded-2xl font-semibold transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
-                            style={{
-                                padding: '16px 32px',
-                                background: loading ? 'var(--background-secondary)' : 'var(--gradient-hero)',
-                                color: 'white',
-                                fontSize: '16px',
-                                marginBottom: '32px'
-                            }}
-                        >
-                            {loading ? 'Logging in...' : 'Login to Account'}
-                        </button>
-                    </form>
-
-                    {/* Sign Up Link */}
-                    <p className="text-center text-sm" style={{ color: 'var(--foreground-secondary)', marginTop: '32px' }}>
-                        Don't have an account?{' '}
-                        <Link
-                            href="/signup"
-                            className="font-semibold transition-colors hover:text-white"
-                            style={{ color: 'var(--accent-cyan)' }}
-                        >
-                            Sign up for free
+                                ← Back to Home
+                            </Button>
                         </Link>
-                    </p>
-                </motion.div>
-
-                {/* Back to Home */}
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 0.8, delay: 0.3 }}
-                    className="text-center"
-                    style={{ marginTop: '32px' }}
-                >
-                    <Link
-                        href="/"
-                        className="text-lg font-medium transition-all duration-300 hover:text-white hover:scale-105"
-                        style={{ color: 'var(--foreground-tertiary)', display: 'inline-block' }}
-                    >
-                        ← Back to Home
-                    </Link>
+                    </div>
                 </motion.div>
             </div>
         </main>

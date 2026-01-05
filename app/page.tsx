@@ -67,7 +67,7 @@ export default function Home() {
             className="inline-flex justify-center"
             style={{ marginBottom: '20px' }}
           >
-            <Badge variant="outline" className="px-4 py-2 h-8 w-80 glass flex items-center gap-2 text-sm font-medium rounded-2xl" style={{ color: 'var(--foreground-secondary)' }}>
+            <Badge variant="outline" className="px-4 py-2 h-8 w-80 glass flex items-center justify-center gap-2 text-sm font-medium rounded-2xl" style={{ color: 'var(--foreground-secondary)' }}>
               <Sparkles className="w-4 h-4 text-accent-cyan" style={{ color: 'var(--accent-cyan)' }} />
               India's Next Generation AI Ecosystem
             </Badge>

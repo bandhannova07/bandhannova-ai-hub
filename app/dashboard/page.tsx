@@ -174,13 +174,30 @@ export default function DashboardPage() {
     // Disable body scroll when sidebar is open on mobile
     useEffect(() => {
         if (sidebarOpen && !isDesktop) {
+            // Save current scroll position
+            const scrollY = window.scrollY;
+            // Lock scroll with position fixed
+            document.body.style.position = 'fixed';
+            document.body.style.top = `-${scrollY}px`;
+            document.body.style.width = '100%';
             document.body.style.overflow = 'hidden';
         } else {
-            document.body.style.overflow = 'unset';
+            // Restore scroll position
+            const scrollY = document.body.style.top;
+            document.body.style.position = '';
+            document.body.style.top = '';
+            document.body.style.width = '';
+            document.body.style.overflow = '';
+            if (scrollY) {
+                window.scrollTo(0, parseInt(scrollY || '0') * -1);
+            }
         }
 
         return () => {
-            document.body.style.overflow = 'unset';
+            document.body.style.position = '';
+            document.body.style.top = '';
+            document.body.style.width = '';
+            document.body.style.overflow = '';
         };
     }, [sidebarOpen, isDesktop]);
 
@@ -315,7 +332,7 @@ export default function DashboardPage() {
             >
                 <div
                     className="flex flex-col h-full sidebar-content-wrapper"
-                    style={{ padding: '24px 16px' }}
+                    style={{ padding: '24px 8px' }}
                 >
                     {/* Logo */}
                     <div style={{ marginBottom: '40px', marginTop: '36px' }}>
@@ -351,18 +368,16 @@ export default function DashboardPage() {
                             </div>
                             <div style={{ overflow: 'hidden', flex: 1 }}>
                                 <p
-                                    className="font-semibold sidebar-user-name"
+                                    className="body-large font-semibold"
                                     style={{
                                         color: 'white',
-                                        fontSize: '18px',
                                         marginBottom: '2px'
                                     }}
                                 >
                                     {user?.user_metadata?.full_name || 'User'}
                                 </p>
-                                <p style={{
+                                <p className="small" style={{
                                     color: 'var(--foreground-tertiary)',
-                                    fontSize: '14px',
                                     overflow: 'hidden',
                                     textOverflow: 'ellipsis',
                                     whiteSpace: 'nowrap'
@@ -379,12 +394,12 @@ export default function DashboardPage() {
                         >
                             <div className="text-center">
                                 <p
-                                    className="font-bold"
-                                    style={{ color: 'var(--foreground)', fontSize: '18px' }}
+                                    className="body-large font-bold"
+                                    style={{ color: 'var(--foreground)' }}
                                 >
                                     {stats.conversations}
                                 </p>
-                                <p style={{ color: 'var(--foreground-tertiary)', fontSize: '13px' }}>
+                                <p className="small" style={{ color: 'var(--foreground-tertiary)' }}>
                                     Chats
                                 </p>
                             </div>
@@ -417,11 +432,9 @@ export default function DashboardPage() {
                     <nav className="flex-1" style={{ marginBottom: '24px' }}>
                         <div style={{ marginBottom: '8px' }}>
                             <p
-                                className="sidebar-menu-label"
+                                className="body font-semibold"
                                 style={{
                                     color: 'var(--foreground-tertiary)',
-                                    fontSize: '18px',
-                                    fontWeight: '600',
                                     textTransform: 'uppercase',
                                     letterSpacing: '0.5px',
                                     marginBottom: '12px',
@@ -444,7 +457,7 @@ export default function DashboardPage() {
                                 }}
                             >
                                 <Home className="w-5 h-5" />
-                                <span className="sidebar-nav-text" style={{ fontSize: '18px', fontWeight: '500' }}>Dashboard</span>
+                                <span className="body font-medium">Dashboard</span>
                             </Button>
 
                             <Button
@@ -458,7 +471,7 @@ export default function DashboardPage() {
                                 }}
                             >
                                 <CreditCard className="w-5 h-5" />
-                                <span className="sidebar-nav-text" style={{ fontSize: '18px', fontWeight: '500' }}>Plans</span>
+                                <span className="body font-medium">Plans</span>
                             </Button>
 
                             <Button
@@ -472,7 +485,7 @@ export default function DashboardPage() {
                                 }}
                             >
                                 <Info className="w-5 h-5" />
-                                <span className="sidebar-nav-text" style={{ fontSize: '18px', fontWeight: '500' }}>About</span>
+                                <span className="body font-medium">About</span>
                             </Button>
 
                             <Button
@@ -487,7 +500,7 @@ export default function DashboardPage() {
                             >
                                 <Link href="/contact">
                                     <MessageSquare className="w-5 h-5" />
-                                    <span className="sidebar-nav-text" style={{ fontSize: '18px', fontWeight: '500' }}>Feedback</span>
+                                    <span className="body font-medium">Feedback</span>
                                 </Link>
                             </Button>
                         </div>
@@ -505,7 +518,7 @@ export default function DashboardPage() {
                         }}
                     >
                         <LogOut className="w-5 h-5" />
-                        <span className="sidebar-nav-text" style={{ fontSize: '18px', fontWeight: '500' }}>Sign Out</span>
+                        <span className="body font-medium">Sign Out</span>
                     </Button>
                 </div>
             </aside>
@@ -520,20 +533,25 @@ export default function DashboardPage() {
                 />
             )}
 
-            {/* Sidebar Toggle Button - Improved Design */}
-            <button
-                onClick={() => setSidebarOpen(!sidebarOpen)}
-                className="sidebar-toggle-btn"
-                style={{
-                    left: sidebarOpen && isDesktop ? '400px' : '20px',
-                }}
-            >
-                {sidebarOpen ? (
-                    <X className="w-8 h-8" style={{ color: 'var(--foreground)' }} />
-                ) : (
-                    <Menu className="w-8 h-8" style={{ color: 'var(--foreground)' }} />
-                )}
-            </button>
+
+            {/* Mobile Sidebar Toggle Button - Top Left */}
+            {!isDesktop && (
+                <button
+                    onClick={() => setSidebarOpen(!sidebarOpen)}
+                    className="fixed top-5 left-5 z-50 flex items-center justify-center rounded-2xl glass transition-all hover:scale-105"
+                    style={{
+                        width: '44px',
+                        height: '44px',
+                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                    }}
+                >
+                    {sidebarOpen ? (
+                        <X className="w-5 h-5" style={{ color: 'var(--foreground)' }} />
+                    ) : (
+                        <Menu className="w-5 h-5" style={{ color: 'var(--foreground)' }} />
+                    )}
+                </button>
+            )}
 
             {/* Main Content */}
             <div
@@ -556,21 +574,18 @@ export default function DashboardPage() {
                                 style={{ marginBottom: '48px', marginTop: '120px', padding: '8px' }}
                             >
                                 <h1
-                                    className="font-bold"
+                                    className="h1"
                                     style={{
-                                        fontSize: '48px',
                                         color: 'var(--foreground)',
-                                        marginBottom: '12px',
-                                        lineHeight: '1.2'
+                                        marginBottom: '12px'
                                     }}
                                 >
-                                    Welcome back, <br /><span className="bg-gradient-to-r from-purple-500 to-cyan-500 bg-clip-text text-transparent">{user?.user_metadata?.full_name?.split(' ')[0] || 'there'}</span>! 👋
+                                    Welcome back, <br /><span className="gradient-text">{user?.user_metadata?.full_name?.split(' ')[0] || 'there'}</span>! 👋
                                 </h1>
                                 <p
+                                    className="body-large"
                                     style={{
-                                        fontSize: '18px',
-                                        color: 'var(--foreground-secondary)',
-                                        lineHeight: '1.6'
+                                        color: 'var(--foreground-secondary)'
                                     }}
                                 >
                                     Choose an AI agent to start your conversation and unlock limitless possibilities
@@ -585,9 +600,8 @@ export default function DashboardPage() {
                                     style={{ marginBottom: '48px' }}
                                 >
                                     <h3
-                                        className="font-bold dashboard-section-header"
+                                        className="h3"
                                         style={{
-                                            fontSize: '24px',
                                             color: 'var(--foreground)',
                                             marginBottom: '16px'
                                         }}
@@ -657,14 +671,13 @@ export default function DashboardPage() {
                                     style={{ marginBottom: '40px', padding: '4px' }}
                                 >
                                     <h3
-                                        className="font-bold dashboard-section-header"
+                                        className="h3"
                                         style={{
-                                            fontSize: '24px',
                                             color: 'var(--foreground)',
                                             marginBottom: '16px'
                                         }}
                                     >
-                                        Default <span style={{ color: 'var(--foreground-tertiary)', fontSize: '16px', fontWeight: 'normal' }}>(Free Now)</span>
+                                        Default <span className="small" style={{ color: 'var(--foreground-tertiary)', fontWeight: 'normal' }}>(Free Now)</span>
                                     </h3>
                                     <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3" style={{ gap: '12px' }}>
                                         {AI_AGENTS.filter(agent => ['conversational', 'search-engine'].includes(agent.id)).map((agent, index) => {
@@ -708,14 +721,13 @@ export default function DashboardPage() {
                                     style={{ marginBottom: '40px' }}
                                 >
                                     <h3
-                                        className="font-bold dashboard-section-header"
+                                        className="h3"
                                         style={{
-                                            fontSize: '24px',
                                             color: 'var(--foreground)',
                                             marginBottom: '16px'
                                         }}
                                     >
-                                        Featured <span style={{ color: 'var(--foreground-tertiary)', fontSize: '16px', fontWeight: 'normal' }}>(Free Limited)</span>
+                                        Featured <span className="small" style={{ color: 'var(--foreground-tertiary)', fontWeight: 'normal' }}>(Free Limited)</span>
                                     </h3>
                                     <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3" style={{ gap: '12px' }}>
                                         {AI_AGENTS.filter(agent =>
@@ -760,9 +772,8 @@ export default function DashboardPage() {
                                     transition={{ delay: 0.8 }}
                                 >
                                     <h3
-                                        className="font-bold dashboard-section-header"
+                                        className="h3"
                                         style={{
-                                            fontSize: '24px',
                                             color: 'var(--foreground)',
                                             marginBottom: '16px'
                                         }}
@@ -834,25 +845,19 @@ export default function DashboardPage() {
                                 className="text-center mb-12"
                             >
                                 <h2
-                                    className="font-bold mb-4"
+                                    className="h2"
                                     style={{
-                                        fontSize: '42px',
                                         color: 'var(--foreground)',
-                                        marginTop: '32px'
+                                        marginTop: '32px',
+                                        marginBottom: '16px'
                                     }}
                                 >
                                     Choose Your <span className="gradient-text">Growth Plan</span>
                                 </h2>
                                 <p
-                                    className="text-center mx-auto"
+                                    className="body-large text-center mx-auto"
                                     style={{
-                                        fontSize: '18px',
                                         color: 'var(--foreground-secondary)',
-                                        lineHeight: '1.6',
-                                        maxWidth: 'auto',
-                                        marginLeft: 'auto',
-                                        marginRight: 'auto',
-                                        display: 'block',
                                         marginBottom: '30px'
                                     }}
                                 >
@@ -860,7 +865,6 @@ export default function DashboardPage() {
                                 </p>
                             </motion.div>
 
-                            {/* Pricing Cards */}
                             <div
                                 className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 plans-grid-mobile"
                                 style={{ gap: '48px', marginBottom: '60px', padding: '0 16px' }}
@@ -984,10 +988,10 @@ export default function DashboardPage() {
                                             </div>
 
                                             <h3
-                                                className="font-bold mb-2 text-center"
+                                                className="h3 text-center"
                                                 style={{
-                                                    fontSize: '32px',
-                                                    color: 'var(--foreground)'
+                                                    color: 'var(--foreground)',
+                                                    marginBottom: '16px'
                                                 }}
                                             >
                                                 {plan.name}
@@ -996,17 +1000,16 @@ export default function DashboardPage() {
                                             <div className="mb-6 text-center">
                                                 <div className="flex items-baseline gap-2 justify-center">
                                                     <span
-                                                        className="font-bold"
+                                                        className="h2"
                                                         style={{
-                                                            fontSize: '40px',
                                                             color: 'var(--foreground)'
                                                         }}
                                                     >
                                                         {plan.price}
                                                     </span>
                                                     <span
+                                                        className="body"
                                                         style={{
-                                                            fontSize: '16px',
                                                             color: 'var(--foreground-secondary)'
                                                         }}
                                                     >
@@ -1157,24 +1160,19 @@ export default function DashboardPage() {
                                 className="text-center mb-12"
                             >
                                 <h2
-                                    className="font-bold mb-4"
+                                    className="h2"
                                     style={{
-                                        fontSize: '36px',
-                                        color: 'var(--foreground)'
+                                        color: 'var(--foreground)',
+                                        marginBottom: '16px'
                                     }}
                                 >
                                     About & <span className="gradient-text">Policies</span>
                                 </h2>
                                 <p
-                                    className="text-center mx-auto"
+                                    className="body text-center mx-auto"
                                     style={{
-                                        fontSize: '16px',
                                         color: 'var(--foreground-secondary)',
-                                        lineHeight: '1.6',
                                         maxWidth: '600px',
-                                        marginLeft: 'auto',
-                                        marginRight: 'auto',
-                                        display: 'block',
                                         marginBottom: '30px'
                                     }}
                                 >
@@ -1184,7 +1182,7 @@ export default function DashboardPage() {
 
                             {/* Navigation Cards */}
                             <div
-                                className="grid h-auto grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
+                                className="grid grid-cols-2 gap-2 about-cards-grid"
                                 style={{ maxWidth: '100%', marginLeft: 'auto', marginRight: 'auto' }}
                             >
                                 {/* Terms & Conditions Card */}
@@ -1192,62 +1190,25 @@ export default function DashboardPage() {
                                     initial={{ opacity: 0, y: 30 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: 0.1 }}
-                                    whileHover={{ scale: 1.03, y: -8 }}
-                                    className="glass rounded-3xl border cursor-pointer"
-                                    style={{
-                                        padding: '40px 32px',
-                                        borderColor: 'rgba(255, 255, 255, 0.1)',
-                                        backdropFilter: 'blur(20px)'
-                                    }}
                                     onClick={() => router.push('/terms')}
                                 >
-                                    <div
-                                        className="rounded-2xl flex items-center justify-center mb-6 mx-auto"
-                                        style={{
-                                            width: '80px',
-                                            height: '80px',
-                                            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                                            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)'
-                                        }}
-                                    >
-                                        <FileText className="w-10 h-10 text-white" />
-                                    </div>
-                                    <h2
-                                        className="font-bold mb-4 text-center"
-                                        style={{
-                                            fontSize: '24px',
-                                            color: 'var(--foreground)',
-                                            marginBottom: '7px',
-                                            marginTop: '10px'
-                                        }}
-                                    >
-                                        Terms & Conditions
-                                    </h2>
-                                    <p
-                                        className="mb-8 text-center"
-                                        style={{
-                                            fontSize: '16px',
-                                            color: 'var(--foreground-secondary)',
-                                            lineHeight: '1.6',
-                                            marginBottom: '10px'
-                                        }}
-                                    >
-                                        Understand your rights and responsibilities when using our AI platform. Review our comprehensive terms of service and usage guidelines.
-                                    </p>
-                                    <Button asChild variant="link" className="p-0 h-auto hover:no-underline">
-                                        <Link
-                                            href="/terms"
-                                            className="flex items-center gap-2 font-medium transition-all hover:gap-3"
-                                            style={{
-                                                fontSize: '14px',
-                                                color: 'var(--primary-purple)',
-                                                textDecoration: 'none'
-                                            }}
+                                    <div className="ai-card-new">
+                                        <div
+                                            className="ai-card-icon-badge"
+                                            style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}
                                         >
-                                            <span>View Terms</span>
+                                            <FileText className="w-6 h-6 text-white" style={{ position: 'relative', zIndex: 1 }} />
+                                        </div>
+                                        <h3 className="ai-card-title">Terms & Conditions</h3>
+                                        <p className="ai-card-desc">Review our comprehensive terms of service and usage guidelines</p>
+                                        <Button
+                                            size="sm"
+                                            className="ai-card-action-btn"
+                                        >
+                                            View Terms
                                             <ArrowRight className="w-4 h-4" />
-                                        </Link>
-                                    </Button>
+                                        </Button>
+                                    </div>
                                 </motion.div>
 
                                 {/* Privacy & Policies Card */}
@@ -1255,62 +1216,25 @@ export default function DashboardPage() {
                                     initial={{ opacity: 0, y: 30 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: 0.2 }}
-                                    whileHover={{ scale: 1.03, y: -8 }}
-                                    className="glass rounded-3xl border cursor-pointer"
-                                    style={{
-                                        padding: '40px 32px',
-                                        borderColor: 'rgba(255, 255, 255, 0.1)',
-                                        backdropFilter: 'blur(20px)'
-                                    }}
                                     onClick={() => router.push('/privacy')}
                                 >
-                                    <div
-                                        className="rounded-2xl flex items-center justify-center mb-6 mx-auto"
-                                        style={{
-                                            width: '80px',
-                                            height: '80px',
-                                            background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
-                                            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)'
-                                        }}
-                                    >
-                                        <Shield className="w-10 h-10 text-white" />
-                                    </div>
-                                    <h2
-                                        className="font-bold mb-4 text-center"
-                                        style={{
-                                            fontSize: '24px',
-                                            color: 'var(--foreground)',
-                                            marginBottom: '7px',
-                                            marginTop: '10px'
-                                        }}
-                                    >
-                                        Privacy & Policies
-                                    </h2>
-                                    <p
-                                        className="mb-8 text-center"
-                                        style={{
-                                            fontSize: '16px',
-                                            color: 'var(--foreground-secondary)',
-                                            lineHeight: '1.6',
-                                            marginBottom: '10px'
-                                        }}
-                                    >
-                                        Your privacy matters to us. Learn how we collect, use, and protect your personal data with industry-leading security standards.
-                                    </p>
-                                    <Button asChild variant="link" className="p-0 h-auto hover:no-underline">
-                                        <Link
-                                            href="/privacy"
-                                            className="flex items-center gap-2 font-medium transition-all hover:gap-3"
-                                            style={{
-                                                fontSize: '14px',
-                                                color: 'var(--primary-purple)',
-                                                textDecoration: 'none'
-                                            }}
+                                    <div className="ai-card-new">
+                                        <div
+                                            className="ai-card-icon-badge"
+                                            style={{ background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)' }}
                                         >
-                                            <span>View Privacy Policy</span>
+                                            <Shield className="w-6 h-6 text-white" style={{ position: 'relative', zIndex: 1 }} />
+                                        </div>
+                                        <h3 className="ai-card-title">Privacy & Policies</h3>
+                                        <p className="ai-card-desc">Learn how we protect your personal data with industry-leading security</p>
+                                        <Button
+                                            size="sm"
+                                            className="ai-card-action-btn"
+                                        >
+                                            View Privacy
                                             <ArrowRight className="w-4 h-4" />
-                                        </Link>
-                                    </Button>
+                                        </Button>
+                                    </div>
                                 </motion.div>
 
                                 {/* About BandhanNova Card */}
@@ -1318,62 +1242,25 @@ export default function DashboardPage() {
                                     initial={{ opacity: 0, y: 30 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: 0.3 }}
-                                    whileHover={{ scale: 1.03, y: -8 }}
-                                    className="glass rounded-3xl border cursor-pointer"
-                                    style={{
-                                        padding: '40px 32px',
-                                        borderColor: 'rgba(255, 255, 255, 0.1)',
-                                        backdropFilter: 'blur(20px)'
-                                    }}
                                     onClick={() => router.push('/about')}
                                 >
-                                    <div
-                                        className="rounded-2xl flex items-center justify-center mb-6 mx-auto"
-                                        style={{
-                                            width: '80px',
-                                            height: '80px',
-                                            background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
-                                            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)'
-                                        }}
-                                    >
-                                        <Info className="w-10 h-10 text-white" />
-                                    </div>
-                                    <h2
-                                        className="font-bold mb-4 text-center"
-                                        style={{
-                                            fontSize: '24px',
-                                            color: 'var(--foreground)',
-                                            marginBottom: '7px',
-                                            marginTop: '10px'
-                                        }}
-                                    >
-                                        About BandhanNova
-                                    </h2>
-                                    <p
-                                        className="mb-8 text-center"
-                                        style={{
-                                            fontSize: '16px',
-                                            color: 'var(--foreground-secondary)',
-                                            lineHeight: '1.6',
-                                            marginBottom: '10px'
-                                        }}
-                                    >
-                                        Discover our mission to democratize AI for India. Learn about our vision, values, and the team behind BandhanNova AI Hub.
-                                    </p>
-                                    <Button asChild variant="link" className="p-0 h-auto hover:no-underline">
-                                        <Link
-                                            href="/about"
-                                            className="flex items-center gap-2 font-medium transition-all hover:gap-3"
-                                            style={{
-                                                fontSize: '14px',
-                                                color: 'var(--primary-purple)',
-                                                textDecoration: 'none'
-                                            }}
+                                    <div className="ai-card-new">
+                                        <div
+                                            className="ai-card-icon-badge"
+                                            style={{ background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)' }}
                                         >
-                                            <span>Learn More</span>
+                                            <Info className="w-6 h-6 text-white" style={{ position: 'relative', zIndex: 1 }} />
+                                        </div>
+                                        <h3 className="ai-card-title">About BandhanNova</h3>
+                                        <p className="ai-card-desc">Discover our mission to democratize AI for India</p>
+                                        <Button
+                                            size="sm"
+                                            className="ai-card-action-btn"
+                                        >
+                                            Learn More
                                             <ArrowRight className="w-4 h-4" />
-                                        </Link>
-                                    </Button>
+                                        </Button>
+                                    </div>
                                 </motion.div>
 
                                 {/* FAQ Card */}
@@ -1381,60 +1268,25 @@ export default function DashboardPage() {
                                     initial={{ opacity: 0, y: 30 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: 0.4 }}
-                                    whileHover={{ scale: 1.03, y: -8 }}
-                                    className="glass rounded-3xl border cursor-pointer"
-                                    style={{
-                                        padding: '48px 36px',
-                                        borderColor: 'rgba(255, 255, 255, 0.1)',
-                                        backdropFilter: 'blur(20px)'
-                                    }}
                                     onClick={() => router.push('/faq')}
                                 >
-                                    <div
-                                        className="rounded-2xl flex items-center justify-center mb-6 mx-auto"
-                                        style={{
-                                            width: '80px',
-                                            height: '80px',
-                                            background: 'linear-gradient(135deg, #10b981 0%, #14b8a6 100%)',
-                                            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)'
-                                        }}
-                                    >
-                                        <HelpCircle className="w-10 h-10 text-white" />
-                                    </div>
-                                    <h2
-                                        className="font-bold text-center mb-4"
-                                        style={{
-                                            fontSize: '24px',
-                                            color: 'var(--foreground)'
-                                        }}
-                                    >
-                                        FAQ
-                                    </h2>
-                                    <p
-                                        className="mb-8 text-center"
-                                        style={{
-                                            fontSize: '16px',
-                                            color: 'var(--foreground-secondary)',
-                                            lineHeight: '1.6',
-                                            marginBottom: '10px'
-                                        }}
-                                    >
-                                        Get instant answers to common questions about features, billing, privacy, and technical support for our AI platform.
-                                    </p>
-                                    <Button asChild variant="link" className="p-0 h-auto hover:no-underline">
-                                        <Link
-                                            href="/faq"
-                                            className="flex items-center gap-2 font-medium transition-all hover:gap-3"
-                                            style={{
-                                                fontSize: '14px',
-                                                color: 'var(--primary-purple)',
-                                                textDecoration: 'none'
-                                            }}
+                                    <div className="ai-card-new">
+                                        <div
+                                            className="ai-card-icon-badge"
+                                            style={{ background: 'linear-gradient(135deg, #10b981 0%, #14b8a6 100%)' }}
                                         >
-                                            <span>View FAQ</span>
+                                            <HelpCircle className="w-6 h-6 text-white" style={{ position: 'relative', zIndex: 1 }} />
+                                        </div>
+                                        <h3 className="ai-card-title">FAQ</h3>
+                                        <p className="ai-card-desc">Get instant answers to common questions about our AI platform</p>
+                                        <Button
+                                            size="sm"
+                                            className="ai-card-action-btn"
+                                        >
+                                            View FAQ
                                             <ArrowRight className="w-4 h-4" />
-                                        </Link>
-                                    </Button>
+                                        </Button>
+                                    </div>
                                 </motion.div>
                             </div>
                         </>

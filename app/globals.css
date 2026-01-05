@@ -232,40 +232,40 @@ h6 {
 }
 
 .display {
-  font-size: clamp(2.5rem, 8vw, 4.5rem);
+  font-size: clamp(2rem, 6vw, 3.5rem);
   font-weight: 900;
   line-height: 1.1;
   letter-spacing: -0.02em;
 }
 
 .h1 {
-  font-size: clamp(2rem, 6vw, 3.5rem);
+  font-size: clamp(1.5rem, 5vw, 2.5rem);
   font-weight: 800;
   letter-spacing: -0.01em;
 }
 
 .h2 {
-  font-size: clamp(1.75rem, 5vw, 2.5rem);
+  font-size: clamp(1.25rem, 4vw, 1.875rem);
   font-weight: 700;
 }
 
 .h3 {
-  font-size: clamp(1.5rem, 4vw, 2rem);
+  font-size: clamp(1.125rem, 3vw, 1.5rem);
   font-weight: 600;
 }
 
 .body-large {
-  font-size: 1.25rem;
+  font-size: 1.125rem;
   line-height: 1.7;
 }
 
 .body {
-  font-size: 1rem;
+  font-size: 0.9375rem;
   line-height: 1.6;
 }
 
 .small {
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   line-height: 1.5;
 }
 
@@ -922,9 +922,11 @@ a:focus-visible {
 /* Mobile Plans Card Optimization */
 @media (max-width: 640px) {
 
-  /* Reduce gap between plans cards */
+  /* Increase padding and gap for plans cards on mobile */
   .plans-grid-mobile {
-    gap: 16px !important;
+    gap: 48px !important;
+    padding-left: 32px !important;
+    padding-right: 32px !important;
   }
 
   /* Smaller plan card icons */
@@ -1009,6 +1011,26 @@ a:focus-visible {
   /* Compact plan card */
   .plan-card-mobile {
     padding: 16px !important;
+  }
+
+  /* About section cards - smaller icons and spacing for mobile */
+  .about-cards-grid {
+    gap: 16px !important;
+  }
+
+  .about-cards-grid>div {
+    padding: 24px 16px !important;
+  }
+
+  .about-cards-grid .rounded-2xl {
+    width: 56px !important;
+    height: 56px !important;
+    margin-bottom: 16px !important;
+  }
+
+  .about-cards-grid .rounded-2xl svg {
+    width: 28px !important;
+    height: 28px !important;
   }
 }
 
@@ -1296,102 +1318,5 @@ input[type="password"] {
   /* Stats card text */
   .sidebar-stats-text {
     font-size: 13px !important;
-  }
-}
-
-/* Improved sidebar toggle button */
-.sidebar-toggle-btn {
-  position: fixed;
-  top: 20px;
-  left: 20px;
-  z-index: 60;
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: left 0.3s;
-}
-
-@media (min-width: 1025px) {
-  .sidebar-toggle-btn {
-    display: none;
-  }
-}
-
-/* Toggle button icon animation - only icon transition */
-.sidebar-toggle-btn svg {
-  transition: transform 0.3s ease;
-}
-
-/* Mobile text optimization for dashboard screens */
-@media (max-width: 640px) {
-
-  /* Dashboard, Plans, About screen headings */
-  .mobile-heading {
-    font-size: 28px !important;
-  }
-
-  .mobile-subheading {
-    font-size: 20px !important;
-  }
-
-  .mobile-body-text {
-    font-size: 14px !important;
-  }
-
-  .mobile-small-text {
-    font-size: 12px !important;
-  }
-
-  /* Plan card text */
-  .mobile-plan-title {
-    font-size: 20px !important;
-  }
-
-  .mobile-plan-price {
-    font-size: 32px !important;
-  }
-
-  .mobile-plan-feature {
-    font-size: 13px !important;
-  }
-
-  /* Sidebar text - mobile responsive */
-  .sidebar-subtitle {
-    font-size: 14px !important;
-  }
-
-  .sidebar-user-name {
-    font-size: 15px !important;
-  }
-
-  .sidebar-menu-label {
-    font-size: 14px !important;
-  }
-
-  .sidebar-nav-text {
-    font-size: 15px !important;
-  }
-
-  /* Dashboard section headers - mobile responsive */
-  .dashboard-section-header {
-    font-size: 18px !important;
-  }
-}
-
-/* Sidebar top padding to prevent overlay */
-.sidebar-content-wrapper {
-  padding-top: 80px;
-}
-
-@media (min-width: 1025px) {
-  .sidebar-content-wrapper {
-    padding-top: 0;
   }
 }

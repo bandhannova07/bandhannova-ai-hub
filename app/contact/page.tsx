@@ -4,6 +4,17 @@ import { motion } from 'framer-motion';
 import { Mail, MessageSquare, Send, User, FileText } from 'lucide-react';
 import { useState } from 'react';
 import Link from 'next/link';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 
 export default function ContactPage() {
     const [formData, setFormData] = useState({
