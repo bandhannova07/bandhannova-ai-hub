@@ -844,8 +844,8 @@ export default function DashboardPage() {
                                 animate={{ opacity: 1, y: 0 }}
                                 className="text-center mb-12"
                             >
-                                <h2
-                                    className="h2"
+                                <h1
+                                    className="h1"
                                     style={{
                                         color: 'var(--foreground)',
                                         marginTop: '32px',
@@ -853,7 +853,7 @@ export default function DashboardPage() {
                                     }}
                                 >
                                     Choose Your <span className="gradient-text">Growth Plan</span>
-                                </h2>
+                                </h1>
                                 <p
                                     className="body-large text-center mx-auto"
                                     style={{
@@ -1159,15 +1159,15 @@ export default function DashboardPage() {
                                 animate={{ opacity: 1, y: 0 }}
                                 className="text-center mb-12"
                             >
-                                <h2
-                                    className="h2"
+                                <h1
+                                    className="h1"
                                     style={{
                                         color: 'var(--foreground)',
                                         marginBottom: '16px'
                                     }}
                                 >
                                     About & <span className="gradient-text">Policies</span>
-                                </h2>
+                                </h1>
                                 <p
                                     className="body text-center mx-auto"
                                     style={{
