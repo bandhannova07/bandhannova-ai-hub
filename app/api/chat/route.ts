@@ -3,7 +3,6 @@
 
 import { NextRequest } from 'next/server';
 import { buildMessagesArray } from '@/lib/ai/promptCombiner';
-import { getRelevantMemories } from '@/lib/qdrant/memory';
 
 export const runtime = 'edge';
 
@@ -18,6 +17,8 @@ export async function POST(req: NextRequest) {
             userId,
         } = await req.json();
 
+        console.log('📨 Chat API Request:', { agentType, responseMode, model });
+
         // Validation
         if (!message || !agentType || !responseMode) {
             return new Response(
@@ -26,25 +27,21 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        // Get relevant memories from Qdrant
-        const memories = await getRelevantMemories(
-            message,
-            userId || 'anonymous',
-            5,
-            agentType
-        );
-
         // Build complete messages array with prompts
+        // No memory system needed for simple image generation
+        console.log('🔨 Building messages array...');
         const messages = buildMessagesArray(
             agentType,
             responseMode as 'quick' | 'normal' | 'thinking',
             message,
             conversationHistory || [],
-            { memories }
+            {} // Empty context - no memories needed
         );
+        console.log('✅ Messages built successfully');
 
         // Determine which AI model to use based on agent type
         const aiModel = getModelName(model, agentType);
+        console.log('🤖 Using AI model:', aiModel);
 
         // Call OpenRouter API with streaming
         const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
@@ -52,7 +49,7 @@ export async function POST(req: NextRequest) {
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
-                'HTTP-Referer': process.env.NEXT_PUBLIC_APP_URL || 'https://bandhannova.com',
+                'HTTP-Referer': process.env.NEXT_PUBLIC_APP_URL || 'https://www.bandhannova.in',
                 'X-Title': 'BandhanNova AI Hub',
             },
             body: JSON.stringify({
@@ -66,7 +63,7 @@ export async function POST(req: NextRequest) {
 
         if (!response.ok) {
             const error = await response.text();
-            console.error('OpenRouter API error:', error);
+            console.error('❌ OpenRouter API error:', error);
             throw new Error('OpenRouter API request failed');
         }
 
@@ -79,9 +76,12 @@ export async function POST(req: NextRequest) {
             },
         });
     } catch (error) {
-        console.error('Chat API error:', error);
+        console.error('💥 Chat API error:', error);
         return new Response(
-            JSON.stringify({ error: 'Internal server error' }),
+            JSON.stringify({
+                error: 'Internal server error',
+                details: error instanceof Error ? error.message : 'Unknown error'
+            }),
             { status: 500, headers: { 'Content-Type': 'application/json' } }
         );
     }
@@ -100,11 +100,11 @@ function getModelName(model: string, agentType?: string): string {
             fallback: 'alibaba/tongyi-deepresearch-30b-a3b:free'
         },
         'creator-social': { // Creator & Social Media
-            primary: 'tngtech/deepseek-r1t2-chimera:free',
+            primary: 'xiaomi/mimo-v2-flash:free',
             fallback: 'tngtech/deepseek-r1t-chimera:free'
         },
         'creative-productivity': {
-            primary: 'meta-llama/llama-3.3-70b-instruct:free',
+            primary: 'xiaomi/mimo-v2-flash:free',
             fallback: 'allenai/olmo-3.1-32b-think:free'
         },
         'psychology-personality': {
@@ -116,15 +116,15 @@ function getModelName(model: string, agentType?: string): string {
             fallback: 'mistralai/devstral-2512:free'
         },
         'business-career': {
-            primary: 'meta-llama/llama-3.1-405b-instruct:free',
+            primary: 'xiaomi/mimo-v2-flash:free',
             fallback: 'mistralai/devstral-2512:free'
         },
         'image-maker': {
-            primary: 'sourceful/riverflow-v2-fast-preview',
-            fallback: 'bytedance-seed/seedream-4.5'
+            primary: 'google/gemini-2.0-flash-exp:free',
+            fallback: 'xiaomi/mimo-v2-flash:free'
         },
         'kitchen-recipe': {
-            primary: 'mistralai/devstral-2512:free',
+            primary: 'xiaomi/mimo-v2-flash:free',
             fallback: 'google/gemini-2.0-flash-exp:free'
         }
     };

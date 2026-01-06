@@ -899,6 +899,7 @@ export default function ChatPage() {
                                                         content={message.content}
                                                         role={message.role}
                                                         isTyping={message.role === 'assistant' && isTyping && index === messages.length - 1}
+                                                        agentType={agentType}
                                                     />
                                                 </div>
 

@@ -1,8 +1,8 @@
 // Prompt Combiner
 // Combines base prompts, agent prompts, and context for AI requests
 
-import { getResponseModePrompt } from '../prompts/responseModes';
-import { getAgentPrompt } from '../prompts';
+import { getResponseModePrompt } from '../../prompts/responseModes';
+import { getAgentPrompt } from '../../prompts';
 
 export interface PromptContext {
     memories?: string[];

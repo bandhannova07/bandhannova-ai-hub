@@ -4,14 +4,16 @@ import remarkGfm from 'remark-gfm';
 import rehypeHighlight from 'rehype-highlight';
 import rehypeRaw from 'rehype-raw';
 import { Check, Copy } from 'lucide-react';
+import ImageViewer from './ImageViewer';
 
 interface MessageRendererProps {
     content: string;
     role: 'user' | 'assistant';
     isTyping?: boolean;
+    agentType?: string; // To detect if it's image-maker
 }
 
-export function MessageRenderer({ content, role, isTyping = false }: MessageRendererProps) {
+export function MessageRenderer({ content, role, isTyping = false, agentType }: MessageRendererProps) {
     const [copiedCode, setCopiedCode] = React.useState<string | null>(null);
 
     const copyCode = (code: string) => {
@@ -22,6 +24,41 @@ export function MessageRenderer({ content, role, isTyping = false }: MessageRend
 
     if (role === 'user') {
         return <div className="whitespace-pre-wrap">{content}</div>;
+    }
+
+    // For image-maker agent, try to render any URLs as images
+    if (agentType === 'image-maker' && role === 'assistant') {
+        // Extract all URLs from content
+        const urlRegex = /(https?:\/\/[^\s<>"]+)/gi;
+        const urls = content.match(urlRegex) || [];
+
+        if (urls.length > 0) {
+            const textContent = content.replace(urlRegex, '').trim();
+
+            return (
+                <div className="ai-message-content">
+                    {textContent && (
+                        <div className="mb-4">
+                            <p style={{
+                                fontSize: '15px',
+                                color: 'var(--foreground-secondary)',
+                                lineHeight: '1.6'
+                            }}>
+                                {textContent}
+                            </p>
+                        </div>
+                    )}
+                    {urls.map((url, index) => (
+                        <div key={index} style={{ marginBottom: '20px' }}>
+                            <ImageViewer
+                                imageUrl={url}
+                                alt={`Generated image ${index + 1}`}
+                            />
+                        </div>
+                    ))}
+                </div>
+            );
+        }
     }
 
     // Simple, clean rendering for AI messages
