@@ -435,9 +435,9 @@ export default function ChatPage() {
             }]);
             setIsTyping(true);
 
-            // Read streaming response
+            // Read streaming response with explicit UTF-8 decoding
             const reader = response.body?.getReader();
-            const decoder = new TextDecoder();
+            const decoder = new TextDecoder('utf-8');
 
             if (!reader) {
                 throw new Error('No response body');
