@@ -67,10 +67,10 @@ export async function POST(req: NextRequest) {
             throw new Error('OpenRouter API request failed');
         }
 
-        // Return streaming response
+        // Return streaming response with proper UTF-8 encoding
         return new Response(response.body, {
             headers: {
-                'Content-Type': 'text/event-stream',
+                'Content-Type': 'text/event-stream; charset=utf-8',
                 'Cache-Control': 'no-cache',
                 'Connection': 'keep-alive',
             },
