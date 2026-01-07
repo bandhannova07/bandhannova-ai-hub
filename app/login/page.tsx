@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ArrowRight, Mail, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react';
 import ParticleBackground from '@/components/ParticleBackground';
 import { Button } from '@/components/ui/button';
@@ -22,6 +22,15 @@ export default function LoginPage() {
     const [rememberMe, setRememberMe] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [isSmallScreen, setIsSmallScreen] = useState(false);
+
+    // Detect small screen
+    useEffect(() => {
+        const checkScreen = () => setIsSmallScreen(window.innerWidth <= 400);
+        checkScreen();
+        window.addEventListener('resize', checkScreen);
+        return () => window.removeEventListener('resize', checkScreen);
+    }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -164,7 +173,7 @@ export default function LoginPage() {
                                         <Input
                                             id="password"
                                             type={showPassword ? 'text' : 'password'}
-                                            placeholder="Enter your password"
+                                            placeholder={isSmallScreen ? "Password..." : "Enter your password"}
                                             value={password}
                                             onChange={(e) => setPassword(e.target.value)}
                                             className="pl-10 pr-10 h-12 body"

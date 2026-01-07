@@ -530,6 +530,26 @@ h6 {
   resize: none !important;
 }
 
+/* Truncate input placeholders on small screens */
+@media (max-width: 400px) {
+
+  input::placeholder,
+  textarea::placeholder {
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+
+  /* Specific truncation for password fields to avoid overlay with show/hide button */
+  input[type="password"]::placeholder,
+  input[type="text"].password-field::placeholder {
+    max-width: calc(100% - 80px);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+}
+
 /* ============================================
    SELECTION
    ============================================ */

@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ArrowRight, Mail, Lock, Eye, EyeOff, AlertCircle, User, Check, X } from 'lucide-react';
 import ParticleBackground from '@/components/ParticleBackground';
 import { Button } from '@/components/ui/button';
@@ -24,6 +24,15 @@ export default function SignupPage() {
     const [agreeToTerms, setAgreeToTerms] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [isSmallScreen, setIsSmallScreen] = useState(false);
+
+    // Detect small screen
+    useEffect(() => {
+        const checkScreen = () => setIsSmallScreen(window.innerWidth <= 400);
+        checkScreen();
+        window.addEventListener('resize', checkScreen);
+        return () => window.removeEventListener('resize', checkScreen);
+    }, []);
 
     // Password strength calculation
     const getPasswordStrength = (pwd: string) => {
@@ -242,7 +251,7 @@ export default function SignupPage() {
                                         <Input
                                             id="password"
                                             type={showPassword ? 'text' : 'password'}
-                                            placeholder="Create a strong password"
+                                            placeholder={isSmallScreen ? "Password..." : "Create a strong password"}
                                             value={password}
                                             onChange={(e) => setPassword(e.target.value)}
                                             className="pl-10 pr-10 h-12 body"
@@ -334,7 +343,7 @@ export default function SignupPage() {
                                         <Input
                                             id="confirmPassword"
                                             type={showConfirmPassword ? 'text' : 'password'}
-                                            placeholder="Confirm your password"
+                                            placeholder={isSmallScreen ? "Confirm..." : "Confirm your password"}
                                             value={confirmPassword}
                                             onChange={(e) => setConfirmPassword(e.target.value)}
                                             className="pl-10 pr-10 h-12 body"
