@@ -168,7 +168,7 @@ export default function ChatPage() {
             const desktop = window.innerWidth >= 1024;
             setIsDesktop(desktop);
             if (desktop) {
-                setSidebarOpen(false); // Desktop: closed by default for focus
+                setSidebarOpen(true); // Desktop: open by default
             } else {
                 setSidebarOpen(false); // Mobile: closed by default
             }
@@ -353,6 +353,13 @@ export default function ChatPage() {
 
         const userInput = input.trim();
         setInput('');
+
+        // Reset textarea height after sending
+        const textarea = document.querySelector('textarea');
+        if (textarea) {
+            textarea.style.height = 'auto';
+        }
+
         setLoading(true);
 
         try {
@@ -580,14 +587,14 @@ export default function ChatPage() {
                 className={`fixed inset-y-0 left-0 z-50 glass border-r transition-transform duration-300 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'
                     }`}
                 style={{
-                    width: '380px',
+                    width: isDesktop ? '380px' : '70vw',
                     borderColor: 'var(--background-tertiary)',
                     backdropFilter: 'blur(20px)',
                 }}
             >
                 <div
                     className="flex flex-col h-full"
-                    style={{ padding: '24px' }}
+                    style={{ padding: '24px', paddingTop: '80px' }}
                 >
                     {/* Logo */}
                     <div style={{ marginBottom: '32px', marginTop: '8px' }}>
@@ -697,52 +704,53 @@ export default function ChatPage() {
                 </div>
             </aside>
 
-            {/* Mobile Sidebar Overlay */}
-            {sidebarOpen && (
-                <div
+            {/* Mobile Sidebar Overlay - Only on Mobile */}
+            {sidebarOpen && !isDesktop && (
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
                     onClick={() => setSidebarOpen(false)}
-                    className="lg:hidden fixed inset-0 bg-black/50 z-40"
+                    className="fixed inset-0 bg-black/50 z-40"
                 />
             )}
 
-            {/* Vertical Sidebar Toggle - Mobile */}
-            <button
-                onClick={() => setSidebarOpen(!sidebarOpen)}
-                className="lg:hidden fixed glass rounded-r-2xl hover:scale-105 active:scale-95 transition-all"
-                style={{
-                    top: '50%',
-                    left: sidebarOpen ? '380px' : '0',
-                    transform: 'translateY(-50%)',
-                    zIndex: 50,
-                    padding: '50px 10px',
-                    border: '1px solid var(--background-tertiary)',
-                    borderLeft: 'none',
-                    writingMode: 'vertical-lr',
-                    fontSize: '14px',
-                    fontWeight: '600',
-                    color: 'var(--foreground-secondary)',
-                    letterSpacing: '1.5px',
-                    transition: 'left 250ms ease-in-out, transform 200ms ease',
-                    backdropFilter: 'blur(20px)',
-                    cursor: 'pointer'
-                }}
-            >
-                {sidebarOpen ? '✕' : '☰'}
-            </button>
+            {/* Mobile Sidebar Toggle Button - Top Left */}
+            {!isDesktop && (
+                <button
+                    onClick={() => setSidebarOpen(!sidebarOpen)}
+                    className="fixed top-5 left-5 z-50 flex items-center justify-center rounded-2xl glass transition-all hover:scale-105"
+                    style={{
+                        width: '44px',
+                        height: '44px',
+                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                    }}
+                >
+                    {sidebarOpen ? (
+                        <X className="w-5 h-5" style={{ color: 'var(--foreground)' }} />
+                    ) : (
+                        <Menu className="w-5 h-5" style={{ color: 'var(--foreground)' }} />
+                    )}
+                </button>
+            )}
 
-            {/* Sidebar Toggle Button - Desktop Only */}
-            <button
-                onClick={() => setSidebarOpen(!sidebarOpen)}
-                className="hidden lg:block fixed rounded-2xl glass z-50"
-                style={{
-                    top: '24px',
-                    left: sidebarOpen ? '400px' : '24px',
-                    padding: '12px',
-                    transition: 'left 0.3s ease',
-                }}
-            >
-                {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-            </button>
+            {/* Desktop Sidebar Toggle Button - Top Left */}
+            {isDesktop && (
+                <button
+                    onClick={() => setSidebarOpen(!sidebarOpen)}
+                    className="fixed top-5 left-5 z-50 flex items-center justify-center rounded-2xl glass transition-all hover:scale-105"
+                    style={{
+                        width: '44px',
+                        height: '44px',
+                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                    }}
+                >
+                    {sidebarOpen ? (
+                        <X className="w-5 h-5" style={{ color: 'var(--foreground)' }} />
+                    ) : (
+                        <Menu className="w-5 h-5" style={{ color: 'var(--foreground)' }} />
+                    )}
+                </button>
+            )}
 
             {/* Main Chat Area */}
             <div
@@ -753,43 +761,42 @@ export default function ChatPage() {
             >
                 {/* Content Wrapper - Centers everything */}
                 <div className="h-full flex flex-col">
-                    {/* Header - Centered */}
+                    {/* Header - Simple */}
                     <header
                         className="relative flex items-center justify-center"
                         style={{
-                            padding: '28px 24px 20px 24px',
+                            padding: isDesktop ? '28px 24px 20px 24px' : '20px 16px 16px 16px',
+                            paddingLeft: !isDesktop ? '70px' : '24px',
                             background: 'transparent'
                         }}
                     >
                         <div className="max-w-5xl w-full flex items-center justify-between">
-                            <div className="flex items-center gap-4">
-                                <div className="flex items-center gap-3">
-                                    <div
-                                        className="rounded-xl flex items-center justify-center"
+                            <div className="flex items-center gap-3">
+                                <div
+                                    className="rounded-xl flex items-center justify-center"
+                                    style={{
+                                        width: '44px',
+                                        height: '44px',
+                                        background: agent.gradient,
+                                        boxShadow: '0 4px 16px rgba(0, 0, 0, 0.2)'
+                                    }}
+                                >
+                                    <Icon className="w-5 h-5 text-white" />
+                                </div>
+                                <div>
+                                    <h1
+                                        className="font-semibold"
                                         style={{
-                                            width: '48px',
-                                            height: '48px',
-                                            background: agent.gradient,
-                                            boxShadow: '0 4px 16px rgba(0, 0, 0, 0.2)'
+                                            color: 'var(--foreground)',
+                                            fontSize: isDesktop ? '17px' : '15px',
+                                            marginBottom: '2px'
                                         }}
                                     >
-                                        <Icon className="w-6 h-6 text-white" />
-                                    </div>
-                                    <div>
-                                        <h1
-                                            className="font-semibold"
-                                            style={{
-                                                color: 'var(--foreground)',
-                                                fontSize: '17px',
-                                                marginBottom: '2px'
-                                            }}
-                                        >
-                                            {currentConversationTitle}
-                                        </h1>
-                                        <p style={{ color: 'var(--foreground-tertiary)', fontSize: '13px' }}>
-                                            {agent.name} • {agent.description}
-                                        </p>
-                                    </div>
+                                        {agent.name}
+                                    </h1>
+                                    <p style={{ color: 'var(--foreground-tertiary)', fontSize: isDesktop ? '13px' : '12px' }}>
+                                        {agent.description}
+                                    </p>
                                 </div>
                             </div>
                         </div>
@@ -1166,20 +1173,53 @@ export default function ChatPage() {
                                 )}
                             </div>
 
-                            <input
-                                type="text"
+                            <textarea
                                 value={input}
                                 onChange={(e) => setInput(e.target.value)}
-                                onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSend()}
+                                onKeyDown={(e) => {
+                                    // Desktop: Ctrl to send, Ctrl+Shift for new line
+                                    // Mobile: Enter to send, Shift+Enter for new line
+                                    if (isDesktop) {
+                                        // Desktop keyboard shortcuts
+                                        if (e.key === 'Enter' && e.ctrlKey) {
+                                            if (e.shiftKey) {
+                                                // Ctrl+Shift+Enter = new line (default behavior)
+                                            } else {
+                                                // Ctrl+Enter = send
+                                                e.preventDefault();
+                                                handleSend();
+                                            }
+                                        }
+                                    } else {
+                                        // Mobile keyboard shortcuts
+                                        if (e.key === 'Enter') {
+                                            if (!e.shiftKey) {
+                                                // Enter alone = send
+                                                e.preventDefault();
+                                                handleSend();
+                                            }
+                                            // Shift+Enter = new line (default behavior)
+                                        }
+                                    }
+                                }}
                                 placeholder="Type your message..."
-                                className="flex-1 rounded-3xl border focus:outline-none transition-all focus:border-purple-500 hover:border-purple-400 body"
+                                className="flex-1 rounded-3xl border focus:outline-none transition-all focus:border-purple-500 hover:border-purple-400 body resize-none custom-scrollbar"
                                 style={{
-                                    padding: isDesktop ? '16px 20px' : '14px 16px',
+                                    padding: isDesktop ? '16px 20px' : '14px 12px',
                                     background: 'rgba(255, 255, 255, 0.05)',
                                     borderColor: 'rgba(255, 255, 255, 0.15)',
                                     color: 'var(--foreground)',
                                     fontWeight: '400',
-                                    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
+                                    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+                                    minHeight: isDesktop ? '52px' : '46px',
+                                    maxHeight: isDesktop ? '200px' : '120px',
+                                    overflowY: 'auto'
+                                }}
+                                rows={1}
+                                onInput={(e) => {
+                                    const target = e.target as HTMLTextAreaElement;
+                                    target.style.height = 'auto';
+                                    target.style.height = Math.min(target.scrollHeight, isDesktop ? 200 : 120) + 'px';
                                 }}
                                 disabled={loading}
                             />

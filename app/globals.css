@@ -506,6 +506,30 @@ h6 {
   background: var(--primary-blue);
 }
 
+/* Custom smaller scrollbar for chat input */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(198, 131, 215, 0.5);
+  border-radius: 2px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(198, 131, 215, 0.8);
+}
+
+/* Remove textarea resize handle */
+.custom-scrollbar {
+  resize: none !important;
+}
+
 /* ============================================
    SELECTION
    ============================================ */
