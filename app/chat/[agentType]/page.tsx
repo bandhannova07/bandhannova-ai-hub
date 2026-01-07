@@ -435,7 +435,7 @@ export default function ChatPage() {
             }]);
             setIsTyping(true);
 
-            // Read streaming response with explicit UTF-8 decoding
+            // Read streaming response with proper UTF-8 and SSE handling
             const reader = response.body?.getReader();
             const decoder = new TextDecoder('utf-8');
 
@@ -443,18 +443,30 @@ export default function ChatPage() {
                 throw new Error('No response body');
             }
 
+            let buffer = ''; // Buffer for incomplete lines
+
             while (true) {
                 const { done, value } = await reader.read();
                 if (done) break;
 
+                // Decode with streaming support for partial UTF-8 sequences
                 const chunk = decoder.decode(value, { stream: true });
+                buffer += chunk;
 
-                // Parse SSE format
-                const lines = chunk.split('\n');
+                // Process complete lines only
+                const lines = buffer.split('\n');
+
+                // Keep the last incomplete line in buffer
+                buffer = lines.pop() || '';
+
+                // Process complete lines
                 for (const line of lines) {
                     if (line.startsWith('data: ')) {
                         try {
-                            const data = JSON.parse(line.slice(6));
+                            const jsonStr = line.slice(6).trim();
+                            if (!jsonStr) continue; // Skip empty data lines
+
+                            const data = JSON.parse(jsonStr);
                             if (data.choices?.[0]?.delta?.content) {
                                 const content = data.choices[0].delta.content;
                                 assistantContent += content;
@@ -469,8 +481,34 @@ export default function ChatPage() {
                                 );
                             }
                         } catch (e) {
-                            // Skip invalid JSON
+                            // Skip invalid JSON - log for debugging
+                            console.warn('Failed to parse SSE line:', line, e);
                         }
+                    }
+                }
+            }
+
+            // Process any remaining buffered content
+            if (buffer.trim()) {
+                if (buffer.startsWith('data: ')) {
+                    try {
+                        const jsonStr = buffer.slice(6).trim();
+                        if (jsonStr) {
+                            const data = JSON.parse(jsonStr);
+                            if (data.choices?.[0]?.delta?.content) {
+                                const content = data.choices[0].delta.content;
+                                assistantContent += content;
+                                setMessages(prev =>
+                                    prev.map(msg =>
+                                        msg.id === assistantId
+                                            ? { ...msg, content: assistantContent }
+                                            : msg
+                                    )
+                                );
+                            }
+                        }
+                    } catch (e) {
+                        console.warn('Failed to parse final buffer:', buffer, e);
                     }
                 }
             }
