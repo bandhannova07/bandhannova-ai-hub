@@ -36,21 +36,11 @@ import {
     MessageSquare,
     Image as ImageIcon,
     ChefHat,
-    Search,
     HelpCircle,
-    Globe,
-    Settings
+    Globe
 } from 'lucide-react';
 import { getCurrentUser, signOut } from '@/lib/auth-simple';
 import { getAllDBs } from '@/lib/database/multi-db';
-import { getUserLanguage, getUserCountry } from '@/lib/localization/contextBuilder';
-import { getLanguageInfo } from '@/lib/localization/languages';
-import { getCountryInfo } from '@/lib/localization/countries';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { saveUserPreferences } from '@/lib/localization/contextBuilder';
-import { getAllLanguages } from '@/lib/localization/languages';
-import { getAllCountries } from '@/lib/localization/countries';
 
 const AI_AGENTS = [
     {
@@ -160,9 +150,6 @@ export default function DashboardPage() {
         agents: 7,
         plan: 'Free'
     });
-    const [showSettings, setShowSettings] = useState(false);
-    const [selectedCountry, setSelectedCountry] = useState('');
-    const [selectedLanguage, setSelectedLanguage] = useState('');
 
     useEffect(() => {
         checkAuth();
@@ -400,58 +387,16 @@ export default function DashboardPage() {
                             </div>
                         </div>
 
-                        {/* Stats - 4 items only */}
+                        {/* Stats */}
                         <div
                             className="grid grid-cols-2 gap-3"
                             style={{ paddingTop: '12px', borderTop: '1px solid var(--background-tertiary)' }}
                         >
-                            {/* Country */}
-                            <div className="text-center">
-                                <p
-                                    className="font-bold text-xl"
-                                    style={{ color: 'var(--foreground)' }}
-                                >
-                                    {(() => {
-                                        const countryCode = getUserCountry();
-                                        const country = countryCode ? getCountryInfo(countryCode) : null;
-                                        return country ? country.flag : '🌐';
-                                    })()}
-                                </p>
-                                <p className="small" style={{ color: 'var(--foreground-tertiary)' }}>
-                                    {(() => {
-                                        const countryCode = getUserCountry();
-                                        const country = countryCode ? getCountryInfo(countryCode) : null;
-                                        return country ? country.name : 'Not Set';
-                                    })()}
-                                </p>
-                            </div>
-
-                            {/* Language */}
-                            <div className="text-center">
-                                <p
-                                    className="font-bold text-xl"
-                                    style={{ color: 'var(--foreground)' }}
-                                >
-                                    {(() => {
-                                        const langCode = getUserLanguage();
-                                        const lang = langCode ? getLanguageInfo(langCode) : null;
-                                        return lang ? lang.icon : '🗣️';
-                                    })()}
-                                </p>
-                                <p className="small" style={{ color: 'var(--foreground-tertiary)' }}>
-                                    {(() => {
-                                        const langCode = getUserLanguage();
-                                        const lang = langCode ? getLanguageInfo(langCode) : null;
-                                        return lang ? lang.name : 'Not Set';
-                                    })()}
-                                </p>
-                            </div>
-
                             {/* Plan */}
                             <div className="text-center">
                                 <p
                                     className="font-bold"
-                                    style={{ color: 'var(--foreground)', fontSize: '16px' }}
+                                    style={{ color: 'var(--foreground)', fontSize: '18px' }}
                                 >
                                     {stats.plan}
                                 </p>
@@ -464,7 +409,7 @@ export default function DashboardPage() {
                             <div className="text-center">
                                 <p
                                     className="font-bold"
-                                    style={{ color: 'var(--foreground)', fontSize: '16px' }}
+                                    style={{ color: 'var(--foreground)', fontSize: '18px' }}
                                 >
                                     {stats.messages}
                                 </p>
@@ -1340,71 +1285,6 @@ export default function DashboardPage() {
                     )}
                 </div>
             </div>
-
-            {/* Settings Dialog */}
-            <Dialog open={showSettings} onOpenChange={setShowSettings}>
-                <DialogContent className="sm:max-w-md">
-                    <DialogHeader>
-                        <DialogTitle>Settings</DialogTitle>
-                        <DialogDescription>
-                            Update your country and language preferences
-                        </DialogDescription>
-                    </DialogHeader>
-
-                    <div className="space-y-4 py-4">
-                        {/* Country Selector */}
-                        <div className="space-y-2">
-                            <Label htmlFor="country">Country</Label>
-                            <Select value={selectedCountry} onValueChange={setSelectedCountry}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select your country" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {getAllCountries().map((country) => (
-                                        <SelectItem key={country.code} value={country.code}>
-                                            {country.flag} {country.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-
-                        {/* Language Selector */}
-                        <div className="space-y-2">
-                            <Label htmlFor="language">Language</Label>
-                            <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select your language" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {getAllLanguages().map((lang) => (
-                                        <SelectItem key={lang.code} value={lang.code}>
-                                            {lang.icon} {lang.nativeName} ({lang.name})
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    </div>
-
-                    <DialogFooter>
-                        <Button
-                            onClick={() => {
-                                if (selectedCountry && selectedLanguage) {
-                                    saveUserPreferences(selectedLanguage, selectedCountry);
-                                    setShowSettings(false);
-                                    // Reload to update stats
-                                    window.location.reload();
-                                }
-                            }}
-                            disabled={!selectedCountry || !selectedLanguage}
-                            className="w-full"
-                        >
-                            Save Changes
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
         </main>
     );
 }
