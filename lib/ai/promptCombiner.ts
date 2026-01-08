@@ -60,7 +60,49 @@ USER CONTEXT:
 ${context.userContext}`;
     }
 
+    // CRITICAL: Reinforce response mode at the end to ensure it's not forgotten
+    const modeReminder = getModeReminder(responseMode);
+    systemPrompt += `
+
+---
+
+${modeReminder}`;
+
     return systemPrompt;
+}
+
+/**
+ * Get a strong reminder about response mode constraints
+ */
+function getModeReminder(mode: 'quick' | 'normal' | 'thinking'): string {
+    switch (mode) {
+        case 'quick':
+            return `🚨 CRITICAL REMINDER: QUICK MODE IS ACTIVE 🚨
+
+You are in QUICK RESPONSE MODE. This overrides ALL other instructions.
+
+ABSOLUTE RULES:
+- Maximum 150 words TOTAL
+- 2-4 sentences OR 3-5 bullet points
+- Direct answer first, no long explanations
+- If your response is longer than 150 words, STOP and make it shorter
+
+Even if you have detailed expertise on this topic, keep it BRIEF.
+User wants a QUICK answer, not a comprehensive guide.`;
+
+        case 'thinking':
+            return `💡 REMINDER: THINKING MODE IS ACTIVE
+
+You are in THINKING MODE. Provide comprehensive, detailed analysis.
+Use your full expertise and be thorough (300-600+ words).`;
+
+        case 'normal':
+        default:
+            return `📝 REMINDER: NORMAL MODE IS ACTIVE
+
+You are in NORMAL MODE. Provide balanced responses (100-250 words).
+Not too brief, not too detailed - just right.`;
+    }
 }
 
 /**
