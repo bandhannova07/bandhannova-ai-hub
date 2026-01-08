@@ -3,11 +3,13 @@
 
 import { getResponseModePrompt } from '../../prompts/responseModes';
 import { getAgentPrompt } from '../../prompts';
+import { detectTopics, buildTopicEnhancedPrompt } from '../../prompts/topic-detector';
 
 export interface PromptContext {
     memories?: string[];
     conversationHistory?: Array<{ role: string; content: string }>;
     userContext?: string;
+    userMessage?: string; // Added for topic detection
 }
 
 /**
@@ -26,6 +28,15 @@ export function combinePrompts(
 ---
 
 ${agentPrompt}`;
+
+    // Detect topics from user message and add topic-specific expertise
+    if (context?.userMessage) {
+        const detectedTopics = detectTopics(context.userMessage);
+        if (detectedTopics.length > 0) {
+            const topicEnhancement = buildTopicEnhancedPrompt(detectedTopics);
+            systemPrompt += topicEnhancement;
+        }
+    }
 
     // Add relevant memories if available
     if (context?.memories && context.memories.length > 0) {
@@ -78,7 +89,13 @@ export function buildMessagesArray(
     conversationHistory: Array<{ role: string; content: string }> = [],
     context?: PromptContext
 ): Array<{ role: string; content: string }> {
-    const systemPrompt = combinePrompts(agentType, responseMode, context);
+    // Add user message to context for topic detection
+    const enhancedContext = {
+        ...context,
+        userMessage
+    };
+
+    const systemPrompt = combinePrompts(agentType, responseMode, enhancedContext);
 
     const messages: Array<{ role: string; content: string }> = [
         { role: 'system', content: systemPrompt }
