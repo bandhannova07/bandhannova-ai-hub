@@ -48,6 +48,8 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { canSendMessage, incrementMessageCount } from '@/lib/messages/quota';
+import RewardAdModal from '@/components/RewardAdModal';
 import { Separator } from '@/components/ui/separator';
 import {
     DropdownMenu,
@@ -171,6 +173,7 @@ export default function ChatPage() {
     const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
     const [currentConversationTitle, setCurrentConversationTitle] = useState<string>('New Chat');
     const [isTyping, setIsTyping] = useState(false);
+    const [showRewardModal, setShowRewardModal] = useState(false);
     const [isDesktop, setIsDesktop] = useState(false);
     const [selectedModel, setSelectedModel] = useState('auto');
     const [showPlusMenu, setShowPlusMenu] = useState(false);
@@ -350,18 +353,10 @@ export default function ChatPage() {
     async function handleSend() {
         if (!input.trim() || loading) return;
 
-        // Check usage limits based on user's plan
-        const { canSendMessage, recordMessage, getUserPlan } = await import('@/lib/guards/plan-guard');
-        const userPlan = getUserPlan();
-
-        // Determine message type based on agent
-        const messageType = agentType === 'research-discovery' ? 'research' : 'agent';
-
-        // Check if user can send message
-        const guard = canSendMessage(userPlan, messageType, agentType);
-
-        if (!guard.allowed) {
-            alert(guard.message || 'Daily limit reached! Please upgrade your plan.');
+        // Check message quota
+        if (!canSendMessage()) {
+            // Show reward ad modal
+            setShowRewardModal(true);
             return;
         }
 
@@ -375,6 +370,9 @@ export default function ChatPage() {
         }
 
         setLoading(true);
+
+        // Increment message count
+        incrementMessageCount();
 
         try {
             // Create or get conversation
@@ -541,9 +539,6 @@ export default function ChatPage() {
             };
 
             addMessage(convId, assistantMessage);
-
-            // Record usage for plan limits
-            recordMessage(messageType, agentType);
 
             // Store in Qdrant for memory (async, don't wait)
             storeMemory(assistantMessage, convId, userId).catch(err =>
@@ -1291,6 +1286,16 @@ export default function ChatPage() {
                     </div>
                 </div>
             </div>
+
+            {/* Reward Ad Modal */}
+            <RewardAdModal
+                open={showRewardModal}
+                onClose={() => setShowRewardModal(false)}
+                onRewardGranted={() => {
+                    // Reward granted, user can continue
+                    setShowRewardModal(false);
+                }}
+            />
         </div >
     );
 }
