@@ -12,7 +12,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { signIn } from '@/lib/auth-simple';
+import { hasUserPreferences, saveUserPreferences } from '@/lib/localization/contextBuilder';
+import { getAllLanguages } from '@/lib/localization/languages';
+import { getAllCountries } from '@/lib/localization/countries';
+import { createSession } from '@/lib/auth/session';
 
 export default function LoginPage() {
     const router = useRouter();
@@ -23,6 +29,10 @@ export default function LoginPage() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [isSmallScreen, setIsSmallScreen] = useState(false);
+    const [showPreferenceModal, setShowPreferenceModal] = useState(false);
+    const [selectedCountry, setSelectedCountry] = useState('');
+    const [selectedLanguage, setSelectedLanguage] = useState('');
+    const [pendingUser, setPendingUser] = useState<any>(null);
 
     // Detect small screen
     useEffect(() => {
@@ -68,8 +78,20 @@ export default function LoginPage() {
                     localStorage.setItem('rememberMe', 'true');
                 }
 
-                // Redirect to dashboard
-                router.push('/dashboard');
+                // Check if user has set language/country preferences
+                if (!hasUserPreferences()) {
+                    // Show preference modal
+                    setPendingUser(user);
+                    setShowPreferenceModal(true);
+                } else {
+                    // Create session and redirect
+                    createSession({
+                        id: user.id,
+                        email: user.email,
+                        fullName: user.fullName || user.email
+                    });
+                    router.push('/dashboard');
+                }
             }
         } catch (err: any) {
             setError(err.message || 'An error occurred during login');
@@ -262,6 +284,82 @@ export default function LoginPage() {
                     </div>
                 </motion.div>
             </div>
+
+            {/* Preference Selection Modal */}
+            <Dialog open={showPreferenceModal} onOpenChange={setShowPreferenceModal}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle className="text-2xl font-bold">Welcome! 🎉</DialogTitle>
+                        <DialogDescription>
+                            Let's personalize your AI experience. Select your country and preferred language.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="space-y-4 py-4">
+                        {/* Country Selector */}
+                        <div className="space-y-2">
+                            <Label htmlFor="country">Country</Label>
+                            <Select value={selectedCountry} onValueChange={setSelectedCountry}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select your country" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {getAllCountries().map((country) => (
+                                        <SelectItem key={country.code} value={country.code}>
+                                            {country.flag} {country.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        {/* Language Selector */}
+                        <div className="space-y-2">
+                            <Label htmlFor="language">Preferred Language</Label>
+                            <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select your language" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {getAllLanguages().map((lang) => (
+                                        <SelectItem key={lang.code} value={lang.code}>
+                                            {lang.icon} {lang.nativeName} ({lang.name})
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </div>
+
+                    <DialogFooter>
+                        <Button
+                            onClick={() => {
+                                if (selectedCountry && selectedLanguage) {
+                                    // Save preferences
+                                    saveUserPreferences(selectedLanguage, selectedCountry);
+
+                                    // Create session
+                                    if (pendingUser) {
+                                        createSession({
+                                            id: pendingUser.id,
+                                            email: pendingUser.email,
+                                            fullName: pendingUser.email
+                                        });
+                                    }
+
+                                    // Close modal and redirect
+                                    setShowPreferenceModal(false);
+                                    router.push('/dashboard');
+                                }
+                            }}
+                            disabled={!selectedCountry || !selectedLanguage}
+                            className="w-full"
+                        >
+                            Continue to Dashboard
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </main>
     );
 }
