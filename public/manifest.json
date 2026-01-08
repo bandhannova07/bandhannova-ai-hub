@@ -1,7 +1,7 @@
 {
     "name": "BandhanNova AI Hub",
     "short_name": "BandhanNova",
-    "description": "India's first next-generation AI life-growing platform",
+    "description": "India's first next-generation AI platform",
     "start_url": "/",
     "display": "standalone",
     "background_color": "#0a0a0a",

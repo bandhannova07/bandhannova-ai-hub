@@ -44,6 +44,20 @@ import {
 } from '@/lib/storage/localStorage';
 import { storeMemory } from '@/lib/qdrant/memory';
 import { getCurrentPlan, getModelsByPlan, canAccessModel } from '@/lib/plans/helpers';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Separator } from '@/components/ui/separator';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const AGENT_CONFIG: Record<string, any> = {
     'creator-social': {
@@ -716,7 +730,7 @@ export default function ChatPage() {
                                     </p>
                                     <div className="flex items-center gap-1" style={{ marginTop: '4px' }}>
                                         <Clock className="w-3 h-3" style={{ color: 'var(--foreground-tertiary)' }} />
-                                        <span style={{ fontSize: '11px', color: 'var(--foreground-tertiary)' }}>
+                                        <span style={{ fontSize: '11px', color: 'var(--foreground-tertiary)' }} suppressHydrationWarning>
                                             {conv.timestamp.toLocaleTimeString()}
                                         </span>
                                     </div>
@@ -1211,7 +1225,7 @@ export default function ChatPage() {
                                 )}
                             </div>
 
-                            <textarea
+                            <Textarea
                                 value={input}
                                 onChange={(e) => setInput(e.target.value)}
                                 onKeyDown={(e) => {
@@ -1261,10 +1275,10 @@ export default function ChatPage() {
                                 }}
                                 disabled={loading}
                             />
-                            <button
+                            <Button
                                 onClick={handleSend}
                                 disabled={!input.trim() || loading}
-                                className="rounded-2xl text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105 active:scale-95 transition-all"
+                                className="rounded-2xl text-white font-semibold hover:scale-105 active:scale-95 transition-all"
                                 style={{
                                     padding: isDesktop ? '16px' : '14px',
                                     background: agent.gradient,
@@ -1272,7 +1286,7 @@ export default function ChatPage() {
                                 }}
                             >
                                 <Send className={isDesktop ? 'w-5 h-5' : 'w-4 h-4'} />
-                            </button>
+                            </Button>
                         </div>
                     </div>
                 </div>
