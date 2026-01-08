@@ -41,6 +41,9 @@ import {
 } from 'lucide-react';
 import { getCurrentUser, signOut } from '@/lib/auth-simple';
 import { getAllDBs } from '@/lib/database/multi-db';
+import { getUserLanguage, getUserCountry } from '@/lib/localization/contextBuilder';
+import { getLanguageInfo } from '@/lib/localization/languages';
+import { getCountryInfo } from '@/lib/localization/countries';
 
 const AI_AGENTS = [
     {
@@ -387,42 +390,76 @@ export default function DashboardPage() {
                             </div>
                         </div>
 
-                        {/* Stats */}
+                        {/* Stats - 4 items only */}
                         <div
-                            className="grid grid-cols-3 gap-2"
+                            className="grid grid-cols-2 gap-3"
                             style={{ paddingTop: '12px', borderTop: '1px solid var(--background-tertiary)' }}
                         >
+                            {/* Country */}
                             <div className="text-center">
                                 <p
-                                    className="body-large font-bold"
+                                    className="font-bold text-xl"
                                     style={{ color: 'var(--foreground)' }}
                                 >
-                                    {stats.conversations}
+                                    {(() => {
+                                        const countryCode = getUserCountry();
+                                        const country = countryCode ? getCountryInfo(countryCode) : null;
+                                        return country ? country.flag : '🌐';
+                                    })()}
                                 </p>
                                 <p className="small" style={{ color: 'var(--foreground-tertiary)' }}>
-                                    Chats
+                                    {(() => {
+                                        const countryCode = getUserCountry();
+                                        const country = countryCode ? getCountryInfo(countryCode) : null;
+                                        return country ? country.name : 'Not Set';
+                                    })()}
                                 </p>
                             </div>
+
+                            {/* Language */}
                             <div className="text-center">
                                 <p
-                                    className="font-bold"
-                                    style={{ color: 'var(--foreground)', fontSize: '18px' }}
+                                    className="font-bold text-xl"
+                                    style={{ color: 'var(--foreground)' }}
                                 >
-                                    {stats.messages}
+                                    {(() => {
+                                        const langCode = getUserLanguage();
+                                        const lang = langCode ? getLanguageInfo(langCode) : null;
+                                        return lang ? lang.icon : '🗣️';
+                                    })()}
                                 </p>
-                                <p style={{ color: 'var(--foreground-tertiary)', fontSize: '13px' }}>
-                                    Messages
+                                <p className="small" style={{ color: 'var(--foreground-tertiary)' }}>
+                                    {(() => {
+                                        const langCode = getUserLanguage();
+                                        const lang = langCode ? getLanguageInfo(langCode) : null;
+                                        return lang ? lang.name : 'Not Set';
+                                    })()}
                                 </p>
                             </div>
+
+                            {/* Plan */}
                             <div className="text-center">
                                 <p
                                     className="font-bold"
-                                    style={{ color: 'var(--foreground)', fontSize: '18px' }}
+                                    style={{ color: 'var(--foreground)', fontSize: '16px' }}
                                 >
                                     {stats.plan}
                                 </p>
-                                <p style={{ color: 'var(--foreground-tertiary)', fontSize: '13px' }}>
+                                <p className="small" style={{ color: 'var(--foreground-tertiary)' }}>
                                     Plan
+                                </p>
+                            </div>
+
+                            {/* Messages */}
+                            <div className="text-center">
+                                <p
+                                    className="font-bold"
+                                    style={{ color: 'var(--foreground)', fontSize: '16px' }}
+                                >
+                                    {stats.messages}
+                                </p>
+                                <p className="small" style={{ color: 'var(--foreground-tertiary)' }}>
+                                    Messages
                                 </p>
                             </div>
                         </div>
