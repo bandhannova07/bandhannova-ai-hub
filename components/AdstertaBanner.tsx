@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 interface AdstertaBannerProps {
     className?: string;
@@ -8,43 +8,63 @@ interface AdstertaBannerProps {
 
 export default function AdstertaBanner({ className = '' }: AdstertaBannerProps) {
     const containerRef = useRef<HTMLDivElement>(null);
-    const scriptLoadedRef = useRef(false);
+    const [isMobile, setIsMobile] = useState(false);
 
     useEffect(() => {
-        // Only load script once
-        if (scriptLoadedRef.current) return;
-        scriptLoadedRef.current = true;
-
-        // Create and inject Adsterra banner ad script
-        const configScript = document.createElement('script');
-        configScript.innerHTML = `
-      atOptions = {
-        'key' : '63e8b36ccf4067d9fc234150fa420848',
-        'format' : 'iframe',
-        'height' : 250,
-        'width' : 300,
-        'params' : {}
-      };
-    `;
-        document.body.appendChild(configScript);
-
-        // Load the invoke script
-        const invokeScript = document.createElement('script');
-        invokeScript.src = 'https://www.highperformanceformat.com/63e8b36ccf4067d9fc234150fa420848/invoke.js';
-        invokeScript.async = true;
-        document.body.appendChild(invokeScript);
-
-        // Cleanup function
-        return () => {
-            // Remove scripts on unmount
-            if (configScript.parentNode) {
-                configScript.parentNode.removeChild(configScript);
-            }
-            if (invokeScript.parentNode) {
-                invokeScript.parentNode.removeChild(invokeScript);
-            }
+        // Check screen size
+        const checkMobile = () => {
+            setIsMobile(window.innerWidth < 768);
         };
+
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+
+        return () => window.removeEventListener('resize', checkMobile);
     }, []);
+
+    useEffect(() => {
+        // Don't load ad on mobile
+        if (isMobile) return;
+
+        // Wait a bit for DOM to be ready
+        const timer = setTimeout(() => {
+            try {
+                // Create container for ad
+                const adContainer = document.createElement('div');
+                adContainer.id = 'adsterra-banner-container';
+
+                if (containerRef.current) {
+                    containerRef.current.appendChild(adContainer);
+                }
+
+                // Set Adsterra options
+                (window as any).atOptions = {
+                    'key': '63e8b36ccf4067d9fc234150fa420848',
+                    'format': 'iframe',
+                    'height': 250,
+                    'width': 300,
+                    'params': {}
+                };
+
+                // Load Adsterra script
+                const script = document.createElement('script');
+                script.type = 'text/javascript';
+                script.src = '//www.highperformanceformat.com/63e8b36ccf4067d9fc234150fa420848/invoke.js';
+                adContainer.appendChild(script);
+
+                console.log('Adsterra banner ad script loaded');
+            } catch (error) {
+                console.error('Error loading Adsterra ad:', error);
+            }
+        }, 500);
+
+        return () => clearTimeout(timer);
+    }, [isMobile]);
+
+    // Hide on mobile
+    if (isMobile) {
+        return null;
+    }
 
     return (
         <div
@@ -59,10 +79,31 @@ export default function AdstertaBanner({ className = '' }: AdstertaBannerProps) 
                 justifyContent: 'center',
                 background: 'rgba(255, 255, 255, 0.02)',
                 borderRadius: '12px',
-                overflow: 'hidden'
+                overflow: 'hidden',
+                position: 'relative'
             }}
         >
-            {/* Adsterra ad will be injected here */}
+            {/* Loading placeholder */}
+            <div style={{
+                position: 'absolute',
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                color: 'rgba(255, 255, 255, 0.3)',
+                fontSize: '12px',
+                textAlign: 'center'
+            }}>
+                <div style={{
+                    width: '20px',
+                    height: '20px',
+                    border: '2px solid rgba(255, 255, 255, 0.2)',
+                    borderTopColor: 'rgba(255, 255, 255, 0.6)',
+                    borderRadius: '50%',
+                    animation: 'spin 1s linear infinite',
+                    margin: '0 auto 8px'
+                }}></div>
+                Ad Loading...
+            </div>
         </div>
     );
 }
