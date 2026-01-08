@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
+import AdstertaBanner from '@/components/AdstertaBanner';
 import {
     Sparkles,
     Lightbulb,
@@ -428,6 +429,11 @@ export default function DashboardPage() {
                                 </p>
                             </div>
                         </div>
+
+                        {/* Adsterra Banner Ad */}
+                        <div style={{ marginTop: '16px', marginBottom: '16px' }}>
+                            <AdstertaBanner />
+                        </div>
                     </div>
 
                     {/* Navigation */}
@@ -682,7 +688,7 @@ export default function DashboardPage() {
                                         Default <span className="small" style={{ color: 'var(--foreground-tertiary)', fontWeight: 'normal' }}>(Free Now)</span>
                                     </h3>
                                     <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3" style={{ gap: '12px' }}>
-                                        {AI_AGENTS.filter(agent => ['conversational', 'search-engine'].includes(agent.id)).map((agent, index) => {
+                                        {AI_AGENTS.filter(agent => agent.id === 'conversational').map((agent, index) => {
                                             const Icon = agent.icon;
                                             return (
                                                 <motion.div
@@ -733,7 +739,7 @@ export default function DashboardPage() {
                                     </h3>
                                     <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3" style={{ gap: '12px' }}>
                                         {AI_AGENTS.filter(agent =>
-                                            ['study-learning', 'creative-productivity', 'psychology-personality', 'creator-social', 'business-career', 'image-maker', 'kitchen-recipe'].includes(agent.id)
+                                            ['search-engine', 'study-learning', 'creative-productivity', 'psychology-personality', 'creator-social', 'business-career', 'image-maker', 'kitchen-recipe'].includes(agent.id)
                                         ).map((agent, index) => {
                                             const Icon = agent.icon;
                                             return (
