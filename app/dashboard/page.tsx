@@ -10,6 +10,7 @@ import { SkeletonDashboard } from '@/components/Skeleton';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Label } from '@/components/ui/label';
 import {
     Sparkles,
     Lightbulb,
@@ -37,13 +38,19 @@ import {
     ChefHat,
     Search,
     HelpCircle,
-    Globe
+    Globe,
+    Settings
 } from 'lucide-react';
 import { getCurrentUser, signOut } from '@/lib/auth-simple';
 import { getAllDBs } from '@/lib/database/multi-db';
 import { getUserLanguage, getUserCountry } from '@/lib/localization/contextBuilder';
 import { getLanguageInfo } from '@/lib/localization/languages';
 import { getCountryInfo } from '@/lib/localization/countries';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { saveUserPreferences } from '@/lib/localization/contextBuilder';
+import { getAllLanguages } from '@/lib/localization/languages';
+import { getAllCountries } from '@/lib/localization/countries';
 
 const AI_AGENTS = [
     {
@@ -153,6 +160,9 @@ export default function DashboardPage() {
         agents: 7,
         plan: 'Free'
     });
+    const [showSettings, setShowSettings] = useState(false);
+    const [selectedCountry, setSelectedCountry] = useState('');
+    const [selectedLanguage, setSelectedLanguage] = useState('');
 
     useEffect(() => {
         checkAuth();
@@ -1330,6 +1340,71 @@ export default function DashboardPage() {
                     )}
                 </div>
             </div>
+
+            {/* Settings Dialog */}
+            <Dialog open={showSettings} onOpenChange={setShowSettings}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>Settings</DialogTitle>
+                        <DialogDescription>
+                            Update your country and language preferences
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="space-y-4 py-4">
+                        {/* Country Selector */}
+                        <div className="space-y-2">
+                            <Label htmlFor="country">Country</Label>
+                            <Select value={selectedCountry} onValueChange={setSelectedCountry}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select your country" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {getAllCountries().map((country) => (
+                                        <SelectItem key={country.code} value={country.code}>
+                                            {country.flag} {country.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        {/* Language Selector */}
+                        <div className="space-y-2">
+                            <Label htmlFor="language">Language</Label>
+                            <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select your language" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {getAllLanguages().map((lang) => (
+                                        <SelectItem key={lang.code} value={lang.code}>
+                                            {lang.icon} {lang.nativeName} ({lang.name})
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </div>
+
+                    <DialogFooter>
+                        <Button
+                            onClick={() => {
+                                if (selectedCountry && selectedLanguage) {
+                                    saveUserPreferences(selectedLanguage, selectedCountry);
+                                    setShowSettings(false);
+                                    // Reload to update stats
+                                    window.location.reload();
+                                }
+                            }}
+                            disabled={!selectedCountry || !selectedLanguage}
+                            className="w-full"
+                        >
+                            Save Changes
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </main>
     );
 }
