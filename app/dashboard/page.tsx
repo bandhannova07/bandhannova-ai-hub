@@ -41,6 +41,7 @@ import {
 } from 'lucide-react';
 import { getCurrentUser, signOut } from '@/lib/auth-simple';
 import { getAllDBs } from '@/lib/database/multi-db';
+import { getQuotaStats } from '@/lib/messages/quota';
 
 const AI_AGENTS = [
     {
@@ -147,6 +148,8 @@ export default function DashboardPage() {
     const [stats, setStats] = useState({
         conversations: 0,
         messages: 0,
+        messagesUsed: 0,
+        messagesTotal: 50,
         agents: 7,
         plan: 'Free'
     });
@@ -259,9 +262,14 @@ export default function DashboardPage() {
             const conversations = JSON.parse(localStorage.getItem('conversations') || '[]');
             const messages = JSON.parse(localStorage.getItem('messages') || '[]');
 
+            // Get message quota stats
+            const quotaStats = getQuotaStats();
+
             setStats({
                 conversations: conversations.length,
                 messages: messages.length,
+                messagesUsed: quotaStats.used,
+                messagesTotal: quotaStats.total,
                 agents: 7, // Total AI agents available
                 plan: userPlan
             });
@@ -270,6 +278,8 @@ export default function DashboardPage() {
             setStats({
                 conversations: 0,
                 messages: 0,
+                messagesUsed: 0,
+                messagesTotal: 50,
                 agents: 7,
                 plan: 'Free'
             });
@@ -411,7 +421,7 @@ export default function DashboardPage() {
                                     className="font-bold"
                                     style={{ color: 'var(--foreground)', fontSize: '18px' }}
                                 >
-                                    {stats.messages}
+                                    {stats.messagesUsed}/{stats.messagesTotal}
                                 </p>
                                 <p className="small" style={{ color: 'var(--foreground-tertiary)' }}>
                                     Messages
