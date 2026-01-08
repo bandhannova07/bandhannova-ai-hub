@@ -166,10 +166,10 @@ function getTemperature(responseMode: string): number {
 // Helper: Get max tokens based on response mode
 function getMaxTokens(responseMode: string): number {
     const tokensMap: Record<string, number> = {
-        'quick': 500,      // Short responses
-        'normal': 1500,    // Medium responses
-        'thinking': 3000,  // Long, detailed responses
+        'quick': 1000,      // Short responses (increased from 500)
+        'normal': 4000,     // Medium responses (increased from 1500)
+        'thinking': 8000,   // Long, detailed responses (increased from 3000)
     };
 
-    return tokensMap[responseMode] || 1500;
+    return tokensMap[responseMode] || 4000;
 }
