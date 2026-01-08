@@ -9,7 +9,7 @@ export interface MessageQuota {
 }
 
 const QUOTA_KEY = 'messageQuota';
-const FREE_USER_LIMIT = 1; // TESTING: Changed from 50 to 1 for video ad testing
+const FREE_USER_LIMIT = 1; // TESTING: Set to 0 so modal appears immediately
 const RESET_INTERVAL = 24 * 60 * 60 * 1000; // 24 hours
 
 /**

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 
 interface AdstertaBannerProps {
     className?: string;
@@ -8,41 +8,25 @@ interface AdstertaBannerProps {
 
 export default function AdstertaBanner({ className = '' }: AdstertaBannerProps) {
     const containerRef = useRef<HTMLDivElement>(null);
-    const [isMobile, setIsMobile] = useState(false);
 
     useEffect(() => {
-        // Check screen size
-        const checkMobile = () => {
-            setIsMobile(window.innerWidth < 768);
-        };
-
-        checkMobile();
-        window.addEventListener('resize', checkMobile);
-
-        return () => window.removeEventListener('resize', checkMobile);
-    }, []);
-
-    useEffect(() => {
-        // Don't load ad on mobile
-        if (isMobile) return;
-
         // Wait a bit for DOM to be ready
         const timer = setTimeout(() => {
             try {
                 // Create container for ad
                 const adContainer = document.createElement('div');
-                adContainer.id = 'adsterra-banner-container';
+                adContainer.id = 'adsterra-native-banner';
 
                 if (containerRef.current) {
                     containerRef.current.appendChild(adContainer);
                 }
 
-                // Set Adsterra options
+                // Set Adsterra Native Banner options (responsive)
                 (window as any).atOptions = {
                     'key': '63e8b36ccf4067d9fc234150fa420848',
                     'format': 'iframe',
-                    'height': 250,
-                    'width': 300,
+                    'height': 90,
+                    'width': 728,
                     'params': {}
                 };
 
@@ -52,27 +36,23 @@ export default function AdstertaBanner({ className = '' }: AdstertaBannerProps) 
                 script.src = '//www.highperformanceformat.com/63e8b36ccf4067d9fc234150fa420848/invoke.js';
                 adContainer.appendChild(script);
 
-                console.log('Adsterra banner ad script loaded');
+                console.log('Adsterra Native Banner ad loaded (responsive for all devices)');
             } catch (error) {
                 console.error('Error loading Adsterra ad:', error);
             }
         }, 500);
 
         return () => clearTimeout(timer);
-    }, [isMobile]);
-
-    // Hide on mobile
-    if (isMobile) {
-        return null;
-    }
+    }, []);
 
     return (
         <div
             ref={containerRef}
             className={className}
             style={{
-                width: '300px',
-                height: '250px',
+                width: '100%',
+                maxWidth: '728px',
+                minHeight: '90px',
                 margin: '0 auto',
                 display: 'flex',
                 alignItems: 'center',
