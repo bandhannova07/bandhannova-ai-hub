@@ -13,32 +13,23 @@ export default function AdstertaBanner({ className = '' }: AdstertaBannerProps) 
         // Wait a bit for DOM to be ready
         const timer = setTimeout(() => {
             try {
-                // Create container for ad
+                if (!containerRef.current) return;
+
+                // Create the container div for the ad
                 const adContainer = document.createElement('div');
-                adContainer.id = 'adsterra-native-banner';
+                adContainer.id = 'container-8cf56f262981da929d890684b9cd6ea0';
+                containerRef.current.appendChild(adContainer);
 
-                if (containerRef.current) {
-                    containerRef.current.appendChild(adContainer);
-                }
-
-                // Set Adsterra Native Banner options (responsive)
-                (window as any).atOptions = {
-                    'key': '63e8b36ccf4067d9fc234150fa420848',
-                    'format': 'iframe',
-                    'height': 90,
-                    'width': 728,
-                    'params': {}
-                };
-
-                // Load Adsterra script
+                // Load Adsterra Native Banner script
                 const script = document.createElement('script');
-                script.type = 'text/javascript';
-                script.src = '//www.highperformanceformat.com/63e8b36ccf4067d9fc234150fa420848/invoke.js';
-                adContainer.appendChild(script);
+                script.async = true;
+                script.setAttribute('data-cfasync', 'false');
+                script.src = 'https://pl28429802.effectivegatecpm.com/8cf56f262981da929d890684b9cd6ea0/invoke.js';
+                containerRef.current.appendChild(script);
 
-                console.log('Adsterra Native Banner ad loaded (responsive for all devices)');
+                console.log('Adsterra Native Banner loaded (responsive for all devices)');
             } catch (error) {
-                console.error('Error loading Adsterra ad:', error);
+                console.error('Error loading Adsterra Native Banner:', error);
             }
         }, 500);
 
@@ -51,7 +42,6 @@ export default function AdstertaBanner({ className = '' }: AdstertaBannerProps) 
             className={className}
             style={{
                 width: '100%',
-                maxWidth: '728px',
                 minHeight: '90px',
                 margin: '0 auto',
                 display: 'flex',
@@ -71,7 +61,8 @@ export default function AdstertaBanner({ className = '' }: AdstertaBannerProps) 
                 transform: 'translate(-50%, -50%)',
                 color: 'rgba(255, 255, 255, 0.3)',
                 fontSize: '12px',
-                textAlign: 'center'
+                textAlign: 'center',
+                pointerEvents: 'none'
             }}>
                 <div style={{
                     width: '20px',
