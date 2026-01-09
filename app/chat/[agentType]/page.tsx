@@ -210,7 +210,7 @@ export default function ChatPage() {
     const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
     const [currentConversationTitle, setCurrentConversationTitle] = useState<string>('New Chat');
     const [isTyping, setIsTyping] = useState(false);
-    const [showRewardModal, setShowRewardModal] = useState(false);
+
     const [isDesktop, setIsDesktop] = useState(false);
     const [selectedModel, setSelectedModel] = useState('auto');
     const [showPlusMenu, setShowPlusMenu] = useState(false);
@@ -390,13 +390,6 @@ export default function ChatPage() {
     async function handleSend() {
         if (!input.trim() || loading) return;
 
-        // Check message quota
-        if (!canSendMessage()) {
-            // Show reward ad modal
-            setShowRewardModal(true);
-            return;
-        }
-
         const userInput = input.trim();
         setInput('');
 
@@ -407,9 +400,6 @@ export default function ChatPage() {
         }
 
         setLoading(true);
-
-        // Increment message count
-        incrementMessageCount();
 
         try {
             // Create or get conversation
@@ -1324,15 +1314,6 @@ export default function ChatPage() {
                 </div>
             </div>
 
-            {/* Reward Ad Modal */}
-            <RewardAdModal
-                open={showRewardModal}
-                onClose={() => setShowRewardModal(false)}
-                onRewardGranted={() => {
-                    // Reward granted, user can continue
-                    setShowRewardModal(false);
-                }}
-            />
         </div >
     );
 }
