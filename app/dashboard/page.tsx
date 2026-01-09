@@ -82,13 +82,22 @@ const AI_AGENTS = [
         buttonText: 'Start Learning'
     },
     {
-        id: 'business-career',
-        name: 'Business & Career',
+        id: 'future-jobs-career',
+        name: 'Future Jobs & Career Build',
         icon: Briefcase,
         gradient: 'linear-gradient(135deg, #f97316 0%, #fb923c 100%)',
-        description: 'Business strategy, career guidance, growth tips',
-        features: ['Business Plan', 'Career Advice', 'Resume Help'],
-        buttonText: 'Grow Business'
+        description: 'Future career planning, job market insights, skill building',
+        features: ['Career Planning', 'Job Trends', 'Skill Development'],
+        buttonText: 'Build Career'
+    },
+    {
+        id: 'decision-maker',
+        name: 'Decision Maker',
+        icon: Brain,
+        gradient: 'linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%)',
+        description: 'Smart decision making, pros & cons analysis, strategic thinking',
+        features: ['Decision Analysis', 'Risk Assessment', 'Strategic Planning'],
+        buttonText: 'Make Decision'
     },
     {
         id: 'conversational',
@@ -499,12 +508,12 @@ export default function DashboardPage() {
                             </Button>
 
                             <Button
-                                onClick={(`https://products.bandhannova.in`)}
+                                onClick={() => router.push('/products')}
                                 variant="ghost"
                                 className="flex items-center gap-3 rounded-xl transition-all hover:scale-105 justify-start text-white"
                                 style={{
                                     padding: '14px 16px',
-                                    background: activeView === 'about' ? 'var(--gradient-hero)' : 'rgba(255, 255, 255, 0.1)',
+                                    background: 'rgba(255, 255, 255, 0.1)',
                                     width: '100%'
                                 }}
                             >
@@ -513,12 +522,12 @@ export default function DashboardPage() {
                             </Button>
 
                             <Button
-                                onClick={(`https://blogs.bandhannova.in`)}
+                                onClick={() => window.open('https://blogs.bandhannova.in', '_blank')}
                                 variant="ghost"
                                 className="flex items-center gap-3 rounded-xl transition-all hover:scale-105 justify-start text-white"
                                 style={{
                                     padding: '14px 16px',
-                                    background: activeView === 'about' ? 'var(--gradient-hero)' : 'rgba(255, 255, 255, 0.1)',
+                                    background: 'rgba(255, 255, 255, 0.1)',
                                     width: '100%'
                                 }}
                             >
@@ -699,7 +708,7 @@ export default function DashboardPage() {
                                             marginBottom: '16px'
                                         }}
                                     >
-                                        Default <span className="small" style={{ color: 'var(--foreground-tertiary)', fontWeight: 'normal' }}>(Free Now)</span>
+                                        Default <span className="small" style={{ color: 'var(--foreground-tertiary)', fontWeight: 'normal', fontSize: 'clamp(10px, 2vw, 12px)' }}>(Free Now)</span>
                                     </h3>
                                     <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3" style={{ gap: '12px' }}>
                                         {AI_AGENTS.filter(agent => agent.id === 'conversational').map((agent, index) => {
@@ -749,11 +758,11 @@ export default function DashboardPage() {
                                             marginBottom: '16px'
                                         }}
                                     >
-                                        Featured <span className="small" style={{ color: 'var(--foreground-tertiary)', fontWeight: 'normal' }}>(Free Limited)</span>
+                                        Featured <span className="small" style={{ color: 'var(--foreground-tertiary)', fontWeight: 'normal', fontSize: 'clamp(10px, 2vw, 12px)' }}>(Free Limited)</span>
                                     </h3>
                                     <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3" style={{ gap: '12px' }}>
                                         {AI_AGENTS.filter(agent =>
-                                            ['search-engine', 'study-learning', 'creative-productivity', 'psychology-personality', 'creator-social', 'business-career', 'image-maker', 'kitchen-recipe'].includes(agent.id)
+                                            ['study-learning', 'search-engine', 'future-jobs-career', 'decision-maker'].includes(agent.id)
                                         ).map((agent, index) => {
                                             const Icon = agent.icon;
                                             return (

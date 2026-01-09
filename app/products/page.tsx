@@ -60,23 +60,29 @@ export default function ProductsPage() {
         : PRODUCTS.filter(p => p.category === selectedCategory);
 
     return (
-        <div style={{
-            minHeight: '100vh',
-            background: 'var(--background)',
-            color: 'var(--foreground)'
-        }}>
+        <div className="min-h-screen" style={{ background: 'var(--background)' }}>
+            {/* Gradient Mesh Background */}
+            <div
+                className="fixed inset-0 pointer-events-none"
+                style={{ background: 'var(--gradient-mesh)', opacity: 0.3, zIndex: 0 }}
+            />
+
             {/* Header */}
             <header style={{
+                position: 'relative',
+                zIndex: 1,
                 padding: '24px',
-                borderBottom: '1px solid var(--background-tertiary)',
-                background: 'var(--background-secondary)'
+                borderBottom: '1px solid var(--background-tertiary)'
             }}>
                 <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '8px' }}>
                         <Button
                             variant="ghost"
                             onClick={() => router.push('/dashboard')}
-                            style={{ padding: '8px' }}
+                            style={{
+                                padding: '8px',
+                                background: 'rgba(255, 255, 255, 0.1)'
+                            }}
                         >
                             <ArrowLeft className="w-5 h-5" />
                         </Button>
@@ -93,7 +99,7 @@ export default function ProductsPage() {
             </header>
 
             {/* Main Content */}
-            <main style={{ maxWidth: '1200px', margin: '0 auto', padding: '32px 24px' }}>
+            <main style={{ position: 'relative', zIndex: 1, maxWidth: '1200px', margin: '0 auto', padding: '32px 24px' }}>
                 {/* Category Filter */}
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
@@ -122,15 +128,16 @@ export default function ProductsPage() {
                             return (
                                 <Button
                                     key={category.id}
-                                    variant={isActive ? 'default' : 'outline'}
+                                    variant={isActive ? 'default' : 'ghost'}
                                     onClick={() => setSelectedCategory(category.id)}
                                     style={{
                                         display: 'flex',
                                         alignItems: 'center',
                                         gap: '8px',
                                         padding: '10px 20px',
-                                        background: isActive ? 'var(--primary)' : 'transparent',
-                                        border: isActive ? 'none' : '1px solid var(--background-tertiary)'
+                                        background: isActive ? 'var(--gradient-hero)' : 'rgba(255, 255, 255, 0.1)',
+                                        border: 'none',
+                                        borderRadius: '12px'
                                     }}
                                 >
                                     <Icon className="w-4 h-4" />
@@ -155,35 +162,41 @@ export default function ProductsPage() {
                             transition={{ delay: index * 0.1 }}
                         >
                             <Card style={{
-                                background: 'var(--background-secondary)',
+                                background: 'rgba(255, 255, 255, 0.05)',
                                 border: '1px solid var(--background-tertiary)',
+                                borderRadius: '12px',
                                 height: '100%',
                                 display: 'flex',
-                                flexDirection: 'column'
+                                flexDirection: 'column',
+                                overflow: 'hidden'
                             }}>
-                                <CardHeader>
+                                <CardHeader style={{ padding: '20px' }}>
                                     {/* Product Image Placeholder */}
                                     <div style={{
                                         width: '100%',
                                         height: '180px',
-                                        background: 'var(--background-tertiary)',
+                                        background: 'rgba(255, 255, 255, 0.05)',
                                         borderRadius: '8px',
                                         marginBottom: '16px',
                                         display: 'flex',
                                         alignItems: 'center',
-                                        justifyContent: 'center'
+                                        justifyContent: 'center',
+                                        border: '1px solid var(--background-tertiary)'
                                     }}>
                                         <ShoppingCart className="w-12 h-12" style={{ color: 'var(--foreground-tertiary)' }} />
                                     </div>
 
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '8px' }}>
-                                        <CardTitle className="h4">{product.name}</CardTitle>
+                                        <CardTitle className="h4" style={{ color: 'var(--foreground)' }}>
+                                            {product.name}
+                                        </CardTitle>
                                         {product.badge && (
-                                            <Badge variant="secondary" style={{
-                                                background: 'var(--primary)',
+                                            <Badge style={{
+                                                background: 'var(--gradient-hero)',
                                                 color: 'white',
                                                 fontSize: '10px',
-                                                padding: '2px 8px'
+                                                padding: '2px 8px',
+                                                borderRadius: '4px'
                                             }}>
                                                 {product.badge}
                                             </Badge>
@@ -194,22 +207,25 @@ export default function ProductsPage() {
                                     </CardDescription>
                                 </CardHeader>
 
-                                <CardContent style={{ marginTop: 'auto' }}>
+                                <CardContent style={{ marginTop: 'auto', padding: '0 20px 20px' }}>
                                     <p className="h3" style={{ color: 'var(--primary)', marginBottom: '16px' }}>
                                         {product.price}
                                     </p>
                                 </CardContent>
 
-                                <CardFooter>
+                                <CardFooter style={{ padding: '0 20px 20px' }}>
                                     <Button
                                         onClick={() => window.open(product.affiliateLink, '_blank')}
                                         style={{
                                             width: '100%',
-                                            background: 'var(--primary)',
+                                            background: 'var(--gradient-hero)',
                                             display: 'flex',
                                             alignItems: 'center',
                                             justifyContent: 'center',
-                                            gap: '8px'
+                                            gap: '8px',
+                                            padding: '12px 20px',
+                                            borderRadius: '8px',
+                                            border: 'none'
                                         }}
                                     >
                                         <span className="body font-medium">View Product</span>
@@ -233,7 +249,7 @@ export default function ProductsPage() {
                         }}
                     >
                         <ShoppingCart className="w-16 h-16" style={{ margin: '0 auto 16px', opacity: 0.5 }} />
-                        <p className="h4" style={{ marginBottom: '8px' }}>No products found</p>
+                        <p className="h4" style={{ marginBottom: '8px', color: 'var(--foreground)' }}>No products found</p>
                         <p className="body">Try selecting a different category</p>
                     </motion.div>
                 )}
