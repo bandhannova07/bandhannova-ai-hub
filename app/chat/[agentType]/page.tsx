@@ -86,21 +86,49 @@ const AGENT_CONFIG: Record<string, any> = {
         icon: BookOpen,
         gradient: 'linear-gradient(135deg, #10b981 0%, #14b8a6 100%)',
         color: '#10b981',
-        description: 'Learning assistant'
+        description: 'Learning assistant',
+        models: [
+            'meta-llama/llama-3.3-70b-instruct:free',
+            'google/gemma-3-27b-it:free',
+            'xiaomi/mimo-v2-flash:free'
+        ]
     },
-    'business-career': {
-        name: 'Business & Career',
+    'future-jobs-career': {
+        name: 'Future Jobs & Career Build',
         icon: Briefcase,
         gradient: 'linear-gradient(135deg, #f97316 0%, #fb923c 100%)',
         color: '#f97316',
-        description: 'Business advisor'
+        description: 'Career planning advisor',
+        models: [
+            'deepseek/deepseek-r1-0528:free',
+            'xiaomi/mimo-v2-flash:free',
+            'tngtech/deepseek-r1t2-chimera:free'
+        ]
+    },
+    'decision-maker': {
+        name: 'Decision Maker',
+        icon: Brain,
+        gradient: 'linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%)',
+        color: '#8b5cf6',
+        description: 'Smart decision making',
+        models: [
+            'deepseek/deepseek-r1-0528:free',
+            'xiaomi/mimo-v2-flash:free',
+            'openai/gpt-oss-120b:free'
+        ]
     },
     'conversational': {
         name: 'Conversational AI',
         icon: MessageCircleIcon,
         gradient: 'linear-gradient(135deg, #06b6d4 0%, #0891b2 100%)',
         color: '#06b6d4',
-        description: 'General assistant'
+        description: 'General assistant',
+        models: [
+            'nousresearch/hermes-3-llama-3.1-405b:free',
+            'meta-llama/llama-3.1-405b-instruct:free',
+            'xiaomi/mimo-v2-flash:free',
+            'google/gemini-2.0-flash-exp:free'
+        ]
     },
     'website-builder': {
         name: 'Website Builder',
@@ -121,14 +149,25 @@ const AGENT_CONFIG: Record<string, any> = {
         icon: ChefHat,
         gradient: '#00D9FF',
         color: '#00D9FF',
-        description: 'Cooking and recipe expert'
+        description: 'Cooking and recipe expert',
+        models: [
+            'nousresearch/hermes-3-llama-3.1-405b:free',
+            'meta-llama/llama-3.1-405b-instruct:free',
+            'xiaomi/mimo-v2-flash:free',
+            'google/gemini-2.0-flash-exp:free'
+        ]
     },
     'search-engine': {
         name: 'Research & Discovery AI',
         icon: Globe,
         gradient: '#6366f1',
         color: '#6366f1',
-        description: 'Web research and knowledge discovery expert'
+        description: 'Research assistant',
+        models: [
+            'google/gemini-2.0-flash-exp:free',
+            'xiaomi/mimo-v2-flash:free',
+            'openai/gpt-oss-120b:free'
+        ]
     },
 };
 
