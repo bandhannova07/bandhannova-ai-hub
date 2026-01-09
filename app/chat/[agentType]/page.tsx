@@ -48,8 +48,6 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { canSendMessage, incrementMessageCount } from '@/lib/messages/quota';
-import RewardAdModal from '@/components/RewardAdModal';
 import { Separator } from '@/components/ui/separator';
 import {
     DropdownMenu,

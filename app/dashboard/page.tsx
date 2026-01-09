@@ -11,7 +11,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
-import AdstertaBanner from '@/components/AdstertaBanner';
 import {
     Sparkles,
     Lightbulb,
@@ -38,11 +37,12 @@ import {
     Image as ImageIcon,
     ChefHat,
     HelpCircle,
-    Globe
+    Globe,
+    ShoppingBag,
+    BookOpen as BookOpenIcon
 } from 'lucide-react';
 import { getCurrentUser, signOut } from '@/lib/auth-simple';
 import { getAllDBs } from '@/lib/database/multi-db';
-import { getQuotaStats } from '@/lib/messages/quota';
 
 const AI_AGENTS = [
     {
@@ -149,8 +149,6 @@ export default function DashboardPage() {
     const [stats, setStats] = useState({
         conversations: 0,
         messages: 0,
-        messagesUsed: 0,
-        messagesTotal: 50,
         agents: 7,
         plan: 'Free'
     });
@@ -263,14 +261,9 @@ export default function DashboardPage() {
             const conversations = JSON.parse(localStorage.getItem('conversations') || '[]');
             const messages = JSON.parse(localStorage.getItem('messages') || '[]');
 
-            // Get message quota stats
-            const quotaStats = getQuotaStats();
-
             setStats({
                 conversations: conversations.length,
                 messages: messages.length,
-                messagesUsed: quotaStats.used,
-                messagesTotal: quotaStats.total,
                 agents: 7, // Total AI agents available
                 plan: userPlan
             });
@@ -279,8 +272,6 @@ export default function DashboardPage() {
             setStats({
                 conversations: 0,
                 messages: 0,
-                messagesUsed: 0,
-                messagesTotal: 50,
                 agents: 7,
                 plan: 'Free'
             });
@@ -422,22 +413,12 @@ export default function DashboardPage() {
                                     className="font-bold"
                                     style={{ color: 'var(--foreground)', fontSize: '18px' }}
                                 >
-                                    {stats.messagesUsed}/{stats.messagesTotal}
+                                    {stats.messages}
                                 </p>
                                 <p className="small" style={{ color: 'var(--foreground-tertiary)' }}>
                                     Messages
                                 </p>
                             </div>
-                        </div>
-
-                        {/* Adsterra Native Banner Ad - Responsive */}
-                        <div style={{
-                            marginTop: '16px',
-                            marginBottom: '16px',
-                            padding: '0 8px', // Padding for mobile
-                            width: '100%'
-                        }}>
-                            <AdstertaBanner />
                         </div>
                     </div>
 
@@ -518,6 +499,36 @@ export default function DashboardPage() {
                             </Button>
                         </div>
                     </nav>
+
+                    {/* Products & Blogs */}
+                    <div style={{ marginBottom: '16px', paddingTop: '12px', borderTop: '1px solid var(--background-tertiary)' }}>
+                        <Button
+                            variant="ghost"
+                            className="flex items-center gap-3 rounded-xl transition-all hover:scale-105 justify-start"
+                            style={{
+                                padding: '14px 16px',
+                                width: '100%',
+                                marginBottom: '8px'
+                            }}
+                            onClick={() => router.push('/products')}
+                        >
+                            <ShoppingBag className="w-5 h-5" />
+                            <span className="body font-medium">Products</span>
+                        </Button>
+
+                        <Button
+                            variant="ghost"
+                            className="flex items-center gap-3 rounded-xl transition-all hover:scale-105 justify-start"
+                            style={{
+                                padding: '14px 16px',
+                                width: '100%'
+                            }}
+                            onClick={() => router.push('/blogs')}
+                        >
+                            <BookOpenIcon className="w-5 h-5" />
+                            <span className="body font-medium">Blogs</span>
+                        </Button>
+                    </div>
 
                     {/* Sign Out */}
                     <Button
