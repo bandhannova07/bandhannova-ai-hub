@@ -497,38 +497,36 @@ export default function DashboardPage() {
                                     <span className="body font-medium">Feedback</span>
                                 </Link>
                             </Button>
+
+                            <Button
+                                onClick={(`https://products.bandhannova.in`)}
+                                variant="ghost"
+                                className="flex items-center gap-3 rounded-xl transition-all hover:scale-105 justify-start text-white"
+                                style={{
+                                    padding: '14px 16px',
+                                    background: activeView === 'about' ? 'var(--gradient-hero)' : 'rgba(255, 255, 255, 0.1)',
+                                    width: '100%'
+                                }}
+                            >
+                                <ShoppingBag className="w-5 h-5" />
+                                <span className="body font-medium">Products</span>
+                            </Button>
+
+                            <Button
+                                onClick={(`https://blogs.bandhannova.in`)}
+                                variant="ghost"
+                                className="flex items-center gap-3 rounded-xl transition-all hover:scale-105 justify-start text-white"
+                                style={{
+                                    padding: '14px 16px',
+                                    background: activeView === 'about' ? 'var(--gradient-hero)' : 'rgba(255, 255, 255, 0.1)',
+                                    width: '100%'
+                                }}
+                            >
+                                <BookOpenIcon className="w-5 h-5" />
+                                <span className="body font-medium">Blogs</span>
+                            </Button>
                         </div>
                     </nav>
-
-                    {/* Products & Blogs */}
-                    <div style={{ marginBottom: '16px', paddingTop: '12px', borderTop: '1px solid var(--background-tertiary)' }}>
-                        <Button
-                            variant="ghost"
-                            className="flex items-center gap-3 rounded-xl transition-all hover:scale-105 justify-start"
-                            style={{
-                                padding: '14px 16px',
-                                width: '100%',
-                                marginBottom: '8px'
-                            }}
-                            onClick={() => router.push('/products')}
-                        >
-                            <ShoppingBag className="w-5 h-5" />
-                            <span className="body font-medium">Products</span>
-                        </Button>
-
-                        <Button
-                            variant="ghost"
-                            className="flex items-center gap-3 rounded-xl transition-all hover:scale-105 justify-start"
-                            style={{
-                                padding: '14px 16px',
-                                width: '100%'
-                            }}
-                            onClick={() => router.push('/blogs')}
-                        >
-                            <BookOpenIcon className="w-5 h-5" />
-                            <span className="body font-medium">Blogs</span>
-                        </Button>
-                    </div>
 
                     {/* Sign Out */}
                     <Button
