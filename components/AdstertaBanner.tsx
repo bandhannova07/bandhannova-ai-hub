@@ -42,13 +42,14 @@ export default function AdstertaBanner({ className = '' }: AdstertaBannerProps) 
             className={className}
             style={{
                 width: '100%',
-                minHeight: '90px',
+                minHeight: '60px', // Reduced for mobile
+                maxWidth: '100%', // Full width on mobile
                 margin: '0 auto',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 background: 'rgba(255, 255, 255, 0.02)',
-                borderRadius: '12px',
+                borderRadius: '8px',
                 overflow: 'hidden',
                 position: 'relative'
             }}
@@ -60,20 +61,20 @@ export default function AdstertaBanner({ className = '' }: AdstertaBannerProps) 
                 left: '50%',
                 transform: 'translate(-50%, -50%)',
                 color: 'rgba(255, 255, 255, 0.3)',
-                fontSize: '12px',
+                fontSize: '10px',
                 textAlign: 'center',
                 pointerEvents: 'none'
             }}>
                 <div style={{
-                    width: '20px',
-                    height: '20px',
+                    width: '16px',
+                    height: '16px',
                     border: '2px solid rgba(255, 255, 255, 0.2)',
                     borderTopColor: 'rgba(255, 255, 255, 0.6)',
                     borderRadius: '50%',
                     animation: 'spin 1s linear infinite',
-                    margin: '0 auto 8px'
+                    margin: '0 auto 4px'
                 }}></div>
-                Ad Loading...
+                Ad...
             </div>
         </div>
     );

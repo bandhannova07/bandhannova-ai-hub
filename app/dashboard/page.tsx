@@ -430,8 +430,13 @@ export default function DashboardPage() {
                             </div>
                         </div>
 
-                        {/* Adsterra Banner Ad */}
-                        <div style={{ marginTop: '16px', marginBottom: '16px' }}>
+                        {/* Adsterra Native Banner Ad - Responsive */}
+                        <div style={{
+                            marginTop: '16px',
+                            marginBottom: '16px',
+                            padding: '0 8px', // Padding for mobile
+                            width: '100%'
+                        }}>
                             <AdstertaBanner />
                         </div>
                     </div>
