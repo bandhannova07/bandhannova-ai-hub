@@ -99,7 +99,72 @@
   --foreground: var(--text-dark);
   --foreground-secondary: var(--text-dark-secondary);
   --foreground-tertiary: var(--text-dark-tertiary);
+}
 
+/* ============================================
+   THEME SWITCHING
+   ============================================ */
+
+/* Dark Mode Theme */
+[data-theme="dark"] {
+  --background: var(--bg-dark);
+  --background-secondary: var(--bg-dark-secondary);
+  --background-tertiary: var(--bg-dark-tertiary);
+  --foreground: var(--text-dark);
+  --foreground-secondary: var(--text-dark-secondary);
+  --foreground-tertiary: var(--text-dark-tertiary);
+
+  --card: var(--bg-dark-secondary);
+  --card-foreground: var(--text-dark);
+  --popover: var(--bg-dark-secondary);
+  --popover-foreground: var(--text-dark);
+  --primary: #C683D7;
+  --primary-foreground: #FFFFFF;
+  --muted: var(--bg-dark-tertiary);
+  --muted-foreground: var(--text-dark-secondary);
+  --accent: var(--bg-dark-tertiary);
+  --accent-foreground: var(--text-dark);
+  --border: var(--bg-dark-tertiary);
+  --input: var(--bg-dark-tertiary);
+  --ring: #C683D7;
+}
+
+/* Light Mode Theme */
+[data-theme="light"] {
+  --background: var(--bg-light);
+  --background-secondary: var(--bg-light-secondary);
+  --background-tertiary: var(--bg-light-tertiary);
+  --foreground: var(--text-light);
+  --foreground-secondary: var(--text-light-secondary);
+  --foreground-tertiary: var(--text-light-tertiary);
+
+  --card: var(--bg-light-secondary);
+  --card-foreground: var(--text-light);
+  --popover: var(--bg-light-secondary);
+  --popover-foreground: var(--text-light);
+  --primary: #223CCF;
+  --primary-foreground: #FFFFFF;
+  --muted: var(--bg-light-tertiary);
+  --muted-foreground: var(--text-light-secondary);
+  --accent: var(--bg-light-tertiary);
+  --accent-foreground: var(--text-light);
+  --border: var(--bg-light-tertiary);
+  --input: var(--bg-light-tertiary);
+  --ring: #223CCF;
+}
+
+/* Smooth theme transition */
+* {
+  transition: background-color 200ms ease, color 200ms ease, border-color 200ms ease;
+}
+
+/* Disable transition for specific elements */
+.no-transition,
+.no-transition * {
+  transition: none !important;
+}
+
+:root {
   /* shadcn/ui CSS Variables */
   --radius: 0.5rem;
 
@@ -112,7 +177,7 @@
   --popover-foreground: var(--text-dark);
 
   /* Primary */
-  --primary: var(--primary-purple);
+  --primary: #C683D7;
   --primary-foreground: #FFFFFF;
 
   /* Secondary */
@@ -124,17 +189,17 @@
   --muted-foreground: var(--text-dark-secondary);
 
   /* Accent */
-  --accent: var(--accent-cyan);
+  --accent: var(--bg-dark-tertiary);
   --accent-foreground: var(--text-dark);
 
   /* Destructive */
-  --destructive: #EF4444;
+  --destructive: #ef4444;
   --destructive-foreground: #FFFFFF;
 
   /* Border */
-  --border: rgba(255, 255, 255, 0.1);
-  --input: rgba(255, 255, 255, 0.1);
-  --ring: var(--primary-purple);
+  --border: var(--bg-dark-tertiary);
+  --input: var(--bg-dark-tertiary);
+  --ring: #C683D7;
 }
 
 /* Dark Mode */

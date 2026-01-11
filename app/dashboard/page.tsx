@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
+import ThemeToggle from '@/components/ThemeToggle';
 import {
     Sparkles,
     Lightbulb,
@@ -536,6 +537,11 @@ export default function DashboardPage() {
                             </Button>
                         </div>
                     </nav>
+
+                    {/* Theme Toggle */}
+                    <div style={{ marginBottom: '12px' }}>
+                        <ThemeToggle />
+                    </div>
 
                     {/* Sign Out */}
                     <Button
