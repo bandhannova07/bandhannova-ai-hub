@@ -38,7 +38,12 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     }, [theme, mounted]);
 
     const toggleTheme = () => {
-        setTheme(prev => prev === 'dark' ? 'light' : 'dark');
+        console.log('Toggle theme clicked! Current:', theme);
+        setTheme(prev => {
+            const newTheme = prev === 'dark' ? 'light' : 'dark';
+            console.log('Switching to:', newTheme);
+            return newTheme;
+        });
     };
 
     // Prevent flash of wrong theme
