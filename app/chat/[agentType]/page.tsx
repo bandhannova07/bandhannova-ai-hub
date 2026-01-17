@@ -241,13 +241,16 @@ export default function ChatPage() {
         checkAuth();
     }, []);
 
+    const [isCreatingConversation, setIsCreatingConversation] = useState(false);
+
     useEffect(() => {
         scrollToBottom();
     }, [messages]);
 
     useEffect(() => {
         // Load messages when conversation ID is available
-        if (currentConversationId && user) {
+        // BUT don't load if we're in the middle of creating a new conversation
+        if (currentConversationId && user && !isCreatingConversation) {
             loadMessages(currentConversationId);
         }
     }, [currentConversationId, user]);
@@ -410,10 +413,16 @@ export default function ChatPage() {
             // Create or get conversation
             let convId = currentConversationId;
             if (!convId) {
+                // Set flag to prevent loadMessages from overwriting our UI state
+                setIsCreatingConversation(true);
+
                 const newConv = createConversation(agentType, generateConversationTitle(userInput));
                 convId = newConv.id;
                 setCurrentConversationId(convId);
                 setCurrentConversationTitle(newConv.title);
+
+                // Clear flag after a brief delay to allow state updates
+                setTimeout(() => setIsCreatingConversation(false), 100);
             }
 
             // Create user message
@@ -986,7 +995,7 @@ export default function ChatPage() {
                                                         fontWeight: '400'
                                                     }}
                                                 >
-                                                    {message.role === 'assistant' && index === messages.length - 1 && (!message.content || isTyping) ? (
+                                                    {message.role === 'assistant' && index === messages.length - 1 && !message.content ? (
                                                         <GeminiLoader />
                                                     ) : (
                                                         <MarkdownRenderer content={message.content} />
@@ -1033,55 +1042,6 @@ export default function ChatPage() {
                                         </motion.div>
                                     ))}
 
-                                    {loading && (
-                                        <motion.div
-                                            initial={{ opacity: 0 }}
-                                            animate={{ opacity: 1 }}
-                                            className="flex gap-4"
-                                        >
-                                            <div
-                                                className="rounded-xl flex items-center justify-center"
-                                                style={{
-                                                    width: '40px',
-                                                    height: '40px',
-                                                    background: agent.gradient
-                                                }}
-                                            >
-                                                <Icon className="w-5 h-5 text-white" />
-                                            </div>
-                                            <div
-                                                className="glass rounded-2xl"
-                                                style={{
-                                                    padding: '16px 20px',
-                                                    border: '1px solid var(--background-tertiary)'
-                                                }}
-                                            >
-                                                <div className="flex gap-2">
-                                                    <div
-                                                        className="w-2 h-2 rounded-full animate-bounce"
-                                                        style={{
-                                                            background: agent.color,
-                                                            animationDelay: '0ms'
-                                                        }}
-                                                    ></div>
-                                                    <div
-                                                        className="w-2 h-2 rounded-full animate-bounce"
-                                                        style={{
-                                                            background: agent.color,
-                                                            animationDelay: '150ms'
-                                                        }}
-                                                    ></div>
-                                                    <div
-                                                        className="w-2 h-2 rounded-full animate-bounce"
-                                                        style={{
-                                                            background: agent.color,
-                                                            animationDelay: '300ms'
-                                                        }}
-                                                    ></div>
-                                                </div>
-                                            </div>
-                                        </motion.div>
-                                    )}
 
                                     <div ref={messagesEndRef} />
                                 </div>
@@ -1139,16 +1099,16 @@ export default function ChatPage() {
                                         style={{
                                             width: isDesktop ? '280px' : '260px',
                                             padding: '14px',
-                                            borderColor: 'rgba(255, 255, 255, 0.15)',
+                                            borderColor: 'var(--background-tertiary)',
                                             backdropFilter: 'blur(24px)',
-                                            background: 'rgba(0, 0, 0, 0.7)',
-                                            boxShadow: '0 12px 40px rgba(0, 0, 0, 0.5)',
+                                            background: 'var(--background-secondary)',
+                                            boxShadow: '0 12px 40px rgba(0, 0, 0, 0.3)',
                                             zIndex: 1000
                                         }}
                                     >
                                         {/* Media Section */}
                                         <div style={{ marginBottom: '14px' }}>
-                                            <p className="small" style={{ fontWeight: '600', color: 'rgba(255, 255, 255, 0.6)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                                            <p className="small" style={{ fontWeight: '600', color: 'var(--foreground-tertiary)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                                                 Media
                                             </p>
                                             <button
@@ -1169,7 +1129,7 @@ export default function ChatPage() {
 
                                         {/* Response Section */}
                                         <div style={{ marginBottom: '14px' }}>
-                                            <p className="small" style={{ fontWeight: '600', color: 'rgba(255, 255, 255, 0.6)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                                            <p className="small" style={{ fontWeight: '600', color: 'var(--foreground-tertiary)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                                                 Response
                                             </p>
                                             <button
@@ -1200,7 +1160,7 @@ export default function ChatPage() {
 
                                         {/* Models Section */}
                                         <div>
-                                            <p className="small" style={{ fontWeight: '600', color: 'rgba(255, 255, 255, 0.6)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                                            <p className="small" style={{ fontWeight: '600', color: 'var(--foreground-tertiary)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                                                 Models
                                             </p>
                                             {/* Auto Intelligence - Always available */}

@@ -25,19 +25,19 @@ export const AI_MODELS = {
             ],
         } as ModelConfig,
         normal: {
-            primary: 'nvidia/nemotron-3-nano-30b-a3b:free',
+            primary: 'xiaomi/mimo-v2-flash:free',
             fallbacks: [
-                'xiaomi/mimo-v2-flash:free',
-                'tngtech/tng-r1t-chimera:free',
                 'arcee-ai/trinity-mini:free',
+                'tngtech/tng-r1t-chimera:free',
+                'nvidia/nemotron-3-nano-30b-a3b:free',
             ],
         } as ModelConfig,
         thinking: {
-            primary: 'nvidia/nemotron-3-nano-30b-a3b:free',
+            primary: 'xiaomi/mimo-v2-flash:free',
             fallbacks: [
-                'xiaomi/mimo-v2-flash:free',
                 'tngtech/tng-r1t-chimera:free',
                 'arcee-ai/trinity-mini:free',
+                'nvidia/nemotron-3-nano-30b-a3b:free',
             ],
         } as ModelConfig,
     },

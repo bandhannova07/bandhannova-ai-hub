@@ -184,3 +184,72 @@ export async function deleteUserMemories(userId: string): Promise<void> {
         console.error('Error deleting user memories:', error);
     }
 }
+
+/**
+ * Store user's language preference in Qdrant
+ */
+export async function storeUserLanguage(
+    userId: string,
+    languageCode: string
+): Promise<void> {
+    // Skip if Qdrant is not configured
+    if (!process.env.NEXT_PUBLIC_QDRANT_URL) {
+        console.log('Qdrant not configured, skipping language storage');
+        return;
+    }
+
+    try {
+        const client = getQdrantClient();
+
+        // Create a special point for language preference
+        const languagePoint = {
+            id: `lang_${userId}`,
+            vector: new Array(QDRANT_CONFIG.vectorSize).fill(0), // Zero vector for metadata
+            payload: {
+                type: 'user_language',
+                userId,
+                languageCode,
+                timestamp: Date.now(),
+            },
+        };
+
+        await client.upsert(QDRANT_CONFIG.collectionName, {
+            wait: true,
+            points: [languagePoint],
+        });
+
+        console.log(`✅ Stored language preference: ${languageCode} for user ${userId}`);
+    } catch (error) {
+        console.error('Error storing user language:', error);
+    }
+}
+
+/**
+ * Get user's preferred language from Qdrant
+ */
+export async function getUserLanguage(userId: string): Promise<string | null> {
+    // Skip if Qdrant is not configured
+    if (!process.env.NEXT_PUBLIC_QDRANT_URL) {
+        return null;
+    }
+
+    try {
+        const client = getQdrantClient();
+
+        const result = await client.retrieve(QDRANT_CONFIG.collectionName, {
+            ids: [`lang_${userId}`],
+            with_payload: true,
+        });
+
+        if (result.length > 0 && result[0].payload) {
+            const payload = result[0].payload as any;
+            console.log(`✅ Retrieved language preference: ${payload.languageCode} for user ${userId}`);
+            return payload.languageCode;
+        }
+
+        return null;
+    } catch (error) {
+        console.error('Error retrieving user language:', error);
+        return null;
+    }
+}

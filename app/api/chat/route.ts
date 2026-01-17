@@ -4,6 +4,8 @@
 import { NextRequest } from 'next/server';
 import { buildOptimizedPrompt } from '@/lib/ai/optimized-prompts';
 import { AIMode, getModelChain, getTimeout } from '@/lib/ai/models/config';
+import { detectLanguage, getLanguageInstruction } from '@/lib/ai/language-detection';
+import { getUserLanguage, storeUserLanguage } from '@/lib/qdrant/memory';
 
 export const runtime = 'edge';
 
@@ -35,8 +37,33 @@ export async function POST(req: NextRequest) {
             );
         }
 
+        // 🌍 Language Preference System
+        let userLanguage: string | null = null;
+
+        // Try to get user's saved language preference
+        if (userId) {
+            userLanguage = await getUserLanguage(userId);
+        }
+
+        // If no saved preference, detect from current message
+        if (!userLanguage) {
+            userLanguage = detectLanguage(message);
+
+            // Save for future use (only on first message)
+            if (userId && (!conversationHistory || conversationHistory.length === 0)) {
+                await storeUserLanguage(userId, userLanguage);
+                console.log(`🌍 First message detected: ${userLanguage}`);
+            }
+        }
+
         // Build optimized prompt (cached, 200-600 tokens instead of 3000+!)
-        const systemPrompt = buildOptimizedPrompt(mode, message);
+        let systemPrompt = buildOptimizedPrompt(mode, message);
+
+        // Add language instruction if not English
+        if (userLanguage && userLanguage !== 'en') {
+            const languageInstruction = getLanguageInstruction(userLanguage);
+            systemPrompt = `${systemPrompt}\n\n${languageInstruction}`;
+        }
 
         // Build messages array
         const messages: Array<{ role: string; content: string }> = [
