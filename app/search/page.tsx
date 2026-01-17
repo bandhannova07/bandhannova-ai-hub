@@ -20,7 +20,7 @@ import {
     Plus
 } from 'lucide-react';
 import { getCurrentUser } from '@/lib/auth-simple';
-import { MessageRenderer } from '@/components/MessageRenderer';
+import { MarkdownRenderer } from '../chat/[agentType]/components/MarkdownRenderer';
 import { Button } from '@/components/ui/button';
 
 type SearchResult = {
@@ -723,11 +723,7 @@ export default function SearchPage() {
                                                                         lineHeight: '1.6'
                                                                     }}
                                                                 >
-                                                                    <MessageRenderer
-                                                                        content={message.content}
-                                                                        role={message.role}
-                                                                        isTyping={false}
-                                                                    />
+                                                                    <MarkdownRenderer content={message.content} />
                                                                 </div>
                                                             </div>
 

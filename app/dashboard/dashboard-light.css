@@ -1,0 +1,438 @@
+/* ============================================
+   DASHBOARD - LIGHT MODE STYLES
+   All selectors prefixed with .light to only apply in light mode
+   ============================================ */
+
+/* ============================================
+   SIDEBAR STYLING - LIGHT MODE
+   ============================================ */
+
+/* Sidebar background */
+.light aside {
+    background: rgba(255, 255, 255, 0.98) !important;
+    border-right: 1px solid rgba(0, 0, 0, 0.1) !important;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+}
+
+/* NUCLEAR: Sidebar icons MUST be BLACK - except gradient buttons */
+.light aside svg:not([data-keep-white]),
+.light aside button:not([style*="gradient"]) svg,
+.light aside nav svg,
+.light aside a svg,
+.light aside .lucide:not([data-keep-white]),
+.light aside button:not([style*="gradient"]) .lucide,
+.light aside nav .lucide,
+.light aside a .lucide,
+[data-theme="light"] aside svg:not([data-keep-white]),
+[data-theme="light"] aside button:not([style*="gradient"]) svg {
+    color: #000000 !important;
+    stroke: #000000 !important;
+    fill: none !important;
+}
+
+/* Ensure gradient button icons stay WHITE */
+.light aside button[style*="gradient"] svg,
+.light aside button[style*="gradient"] .lucide {
+    color: white !important;
+    stroke: white !important;
+}
+
+/* Sidebar text must be DARK */
+.light aside span,
+.light aside p {
+    color: var(--foreground) !important;
+}
+
+.light aside .glass {
+    background: rgba(255, 255, 255, 0.9) !important;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(0, 0, 0, 0.1) !important;
+}
+
+.light aside .glass-strong {
+    background: rgba(255, 255, 255, 0.95) !important;
+    backdrop-filter: blur(30px);
+    -webkit-backdrop-filter: blur(30px);
+    border: 1px solid rgba(0, 0, 0, 0.12) !important;
+}
+
+/* Sidebar button styling - BLACK TRANSPARENT with VISIBLE BORDER */
+.light aside button {
+    background: rgba(0, 0, 0, 0.08) !important;
+    color: var(--foreground) !important;
+    border: 1px solid rgba(0, 0, 0, 0.15) !important;
+}
+
+.light aside button:hover {
+    background: rgba(0, 0, 0, 0.12) !important;
+    border: 1px solid rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Feedback button and Link buttons - STRONG BORDER */
+.light aside a,
+.light aside a button {
+    border: 1px solid rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Active button with gradient - WHITE text */
+.light aside button[style*="gradient"] {
+    background: var(--gradient-hero) !important;
+    color: white !important;
+}
+
+.light aside button[style*="gradient"] svg,
+.light aside button[style*="gradient"] span,
+.light aside button[style*="gradient"] *,
+.light aside button[style*="gradient"] p {
+    color: white !important;
+    stroke: white !important;
+}
+
+/* Sign out button */
+.light aside button.text-red-500,
+.light aside button.text-red-500 svg,
+.light aside button.text-red-500 span {
+    color: #dc2626 !important;
+}
+
+/* User avatar - WHITE text on gradient */
+.light aside .rounded-full.bg-gradient-to-br span {
+    color: white !important;
+    font-weight: bold !important;
+}
+
+/* ============================================
+   AI CARD DESIGN - LIGHT MODE
+   ============================================ */
+
+/* Modern AI Card */
+.light .ai-card-new {
+    background: rgba(255, 255, 255, 0.95) !important;
+    border: 1px solid rgba(0, 0, 0, 0.08) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06) !important;
+}
+
+.light .ai-card-new:hover {
+    border-color: rgba(34, 60, 207, 0.25) !important;
+    box-shadow: 0 12px 28px rgba(34, 60, 207, 0.12) !important;
+}
+
+/* ============================================
+   AI CARD ICON BADGES - LIGHT MODE FIX
+   NUCLEAR APPROACH: Explicitly set gradient backgrounds
+   Each card gets its EXACT gradient from dark mode
+   ============================================ */
+
+/* Force ALL AI card icon badges to have their gradient backgrounds in light mode */
+.light .ai-card-icon-badge,
+[data-theme="light"] .ai-card-icon-badge {
+    /* Override any conflicting rules - ensure gradients show */
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+/* Explicitly set SAME cyan gradient for ALL AI cards */
+
+/* ===== DEFAULT SECTION ===== */
+/* Conversational AI - Cyan gradient */
+.light main>div>div:nth-of-type(1) .ai-card-new:nth-child(1) .ai-card-icon-badge {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%) !important;
+}
+
+/* ===== FEATURED SECTION ===== */
+/* Study & Learning - Cyan gradient */
+.light main>div>div:nth-of-type(2) .ai-card-new:nth-child(1) .ai-card-icon-badge {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%) !important;
+}
+
+/* Research & Discovery AI - Cyan gradient */
+.light main>div>div:nth-of-type(2) .ai-card-new:nth-child(2) .ai-card-icon-badge {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%) !important;
+}
+
+/* Future Jobs & Career - Cyan gradient */
+.light main>div>div:nth-of-type(2) .ai-card-new:nth-child(3) .ai-card-icon-badge {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%) !important;
+}
+
+/* Decision Maker - Cyan gradient */
+.light main>div>div:nth-of-type(2) .ai-card-new:nth-child(4) .ai-card-icon-badge {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%) !important;
+}
+
+/* ===== COMING SOON SECTION ===== */
+/* Website Builder - Cyan gradient */
+.light main>div>div:nth-of-type(3) .ai-card-new:nth-child(1) .ai-card-icon-badge {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%) !important;
+}
+
+/* Icons must be WHITE on gradient background */
+.light .ai-card-icon-badge svg,
+.light .ai-card-icon-badge .lucide,
+[data-theme="light"] .ai-card-icon-badge svg {
+    color: white !important;
+    stroke: white !important;
+    fill: none !important;
+}
+
+/* ============================================
+   ABOUT SECTION ICON BADGES - LIGHT MODE
+   Explicitly set gradient backgrounds
+   Note: Layout (margins, padding) handled via inline styles in page.tsx
+   ============================================ */
+
+/* About section cards - ALL use Cyan gradient */
+.light main .about-cards-grid>div:nth-child(1) .ai-card-icon-badge,
+.light .about-cards-grid>div:nth-child(1) .ai-card-icon-badge {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%) !important;
+}
+
+/* About section cards - ALL use Cyan gradient */
+.light main .about-cards-grid>div:nth-child(2) .ai-card-icon-badge,
+.light .about-cards-grid>div:nth-child(2) .ai-card-icon-badge {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%) !important;
+}
+
+/* About section cards - ALL use Cyan gradient */
+.light main .about-cards-grid>div:nth-child(3) .ai-card-icon-badge,
+.light .about-cards-grid>div:nth-child(3) .ai-card-icon-badge {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%) !important;
+}
+
+/* About section cards - ALL use Cyan gradient */
+.light main .about-cards-grid>div:nth-child(4) .ai-card-icon-badge,
+.light .about-cards-grid>div:nth-child(4) .ai-card-icon-badge {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%) !important;
+}
+
+/* Action button styles - BLACK TRANSPARENT */
+.light .ai-card-action-btn {
+    background: rgba(0, 0, 0, 0.08) !important;
+    color: var(--foreground) !important;
+    border: 1px solid rgba(0, 0, 0, 0.1) !important;
+}
+
+.light .ai-card-action-btn:hover {
+    background: rgba(0, 0, 0, 0.12) !important;
+    border-color: rgba(0, 0, 0, 0.15) !important;
+}
+
+/* ============================================
+   GLASS EFFECTS - LIGHT MODE
+   ============================================ */
+
+.light .glass {
+    background: rgba(255, 255, 255, 0.9) !important;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(0, 0, 0, 0.1) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.light .glass-strong {
+    background: rgba(255, 255, 255, 0.95) !important;
+    backdrop-filter: blur(30px);
+    -webkit-backdrop-filter: blur(30px);
+    border: 1px solid rgba(0, 0, 0, 0.12) !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+/* ============================================
+   MOBILE TOGGLE BUTTON - LIGHT MODE
+   ============================================ */
+
+.light .fixed.top-5.left-5 {
+    background: rgba(255, 255, 255, 0.95) !important;
+    border: 1px solid rgba(0, 0, 0, 0.1) !important;
+}
+
+.light .fixed.top-5.left-5 svg {
+    color: var(--foreground) !important;
+}
+
+/* Mobile sidebar toggle button - BLACK in light mode */
+.light button.fixed.top-5.left-5,
+.light .fixed.top-5.left-5 button {
+    background: rgba(255, 255, 255, 0.95) !important;
+    border: 1px solid rgba(0, 0, 0, 0.15) !important;
+}
+
+.light button.fixed.top-5.left-5 svg,
+.light .fixed.top-5.left-5 button svg {
+    color: #0F172A !important;
+    stroke: #0F172A !important;
+}
+
+/* ============================================
+   BADGE STYLING - LIGHT MODE
+   ============================================ */
+
+.light .badge,
+.light [class*="badge"] {
+    background: rgba(0, 0, 0, 0.06) !important;
+    color: var(--foreground) !important;
+    border: 1px solid rgba(0, 0, 0, 0.08) !important;
+}
+
+/* ============================================
+   CARD COMPONENTS - LIGHT MODE
+   ============================================ */
+
+.light .card,
+.light [class*="Card"] {
+    background: rgba(255, 255, 255, 0.95) !important;
+    border: 1px solid rgba(0, 0, 0, 0.08) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05) !important;
+}
+
+/* ============================================
+   INPUT FIELDS - LIGHT MODE
+   ============================================ */
+
+.light input,
+.light textarea,
+.light select {
+    background: rgba(255, 255, 255, 0.9) !important;
+    border: 1px solid rgba(0, 0, 0, 0.15) !important;
+    color: var(--foreground) !important;
+}
+
+.light input::placeholder,
+.light textarea::placeholder {
+    color: var(--foreground-tertiary) !important;
+}
+
+/* ============================================
+   SCROLLBAR - LIGHT MODE
+   ============================================ */
+
+.light ::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.25) !important;
+}
+
+.light ::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.05) !important;
+}
+
+/* ============================================
+   BUTTON TEXT COLORS - LIGHT MODE
+   ============================================ */
+
+.light button span,
+.light button svg,
+.light button {
+    color: var(--foreground) !important;
+}
+
+/* Gradient buttons have WHITE text */
+.light button[style*="gradient"],
+.light a[style*="gradient"],
+.light button[style*="linear-gradient"],
+.light a[style*="linear-gradient"] {
+    color: white !important;
+}
+
+.light button[style*="gradient"] span,
+.light button[style*="gradient"] svg,
+.light a[style*="gradient"] span,
+.light a[style*="gradient"] svg {
+    color: white !important;
+}
+
+/* ============================================
+   ABOUT SECTION ICONS - LIGHT MODE
+   Keep gradient background same as dark mode
+   ============================================ */
+
+/* About section card icons - preserve gradient backgrounds */
+.light main .rounded-2xl[style*="background"],
+.light main .rounded-xl[style*="background"],
+.light main .rounded-2xl[style*="gradient"],
+.light main .rounded-xl[style*="gradient"] {
+    /* Don't change background - let inline styles apply */
+    opacity: 1 !important;
+}
+
+/* About section icons must be WHITE */
+.light main .rounded-2xl svg,
+.light main .rounded-xl svg,
+.light main .glass .rounded-2xl svg,
+.light main .glass .rounded-xl svg {
+    color: white !important;
+    stroke: white !important;
+    fill: none !important;
+}
+
+/* ============================================
+   MOBILE SIDEBAR OVERLAY - LIGHT MODE
+   ============================================ */
+
+.light .fixed.inset-0.bg-black\/50 {
+    background: rgba(0, 0, 0, 0.3) !important;
+}
+
+/* ============================================
+   SKELETON LOADING UI - LIGHT MODE
+   ============================================ */
+
+/* Skeleton animation keyframes for light mode */
+@keyframes skeleton-loading-light {
+    0% {
+        background-position: -200px 0;
+    }
+
+    100% {
+        background-position: calc(200px + 100%) 0;
+    }
+}
+
+/* Base skeleton style for light mode */
+.light .skeleton,
+[data-theme="light"] .skeleton {
+    background: linear-gradient(90deg,
+            rgba(0, 0, 0, 0.06) 0px,
+            rgba(0, 0, 0, 0.12) 40px,
+            rgba(0, 0, 0, 0.06) 80px) !important;
+    background-size: 200px 100%;
+    animation: skeleton-loading-light 1.5s ease-in-out infinite;
+    border-radius: 8px;
+}
+
+/* Skeleton text - light mode */
+.light .skeleton-text,
+[data-theme="light"] .skeleton-text {
+    height: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+/* Skeleton title - light mode */
+.light .skeleton-title,
+[data-theme="light"] .skeleton-title {
+    height: 1.5rem;
+    width: 60%;
+    margin-bottom: 1rem;
+}
+
+/* Skeleton card - light mode */
+.light .skeleton-card,
+[data-theme="light"] .skeleton-card {
+    height: 200px;
+    border-radius: 16px;
+}
+
+/* Skeleton avatar - light mode */
+.light .skeleton-avatar,
+[data-theme="light"] .skeleton-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+}
+
+/* Skeleton button - light mode */
+.light .skeleton-button,
+[data-theme="light"] .skeleton-button {
+    height: 44px;
+    border-radius: 8px;
+}

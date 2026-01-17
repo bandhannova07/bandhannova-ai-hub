@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowRight, Sparkles, Info } from 'lucide-react';
+import { ThemeToggle } from "@/components/theme-toggle";
 import ParticleBackground from '@/components/ParticleBackground';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -34,6 +35,11 @@ export default function Home() {
         className="fixed inset-0 opacity-30"
         style={{ background: 'var(--gradient-mesh)' }}
       />
+
+      {/* Fixed Theme Toggle - Top Right Corner */}
+      <div className="fixed top-3 right-3 md:top-4 md:right-4 z-50">
+        <ThemeToggle />
+      </div>
 
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8" style={{ zIndex: 10 }}>
@@ -237,10 +243,34 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto">
             {[
               {
+                title: 'Conversational AI',
+                description: 'Context-aware AI that understands the platform and remembers your preferences',
+                icon: '💬',
+                gradient: 'linear-gradient(135deg, #C683D7 0%, #00D9FF 100%)',
+              },
+              {
+                title: 'Study & Learning AI',
+                description: 'Concept clarity, daily study plans, notes, motivation, and exam preparation',
+                icon: '📚',
+                gradient: 'linear-gradient(135deg, #00D9FF 0%, #FF6B9D 100%)',
+              },
+              {
+                title: 'Business & Career Builder AI',
+                description: 'Startup guidance, business planning, career clarity, and skill-based income ideas',
+                icon: '💼',
+                gradient: 'linear-gradient(135deg, #FF6B9D 0%, #223CCF 100%)',
+              },
+              {
                 title: 'Creator & Social Growth AI',
                 description: 'YouTube, Instagram, branding, content strategy, and audience psychology guidance',
                 icon: '🎬',
                 gradient: 'linear-gradient(135deg, #FF6B9D 0%, #C683D7 100%)',
+              },
+              {
+                title: 'Deep Research AI',
+                description: 'Real-time deep research with comprehensive insights and fact-checked information',
+                icon: '🔍',
+                gradient: 'linear-gradient(135deg, #C683D7 0%, #223CCF 100%)',
               },
               {
                 title: 'Creative & Productivity AI',
@@ -255,46 +285,10 @@ export default function Home() {
                 gradient: 'linear-gradient(135deg, #223CCF 0%, #00D9FF 100%)',
               },
               {
-                title: 'Study Planner & Learning AI',
-                description: 'Concept clarity, daily study plans, notes, motivation, and exam preparation',
-                icon: '📚',
-                gradient: 'linear-gradient(135deg, #00D9FF 0%, #FF6B9D 100%)',
-              },
-              {
-                title: 'Business & Career Builder AI',
-                description: 'Startup guidance, business planning, career clarity, and skill-based income ideas',
-                icon: '💼',
-                gradient: 'linear-gradient(135deg, #FF6B9D 0%, #223CCF 100%)',
-              },
-              {
-                title: 'Conversational Platform AI',
-                description: 'Context-aware AI that understands the platform and remembers your preferences',
-                icon: '💬',
-                gradient: 'linear-gradient(135deg, #C683D7 0%, #00D9FF 100%)',
-              },
-              {
                 title: 'Full Website Builder AI',
                 description: 'Create complete, professional websites from a single prompt—no coding needed',
                 icon: '🌐',
                 gradient: 'linear-gradient(135deg, #223CCF 0%, #FF6B9D 100%)',
-              },
-              {
-                title: 'Image Maker AI',
-                description: 'Create stunning images, graphics, and visual content from text descriptions. Perfect for social media, presentations, and creative projects',
-                icon: '🎨',
-                gradient: 'linear-gradient(135deg, #FF6B9D 0%, #00D9FF 100%)',
-              },
-              {
-                title: 'Kitchen & Recipe AI',
-                description: 'Get delicious recipes, cooking tips, meal planning, and kitchen hacks. Perfect for homemakers and food enthusiasts',
-                icon: '👩‍🍳',
-                gradient: 'linear-gradient(135deg, #00D9FF 0%, #C683D7 100%)',
-              },
-              {
-                title: 'Search Engine AI',
-                description: 'Get instant answers from the web with AI-powered search. Find information, research topics, and discover content faster than ever',
-                icon: '🔍',
-                gradient: 'linear-gradient(135deg, #C683D7 0%, #223CCF 100%)',
               },
             ].map((item, index) => (
               <motion.div
@@ -448,7 +442,7 @@ export default function Home() {
                 onClick={goToSignup}
                 size="lg"
                 className="w-auto group relative px-10 py-5 h-12 rounded-2xl font-bold text-xl text-white overflow-hidden transition-all duration-300 hover:scale-105"
-                style={{ background: 'var(--gradient-hero)' }}
+                style={{ background: 'var(--gradient-hero)', padding: '18px' }}
               >
                 <span className="relative z-10 flex items-center gap-2 justify-center">
                   Start Your Journey (Free)
@@ -465,6 +459,7 @@ export default function Home() {
       <footer className="relative border-t py-12 px-4 sm:px-6 lg:px-8" style={{ zIndex: 10, borderColor: 'var(--background-tertiary)' }}>
         <div className="container mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+
             {/* Logo & Tagline */}
             <div className="col-span-1 md:col-span-2">
               <div className="flex items-center gap-3 mb-4">
@@ -487,16 +482,21 @@ export default function Home() {
 
             {/* Quick Links */}
             <div style={{ marginBottom: '30px' }}>
-              <h3 className="font-bold mb-6" style={{ color: 'var(--foreground)', marginTop: '5px' }}>Quick Links</h3>
+              <h3 className="font-bold mb-6" style={{ color: 'var(--foreground)', marginTop: '24px' }}>Quick Links</h3>
               <ul className="space-y-2">
                 <li>
-                  <Link href="/about" className="small hover:underline" style={{ color: 'var(--foreground-secondary)' }}>
-                    About
+                  <Link href="/about" className="small hover:underline" style={{ color: 'var(--foreground-secondary)', marginTop: '20px' }}>
+                    About Us
                   </Link>
                 </li>
                 <li>
-                  <Link href="/terms" className="small hover:underline" style={{ color: 'var(--foreground-secondary)' }}>
-                    Terms & Conditions
+                  <Link href="/contact" className="small hover:underline" style={{ color: 'var(--foreground-secondary)' }}>
+                    Contact Us
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/faq" className="small hover:underline" style={{ color: 'var(--foreground-secondary)' }}>
+                    FAQs
                   </Link>
                 </li>
                 <li>
@@ -505,8 +505,8 @@ export default function Home() {
                   </Link>
                 </li>
                 <li>
-                  <Link href="/faq" className="small hover:underline" style={{ color: 'var(--foreground-secondary)' }}>
-                    FAQs
+                  <Link href="/terms" className="small hover:underline" style={{ color: 'var(--foreground-secondary)' }}>
+                    Terms & Conditions
                   </Link>
                 </li>
               </ul>
@@ -515,8 +515,8 @@ export default function Home() {
 
           {/* Bottom Bar */}
           <div className="pt-8 border-t flex flex-col md:flex-row justify-between items-center gap-4" style={{ borderColor: 'var(--background-tertiary)' }}>
-            <p className="small" style={{ color: 'var(--foreground-tertiary)', marginTop: '30px', marginBottom: '30px' }}>
-              © 2026 BandhanNova Platform. All rights reserved.
+            <p className="small" style={{ color: 'var(--foreground-tertiary)', marginTop: '24px', marginBottom: '30px' }}>
+              © 2026 BandhanNova Platforms Pvt Ltd. All rights reserved.
             </p>
           </div>
         </div>

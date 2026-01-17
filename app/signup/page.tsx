@@ -122,8 +122,22 @@ export default function SignupPage() {
             }
 
             if (user) {
-                // Redirect to dashboard
-                router.push('/dashboard');
+                // Check if app is installed
+                const isInstalled = window.matchMedia('(display-mode: standalone)').matches ||
+                    window.matchMedia('(display-mode: fullscreen)').matches ||
+                    (window.navigator as any).standalone === true;
+
+                // Check if user has already seen/skipped install prompt
+                const installPromptShown = localStorage.getItem('installPromptShown');
+
+                // Redirect based on install status
+                if (isInstalled || installPromptShown === 'accepted' || installPromptShown === 'skipped') {
+                    // App is installed or user already decided, go to dashboard
+                    router.push('/dashboard');
+                } else {
+                    // Browser user, show install prompt
+                    router.push('/install');
+                }
             }
         } catch (err: any) {
             setError(err.message || 'An error occurred during signup');
@@ -199,7 +213,7 @@ export default function SignupPage() {
                                         Full Name
                                     </Label>
                                     <div className="relative">
-                                        <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5" style={{ color: 'var(--foreground-tertiary)' }} />
+                                        <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 auth-icon" style={{ color: 'var(--foreground-secondary)' }} />
                                         <Input
                                             id="fullName"
                                             type="text"
@@ -223,7 +237,7 @@ export default function SignupPage() {
                                         Email Address
                                     </Label>
                                     <div className="relative">
-                                        <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5" style={{ color: 'var(--foreground-tertiary)' }} />
+                                        <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 auth-icon" style={{ color: 'var(--foreground-secondary)' }} />
                                         <Input
                                             id="email"
                                             type="email"
@@ -247,7 +261,7 @@ export default function SignupPage() {
                                         Password
                                     </Label>
                                     <div className="relative">
-                                        <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5" style={{ color: 'var(--foreground-tertiary)' }} />
+                                        <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 auth-icon" style={{ color: 'var(--foreground-secondary)' }} />
                                         <Input
                                             id="password"
                                             type={showPassword ? 'text' : 'password'}
@@ -269,9 +283,9 @@ export default function SignupPage() {
                                             disabled={loading}
                                         >
                                             {showPassword ? (
-                                                <EyeOff className="w-5 h-5" style={{ color: 'var(--foreground-tertiary)' }} />
+                                                <EyeOff className="w-5 h-5 auth-icon" style={{ color: 'var(--foreground-secondary)' }} />
                                             ) : (
-                                                <Eye className="w-5 h-5" style={{ color: 'var(--foreground-tertiary)' }} />
+                                                <Eye className="w-5 h-5 auth-icon" style={{ color: 'var(--foreground-secondary)' }} />
                                             )}
                                         </button>
                                     </div>
@@ -339,7 +353,7 @@ export default function SignupPage() {
                                         Confirm Password
                                     </Label>
                                     <div className="relative">
-                                        <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5" style={{ color: 'var(--foreground-tertiary)' }} />
+                                        <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 auth-icon" style={{ color: 'var(--foreground-secondary)' }} />
                                         <Input
                                             id="confirmPassword"
                                             type={showConfirmPassword ? 'text' : 'password'}
@@ -361,9 +375,9 @@ export default function SignupPage() {
                                             disabled={loading}
                                         >
                                             {showConfirmPassword ? (
-                                                <EyeOff className="w-5 h-5" style={{ color: 'var(--foreground-tertiary)' }} />
+                                                <EyeOff className="w-5 h-5 auth-icon" style={{ color: 'var(--foreground-secondary)' }} />
                                             ) : (
-                                                <Eye className="w-5 h-5" style={{ color: 'var(--foreground-tertiary)' }} />
+                                                <Eye className="w-5 h-5 auth-icon" style={{ color: 'var(--foreground-secondary)' }} />
                                             )}
                                         </button>
                                     </div>
@@ -448,10 +462,8 @@ export default function SignupPage() {
                         <Link href="/">
                             <Button
                                 variant="outline"
-                                className="w-50 h-12 rounded-xl font-semibold text-lg transition-all duration-300 hover:scale-105 px-8"
+                                className="w-50 h-12 rounded-xl font-semibold text-lg transition-all duration-300 hover:scale-105 px-8 auth-back-button"
                                 style={{
-                                    background: 'rgba(255, 255, 255, 0.05)',
-                                    border: '1px solid rgba(255, 255, 255, 0.1)',
                                     color: 'var(--foreground)'
                                 }}
                             >

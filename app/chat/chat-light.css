@@ -1,0 +1,325 @@
+/* ============================================
+   CHAT - LIGHT MODE STYLES
+   All selectors prefixed with .light to only apply in light mode
+   ============================================ */
+
+/* ============================================
+   SIDEBAR STYLING - LIGHT MODE
+   ============================================ */
+
+/* Sidebar background */
+.light aside {
+    background: rgba(255, 255, 255, 0.98) !important;
+    border-right: 1px solid rgba(0, 0, 0, 0.1) !important;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+}
+
+/* Sidebar icons MUST be BLACK - except gradient buttons */
+.light aside svg:not([data-keep-white]),
+.light aside button:not([style*="gradient"]) svg,
+.light aside nav svg,
+.light aside a svg,
+.light aside .lucide:not([data-keep-white]),
+.light aside button:not([style*="gradient"]) .lucide,
+.light aside nav .lucide,
+.light aside a .lucide {
+    color: #000000 !important;
+    stroke: #000000 !important;
+    fill: none !important;
+}
+
+/* Ensure gradient button icons stay WHITE */
+.light aside button[style*="gradient"] svg,
+.light aside button[style*="gradient"] .lucide {
+    color: white !important;
+    stroke: white !important;
+}
+
+/* Sidebar text must be DARK */
+.light aside span,
+.light aside p {
+    color: var(--foreground) !important;
+}
+
+.light aside .glass {
+    background: rgba(255, 255, 255, 0.9) !important;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(0, 0, 0, 0.1) !important;
+}
+
+.light aside .glass-strong {
+    background: rgba(255, 255, 255, 0.95) !important;
+    backdrop-filter: blur(30px);
+    -webkit-backdrop-filter: blur(30px);
+    border: 1px solid rgba(0, 0, 0, 0.12) !important;
+}
+
+/* Sidebar button styling - BLACK TRANSPARENT with VISIBLE BORDER */
+.light aside button {
+    background: rgba(0, 0, 0, 0.08) !important;
+    color: var(--foreground) !important;
+    border: 1px solid rgba(0, 0, 0, 0.15) !important;
+}
+
+.light aside button:hover {
+    background: rgba(0, 0, 0, 0.12) !important;
+    border: 1px solid rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Active button with gradient - WHITE text */
+.light aside button[style*="gradient"] {
+    background: var(--gradient-hero) !important;
+    color: white !important;
+}
+
+.light aside button[style*="gradient"] svg,
+.light aside button[style*="gradient"] span,
+.light aside button[style*="gradient"] * {
+    color: white !important;
+    stroke: white !important;
+}
+
+/* ============================================
+   MESSAGE BUBBLES - LIGHT MODE
+   ============================================ */
+
+/* User message bubble */
+.light .user-message-book {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(139, 92, 246, 0.15) 100%) !important;
+    border-right: 4px solid rgba(99, 102, 241, 0.6) !important;
+}
+
+/* AI message bubble */
+.light .ai-message-book {
+    background: rgba(0, 0, 0, 0.03) !important;
+    border-left: 4px solid rgba(139, 92, 246, 0.4) !important;
+}
+
+/* Message content */
+.light .message-content-book {
+    color: var(--foreground) !important;
+}
+
+/* ============================================
+   GLASS EFFECTS - LIGHT MODE
+   ============================================ */
+
+.light .glass {
+    background: rgba(255, 255, 255, 0.9) !important;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(0, 0, 0, 0.1) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.light .glass-strong {
+    background: rgba(255, 255, 255, 0.95) !important;
+    backdrop-filter: blur(30px);
+    -webkit-backdrop-filter: blur(30px);
+    border: 1px solid rgba(0, 0, 0, 0.12) !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+/* ============================================
+   INPUT BOX - LIGHT MODE
+   ============================================ */
+
+/* Floating input container */
+.light .chat-input-container {
+    background: linear-gradient(to top, var(--background) 0%, var(--background) 70%, transparent 100%) !important;
+}
+
+/* Input box glass effect */
+.light .chat-input-box {
+    background: rgba(255, 255, 255, 0.95) !important;
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(0, 0, 0, 0.15) !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.5) !important;
+}
+
+/* Textarea styling */
+.light textarea {
+    background: rgba(255, 255, 255, 0.9) !important;
+    border: 1px solid rgba(0, 0, 0, 0.15) !important;
+    color: var(--foreground) !important;
+}
+
+.light textarea::placeholder {
+    color: var(--foreground-tertiary) !important;
+}
+
+.light textarea:focus {
+    border-color: rgba(34, 60, 207, 0.5) !important;
+}
+
+/* ============================================
+   BUTTONS - LIGHT MODE
+   ============================================ */
+
+/* Plus menu button */
+.light .plus-menu-btn {
+    background: rgba(139, 92, 246, 0.9) !important;
+    box-shadow: 0 4px 16px rgba(139, 92, 246, 0.3) !important;
+}
+
+.light .plus-menu-btn:hover {
+    background: rgba(139, 92, 246, 1) !important;
+}
+
+/* Send button */
+.light .send-btn {
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15), 0 0 20px rgba(139, 92, 246, 0.3) !important;
+}
+
+/* Copy button */
+.light button.copy-btn {
+    background: transparent !important;
+    border: 1px solid rgba(0, 0, 0, 0.15) !important;
+    color: var(--foreground-secondary) !important;
+}
+
+.light button.copy-btn:hover {
+    background: rgba(0, 0, 0, 0.05) !important;
+}
+
+/* ============================================
+   DROPDOWN MENU - LIGHT MODE
+   ============================================ */
+
+.light .plus-menu-dropdown {
+    background: rgba(255, 255, 255, 0.98) !important;
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(0, 0, 0, 0.15) !important;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15) !important;
+}
+
+.light .plus-menu-dropdown button {
+    background: transparent !important;
+    color: var(--foreground) !important;
+}
+
+.light .plus-menu-dropdown button:hover {
+    background: rgba(0, 0, 0, 0.05) !important;
+}
+
+.light .plus-menu-dropdown button[style*="rgba(139, 92, 246, 0.2)"] {
+    background: rgba(139, 92, 246, 0.15) !important;
+}
+
+/* Dropdown icons */
+.light .plus-menu-dropdown svg {
+    color: inherit !important;
+}
+
+/* ============================================
+   CONVERSATION LIST - LIGHT MODE
+   ============================================ */
+
+.light .conversation-item {
+    background: transparent !important;
+    border: 1px solid transparent !important;
+}
+
+.light .conversation-item:hover {
+    background: rgba(0, 0, 0, 0.05) !important;
+}
+
+.light .conversation-item.active {
+    background: rgba(0, 0, 0, 0.08) !important;
+    border: 1px solid rgba(0, 0, 0, 0.1) !important;
+}
+
+/* ============================================
+   MOBILE TOGGLE BUTTON - LIGHT MODE
+   ============================================ */
+
+.light .mobile-toggle-btn,
+.light button.fixed.top-5.left-5 {
+    background: rgba(255, 255, 255, 0.95) !important;
+    border: 1px solid rgba(0, 0, 0, 0.15) !important;
+}
+
+.light .mobile-toggle-btn svg,
+.light button.fixed.top-5.left-5 svg {
+    color: #0F172A !important;
+    stroke: #0F172A !important;
+}
+
+/* ============================================
+   SCROLLBAR - LIGHT MODE
+   ============================================ */
+
+.light ::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.25) !important;
+}
+
+.light ::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.05) !important;
+}
+
+/* Custom smaller scrollbar for chat input */
+.light .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(34, 60, 207, 0.4) !important;
+}
+
+.light .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(34, 60, 207, 0.6) !important;
+}
+
+/* ============================================
+   MOBILE SIDEBAR OVERLAY - LIGHT MODE
+   ============================================ */
+
+.light .sidebar-backdrop,
+.light .fixed.inset-0.bg-black\/50 {
+    background: rgba(0, 0, 0, 0.3) !important;
+}
+
+/* ============================================
+   HEADER - LIGHT MODE
+   ============================================ */
+
+.light header {
+    background: transparent !important;
+}
+
+/* Agent icon badge in header */
+.light header .rounded-xl[style*="background"] svg,
+.light header .rounded-xl[style*="gradient"] svg {
+    color: white !important;
+}
+
+/* ============================================
+   GRADIENT BACKGROUNDS - LIGHT MODE
+   Keep gradient backgrounds visible
+   ============================================ */
+
+.light [style*="gradient"] {
+    opacity: 1 !important;
+}
+
+/* Icons on gradient backgrounds must be WHITE */
+.light [style*="gradient"] svg {
+    color: white !important;
+    stroke: white !important;
+}
+
+/* ============================================
+   TEXT COLORS - LIGHT MODE
+   ============================================ */
+
+.light button span,
+.light button svg {
+    color: var(--foreground) !important;
+}
+
+/* Gradient buttons have WHITE text */
+.light button[style*="gradient"],
+.light button[style*="gradient"] span,
+.light button[style*="gradient"] svg {
+    color: white !important;
+}

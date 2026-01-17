@@ -1,5 +1,9 @@
 'use client';
 
+// Import chat-specific CSS
+import '../chat-dark.css';
+import '../chat-light.css';
+
 import { motion } from 'framer-motion';
 import { useParams, useRouter } from 'next/navigation';
 import { useState, useEffect, useRef } from 'react';
@@ -30,7 +34,8 @@ import {
 } from 'lucide-react';
 import { getCurrentUser } from '@/lib/auth-simple';
 import { getAllDBs } from '@/lib/database/multi-db';
-import { MessageRenderer } from '@/components/MessageRenderer';
+import { MarkdownRenderer } from './components/MarkdownRenderer';
+import { GeminiLoader } from './components/GeminiLoader';
 import {
     getAllConversations,
     getConversation,
@@ -201,7 +206,7 @@ export default function ChatPage() {
     const [conversations, setConversations] = useState<Conversation[]>([
         {
             id: '1',
-            title: 'Previous conversation example',
+            title: 'Previous sample conversation',
             lastMessage: 'This is a sample conversation...',
             timestamp: new Date(Date.now() - 3600000)
         }
@@ -425,13 +430,25 @@ export default function ChatPage() {
             // Add to localStorage
             addMessage(convId, userMessage);
 
-            // Update UI
+            // Update UI with user message
             setMessages(prev => [...prev, {
                 id: userMessage.id,
                 role: 'user',
                 content: userMessage.content,
                 timestamp: new Date(userMessage.timestamp)
             }]);
+
+            // 🚀 INSTANT FEEDBACK: Show AI typing immediately!
+            const assistantId = `msg_${Date.now() + 1}_${Math.random().toString(36).substr(2, 9)}`;
+
+            // Add empty AI message right away for instant response feel
+            setMessages(prev => [...prev, {
+                id: assistantId,
+                role: 'assistant',
+                content: '',
+                timestamp: new Date()
+            }]);
+            setIsTyping(true);
 
             // Get user ID (or use anonymous)
             const { data: { session } } = await getAllDBs()[0].auth.getSession();
@@ -462,17 +479,8 @@ export default function ChatPage() {
                 throw new Error('Failed to get AI response');
             }
 
-            // Create assistant message for streaming
-            const assistantId = `msg_${Date.now() + 1}_${Math.random().toString(36).substr(2, 9)}`;
+            // Stream response
             let assistantContent = '';
-
-            setMessages(prev => [...prev, {
-                id: assistantId,
-                role: 'assistant',
-                content: '',
-                timestamp: new Date()
-            }]);
-            setIsTyping(true);
 
             // Read streaming response with proper UTF-8 and SSE handling
             const reader = response.body?.getReader();
@@ -520,7 +528,7 @@ export default function ChatPage() {
                                 );
                             }
                         } catch (e) {
-                            // Skip invalid JSON - log for debugging
+                            // Skip invalid JSON
                             console.warn('Failed to parse SSE line:', line, e);
                         }
                     }
@@ -568,9 +576,11 @@ export default function ChatPage() {
             addMessage(convId, assistantMessage);
 
             // Store in Qdrant for memory (async, don't wait)
-            storeMemory(assistantMessage, convId, userId).catch(err =>
-                console.error('Failed to store memory:', err)
-            );
+            // TEMPORARILY DISABLED: Transformers.js has SSR issues in Edge runtime
+            // TODO: Re-enable when moving to Node.js runtime or using alternative embeddings
+            // storeMemory(assistantMessage, convId, userId).catch(err =>
+            //     console.error('Failed to store memory:', err)
+            // );
 
             // Reload conversations for sidebar
             loadConversationsFromStorage();
@@ -976,12 +986,11 @@ export default function ChatPage() {
                                                         fontWeight: '400'
                                                     }}
                                                 >
-                                                    <MessageRenderer
-                                                        content={message.content}
-                                                        role={message.role}
-                                                        isTyping={message.role === 'assistant' && isTyping && index === messages.length - 1}
-                                                        agentType={agentType}
-                                                    />
+                                                    {message.role === 'assistant' && index === messages.length - 1 && (!message.content || isTyping) ? (
+                                                        <GeminiLoader />
+                                                    ) : (
+                                                        <MarkdownRenderer content={message.content} />
+                                                    )}
                                                 </div>
 
                                                 {/* Copy Button for AI Messages */}

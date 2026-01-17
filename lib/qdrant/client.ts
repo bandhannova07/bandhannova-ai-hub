@@ -23,7 +23,7 @@ export function getQdrantClient(): QdrantClient {
 // Collection configuration
 export const QDRANT_CONFIG = {
     collectionName: 'bandhannova_memories',
-    vectorSize: 1536, // OpenAI embedding size
+    vectorSize: 384, // Transformers.js (all-MiniLM-L6-v2) embedding size
     distance: 'Cosine' as const,
 };
 

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { useTheme } from 'next-themes';
 
 interface Particle {
     x: number;
@@ -17,10 +18,16 @@ export default function ParticleBackground() {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [particles, setParticles] = useState<Particle[]>([]);
     const animationRef = useRef<number | null>(null);
+    const { theme } = useTheme();
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
 
     useEffect(() => {
         const canvas = canvasRef.current;
-        if (!canvas) return;
+        if (!canvas || !mounted) return;
 
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
@@ -57,6 +64,15 @@ export default function ParticleBackground() {
         const animate = () => {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+            // Theme-aware colors
+            const isLight = theme === 'light';
+            const particleColor = isLight
+                ? '34, 60, 207'  // Blue for light mode
+                : '198, 131, 215'; // Purple for dark mode
+            const lineColor = isLight
+                ? '198, 131, 215' // Purple for light mode
+                : '34, 60, 207';  // Blue for dark mode
+
             newParticles.forEach((particle, i) => {
                 // Update position with base drift
                 particle.x += particle.vx;
@@ -66,10 +82,10 @@ export default function ParticleBackground() {
                 if (particle.x < 0 || particle.x > canvas.width) particle.vx *= -1;
                 if (particle.y < 0 || particle.y > canvas.height) particle.vy *= -1;
 
-                // Draw particle
+                // Draw particle with theme-aware color
                 ctx.beginPath();
                 ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
-                ctx.fillStyle = `rgba(198, 131, 215, ${particle.opacity})`;
+                ctx.fillStyle = `rgba(${particleColor}, ${particle.opacity})`;
                 ctx.fill();
 
                 // Draw connections to nearby particles
@@ -83,7 +99,7 @@ export default function ParticleBackground() {
                         ctx.moveTo(particle.x, particle.y);
                         ctx.lineTo(otherParticle.x, otherParticle.y);
                         const opacity = (1 - distance / 100) * 0.2;
-                        ctx.strokeStyle = `rgba(34, 60, 207, ${opacity})`;
+                        ctx.strokeStyle = `rgba(${lineColor}, ${opacity})`;
                         ctx.lineWidth = 0.5;
                         ctx.stroke();
                     }
@@ -101,7 +117,9 @@ export default function ParticleBackground() {
                 cancelAnimationFrame(animationRef.current);
             }
         };
-    }, []);
+    }, [theme, mounted]);
+
+    if (!mounted) return null;
 
     return (
         <canvas

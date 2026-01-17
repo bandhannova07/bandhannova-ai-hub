@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Outfit, Space_Grotesk } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
-import { ThemeProvider } from "@/contexts/ThemeContext";
+import { ThemeProvider } from "@/components/theme-provider";
 import "./globals.css";
 
 const inter = Inter({
@@ -56,7 +56,11 @@ export default function RootLayout({
       <body
         className={`${inter.variable} ${outfit.variable} ${spaceGrotesk.variable} antialiased`}
       >
-        <ThemeProvider>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem={true}
+        >
           {children}
           <Analytics />
         </ThemeProvider>

@@ -6,11 +6,17 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import Script from 'next/script';
-import { SkeletonDashboard } from '@/components/Skeleton';
+import { SkeletonDashboard } from './components/Skeleton';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
+import { ThemeToggle } from '@/components/theme-toggle';
+import { useTheme } from 'next-themes';
+
+// Import dashboard-specific CSS
+import './dashboard-dark.css';
+import './dashboard-light.css';
 
 import {
     Sparkles,
@@ -122,7 +128,7 @@ const AI_AGENTS = [
         id: 'image-maker',
         name: 'Image Maker AI',
         icon: ImageIcon,
-        gradient: '#FF6B9D',
+        gradient: 'linear-gradient(135deg, #FF6B9D 0%, #FF8FB3 100%)',
         description: 'Create stunning images, graphics, and visual content from text',
         features: ['Image Generation', 'Graphics Design', 'Visual Content'],
         buttonText: 'Create Image'
@@ -131,7 +137,7 @@ const AI_AGENTS = [
         id: 'kitchen-recipe',
         name: 'Kitchen & Recipe AI',
         icon: ChefHat,
-        gradient: '#00D9FF',
+        gradient: 'linear-gradient(135deg, #00D9FF 0%, #00F5FF 100%)',
         description: 'Get delicious recipes, cooking tips, and meal planning',
         features: ['Recipes', 'Cooking Tips', 'Meal Planning'],
         buttonText: 'Get Recipe'
@@ -149,6 +155,7 @@ const AI_AGENTS = [
 
 export default function DashboardPage() {
     const router = useRouter();
+    const { resolvedTheme } = useTheme();
     const [user, setUser] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -312,6 +319,9 @@ export default function DashboardPage() {
         router.push(`/chat/${agentId}`);
     };
 
+    // Theme-aware sidebar button background
+    const sidebarBtnBg = resolvedTheme === 'light' ? 'rgba(0, 0, 0, 0.08)' : 'rgba(255, 255, 255, 0.1)';
+
     // Show skeleton while loading
     if (loading) {
         return (
@@ -374,7 +384,7 @@ export default function DashboardPage() {
                                 className="rounded-full bg-gradient-to-br from-purple-500 to-cyan-500 flex items-center justify-center flex-shrink-0"
                                 style={{ width: '48px', height: '48px', minWidth: '48px', minHeight: '48px' }}
                             >
-                                <span className="text-white font-bold text-lg">
+                                <span className="font-bold text-lg">
                                     {user?.email?.[0].toUpperCase() || 'U'}
                                 </span>
                             </div>
@@ -382,7 +392,6 @@ export default function DashboardPage() {
                                 <p
                                     className="body-large font-semibold"
                                     style={{
-                                        color: 'white',
                                         marginBottom: '2px'
                                     }}
                                 >
@@ -453,10 +462,10 @@ export default function DashboardPage() {
                             <Button
                                 onClick={() => handleViewChange('dashboard')}
                                 variant="ghost"
-                                className="flex items-center gap-3 rounded-xl transition-all hover:scale-105 justify-start text-white"
+                                className="flex items-center gap-3 rounded-xl transition-all hover:scale-105 justify-start"
                                 style={{
                                     padding: '14px 16px',
-                                    background: activeView === 'dashboard' ? 'var(--gradient-hero)' : 'rgba(255, 255, 255, 0.1)',
+                                    background: activeView === 'dashboard' ? 'var(--gradient-hero)' : sidebarBtnBg,
                                     width: '100%'
                                 }}
                             >
@@ -467,10 +476,10 @@ export default function DashboardPage() {
                             <Button
                                 onClick={() => handleViewChange('plans')}
                                 variant="ghost"
-                                className="flex items-center gap-3 rounded-xl transition-all hover:scale-105 justify-start text-white"
+                                className="flex items-center gap-3 rounded-xl transition-all hover:scale-105 justify-start"
                                 style={{
                                     padding: '14px 16px',
-                                    background: activeView === 'plans' ? 'var(--gradient-hero)' : 'rgba(255, 255, 255, 0.1)',
+                                    background: activeView === 'plans' ? 'var(--gradient-hero)' : sidebarBtnBg,
                                     width: '100%'
                                 }}
                             >
@@ -481,10 +490,10 @@ export default function DashboardPage() {
                             <Button
                                 onClick={() => handleViewChange('about')}
                                 variant="ghost"
-                                className="flex items-center gap-3 rounded-xl transition-all hover:scale-105 justify-start text-white"
+                                className="flex items-center gap-3 rounded-xl transition-all hover:scale-105 justify-start"
                                 style={{
                                     padding: '14px 16px',
-                                    background: activeView === 'about' ? 'var(--gradient-hero)' : 'rgba(255, 255, 255, 0.1)',
+                                    background: activeView === 'about' ? 'var(--gradient-hero)' : sidebarBtnBg,
                                     width: '100%'
                                 }}
                             >
@@ -495,10 +504,10 @@ export default function DashboardPage() {
                             <Button
                                 asChild
                                 variant="ghost"
-                                className="flex items-center gap-3 rounded-xl transition-all hover:scale-105 justify-start text-white"
+                                className="flex items-center gap-3 rounded-xl transition-all hover:scale-105 justify-start"
                                 style={{
                                     padding: '12px 16px',
-                                    background: 'rgba(255, 255, 255, 0.1)',
+                                    background: sidebarBtnBg,
                                     width: '100%'
                                 }}
                             >
@@ -511,10 +520,10 @@ export default function DashboardPage() {
                             <Button
                                 onClick={() => router.push('/products')}
                                 variant="ghost"
-                                className="flex items-center gap-3 rounded-xl transition-all hover:scale-105 justify-start text-white"
+                                className="flex items-center gap-3 rounded-xl transition-all hover:scale-105 justify-start"
                                 style={{
                                     padding: '14px 16px',
-                                    background: 'rgba(255, 255, 255, 0.1)',
+                                    background: sidebarBtnBg,
                                     width: '100%'
                                 }}
                             >
@@ -525,10 +534,10 @@ export default function DashboardPage() {
                             <Button
                                 onClick={() => window.open('https://blogs.bandhannova.in', '_blank')}
                                 variant="ghost"
-                                className="flex items-center gap-3 rounded-xl transition-all hover:scale-105 justify-start text-white"
+                                className="flex items-center gap-3 rounded-xl transition-all hover:scale-105 justify-start"
                                 style={{
                                     padding: '14px 16px',
-                                    background: 'rgba(255, 255, 255, 0.1)',
+                                    background: sidebarBtnBg,
                                     width: '100%'
                                 }}
                             >
@@ -538,7 +547,10 @@ export default function DashboardPage() {
                         </div>
                     </nav>
 
-
+                    {/* Theme Toggle */}
+                    <div style={{ marginBottom: '12px' }}>
+                        <ThemeToggle variant="full" />
+                    </div>
 
                     {/* Sign Out */}
                     <Button
@@ -548,7 +560,7 @@ export default function DashboardPage() {
                         style={{
                             padding: '14px 16px',
                             width: '100%',
-                            background: 'rgba(255, 255, 255, 0.1)'
+                            background: sidebarBtnBg
                         }}
                     >
                         <LogOut className="w-5 h-5" />
@@ -729,7 +741,7 @@ export default function DashboardPage() {
                                                             className="ai-card-icon-badge"
                                                             style={{ background: agent.gradient }}
                                                         >
-                                                            <Icon className="w-6 h-6 text-white" style={{ position: 'relative', zIndex: 1 }} />
+                                                            <Icon className="w-6 h-6" style={{ position: 'relative', zIndex: 1 }} />
                                                         </div>
                                                         <h3 className="ai-card-title">{agent.name}</h3>
                                                         <p className="ai-card-desc">{agent.description}</p>
@@ -765,7 +777,7 @@ export default function DashboardPage() {
                                     </h3>
                                     <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3" style={{ gap: '12px' }}>
                                         {AI_AGENTS.filter(agent =>
-                                            ['study-learning', 'search-engine', 'future-jobs-career', 'decision-maker'].includes(agent.id)
+                                            ['study-learning', 'search-engine', 'future-jobs-career'].includes(agent.id)
                                         ).map((agent, index) => {
                                             const Icon = agent.icon;
                                             return (
@@ -781,7 +793,7 @@ export default function DashboardPage() {
                                                             className="ai-card-icon-badge"
                                                             style={{ background: agent.gradient }}
                                                         >
-                                                            <Icon className="w-6 h-6 text-white" style={{ position: 'relative', zIndex: 1 }} />
+                                                            <Icon className="w-6 h-6" style={{ position: 'relative', zIndex: 1 }} />
                                                         </div>
                                                         <h3 className="ai-card-title">{agent.name}</h3>
                                                         <p className="ai-card-desc">{agent.description}</p>
@@ -847,7 +859,7 @@ export default function DashboardPage() {
                                                             className="ai-card-icon-badge"
                                                             style={{ background: agent.gradient }}
                                                         >
-                                                            <Icon className="w-6 h-6 text-white" style={{ position: 'relative', zIndex: 1 }} />
+                                                            <Icon className="w-6 h-6" style={{ position: 'relative', zIndex: 1 }} />
                                                         </div>
                                                         <h3 className="ai-card-title">{agent.name}</h3>
                                                         <p className="ai-card-desc">{agent.description}</p>
@@ -1002,7 +1014,7 @@ export default function DashboardPage() {
                                         >
                                             {plan.popular && (
                                                 <div
-                                                    className="absolute -top-4 left-1/2 transform -translate-x-1/2 px-4 py-1 h-7 w-28 rounded-2xl text-sm font-semibold text-white text-center flex flex-col justify-center"
+                                                    className="absolute -top-4 left-1/2 transform -translate-x-1/2 px-4 py-1 h-7 w-28 rounded-2xl text-sm font-semibold text-center flex flex-col justify-center"
                                                     style={{ background: 'var(--gradient-hero)' }}
                                                 >
                                                     {plan.badge}
@@ -1192,6 +1204,7 @@ export default function DashboardPage() {
                                 initial={{ opacity: 0, y: 30 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 className="text-center mb-12"
+                                style={{ marginBottom: '30px', marginTop: '32px', padding: '8px' }}
                             >
                                 <h1
                                     className="h1"
@@ -1203,10 +1216,9 @@ export default function DashboardPage() {
                                     About & <span className="gradient-text">Policies</span>
                                 </h1>
                                 <p
-                                    className="body text-center mx-auto"
+                                    className="body-large text-center mx-auto"
                                     style={{
                                         color: 'var(--foreground-secondary)',
-                                        maxWidth: '600px',
                                         marginBottom: '30px'
                                     }}
                                 >
@@ -1214,114 +1226,75 @@ export default function DashboardPage() {
                                 </p>
                             </motion.div>
 
-                            {/* Navigation Cards */}
-                            <div
-                                className="grid grid-cols-2 gap-2 about-cards-grid"
-                                style={{ maxWidth: '100%', marginLeft: 'auto', marginRight: 'auto' }}
-                            >
-                                {/* Terms & Conditions Card */}
-                                <motion.div
-                                    initial={{ opacity: 0, y: 30 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: 0.1 }}
-                                    onClick={() => router.push('/terms')}
-                                >
-                                    <div className="ai-card-new">
-                                        <div
-                                            className="ai-card-icon-badge"
-                                            style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}
+                            {/* About Section Cards - Following Featured AI Cards Pattern */}
+                            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3" style={{ gap: '12px' }}>
+                                {[
+                                    {
+                                        id: 'terms',
+                                        icon: FileText,
+                                        title: 'Terms & Conditions',
+                                        description: 'Review our comprehensive terms of service and usage guidelines',
+                                        buttonText: 'View Terms',
+                                        route: '/terms',
+                                        gradient: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)'
+                                    },
+                                    {
+                                        id: 'privacy',
+                                        icon: Shield,
+                                        title: 'Privacy & Policies',
+                                        description: 'Learn how we protect your personal data with industry-leading security',
+                                        buttonText: 'View Privacy',
+                                        route: '/privacy',
+                                        gradient: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)'
+                                    },
+                                    {
+                                        id: 'about',
+                                        icon: Info,
+                                        title: 'About BandhanNova',
+                                        description: 'Discover our mission to democratize AI for India',
+                                        buttonText: 'Learn More',
+                                        route: '/about',
+                                        gradient: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)'
+                                    },
+                                    {
+                                        id: 'faq',
+                                        icon: HelpCircle,
+                                        title: 'FAQ',
+                                        description: 'Get instant answers to common questions about our AI platform',
+                                        buttonText: 'View FAQ',
+                                        route: '/faq',
+                                        gradient: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)'
+                                    }
+                                ].map((card, index) => {
+                                    const Icon = card.icon;
+                                    return (
+                                        <motion.div
+                                            key={card.id}
+                                            initial={{ opacity: 0, y: 20 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ delay: 0.2 + index * 0.1 }}
+                                            onClick={() => router.push(card.route)}
                                         >
-                                            <FileText className="w-6 h-6 text-white" style={{ position: 'relative', zIndex: 1 }} />
-                                        </div>
-                                        <h3 className="ai-card-title">Terms & Conditions</h3>
-                                        <p className="ai-card-desc">Review our comprehensive terms of service and usage guidelines</p>
-                                        <Button
-                                            size="sm"
-                                            className="ai-card-action-btn"
-                                        >
-                                            View Terms
-                                            <ArrowRight className="w-4 h-4" />
-                                        </Button>
-                                    </div>
-                                </motion.div>
-
-                                {/* Privacy & Policies Card */}
-                                <motion.div
-                                    initial={{ opacity: 0, y: 30 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: 0.2 }}
-                                    onClick={() => router.push('/privacy')}
-                                >
-                                    <div className="ai-card-new">
-                                        <div
-                                            className="ai-card-icon-badge"
-                                            style={{ background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)' }}
-                                        >
-                                            <Shield className="w-6 h-6 text-white" style={{ position: 'relative', zIndex: 1 }} />
-                                        </div>
-                                        <h3 className="ai-card-title">Privacy & Policies</h3>
-                                        <p className="ai-card-desc">Learn how we protect your personal data with industry-leading security</p>
-                                        <Button
-                                            size="sm"
-                                            className="ai-card-action-btn"
-                                        >
-                                            View Privacy
-                                            <ArrowRight className="w-4 h-4" />
-                                        </Button>
-                                    </div>
-                                </motion.div>
-
-                                {/* About BandhanNova Card */}
-                                <motion.div
-                                    initial={{ opacity: 0, y: 30 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: 0.3 }}
-                                    onClick={() => router.push('/about')}
-                                >
-                                    <div className="ai-card-new">
-                                        <div
-                                            className="ai-card-icon-badge"
-                                            style={{ background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)' }}
-                                        >
-                                            <Info className="w-6 h-6 text-white" style={{ position: 'relative', zIndex: 1 }} />
-                                        </div>
-                                        <h3 className="ai-card-title">About BandhanNova</h3>
-                                        <p className="ai-card-desc">Discover our mission to democratize AI for India</p>
-                                        <Button
-                                            size="sm"
-                                            className="ai-card-action-btn"
-                                        >
-                                            Learn More
-                                            <ArrowRight className="w-4 h-4" />
-                                        </Button>
-                                    </div>
-                                </motion.div>
-
-                                {/* FAQ Card */}
-                                <motion.div
-                                    initial={{ opacity: 0, y: 30 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: 0.4 }}
-                                    onClick={() => router.push('/faq')}
-                                >
-                                    <div className="ai-card-new">
-                                        <div
-                                            className="ai-card-icon-badge"
-                                            style={{ background: 'linear-gradient(135deg, #10b981 0%, #14b8a6 100%)' }}
-                                        >
-                                            <HelpCircle className="w-6 h-6 text-white" style={{ position: 'relative', zIndex: 1 }} />
-                                        </div>
-                                        <h3 className="ai-card-title">FAQ</h3>
-                                        <p className="ai-card-desc">Get instant answers to common questions about our AI platform</p>
-                                        <Button
-                                            size="sm"
-                                            className="ai-card-action-btn"
-                                        >
-                                            View FAQ
-                                            <ArrowRight className="w-4 h-4" />
-                                        </Button>
-                                    </div>
-                                </motion.div>
+                                            <div className="ai-card-new">
+                                                <div
+                                                    className="ai-card-icon-badge"
+                                                    style={{ background: card.gradient }}
+                                                >
+                                                    <Icon className="w-6 h-6" style={{ position: 'relative', zIndex: 1 }} />
+                                                </div>
+                                                <h3 className="ai-card-title">{card.title}</h3>
+                                                <p className="ai-card-desc">{card.description}</p>
+                                                <Button
+                                                    size="sm"
+                                                    className="ai-card-action-btn w-full whitespace-nowrap text-[11px] sm:text-xs transition-all duration-300"
+                                                >
+                                                    {card.buttonText}
+                                                    <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 ml-2" />
+                                                </Button>
+                                            </div>
+                                        </motion.div>
+                                    );
+                                })}
                             </div>
                         </>
                     )}

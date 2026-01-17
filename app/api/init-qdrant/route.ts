@@ -1,34 +1,51 @@
-// Initialize Qdrant Collection API
-// Creates the vector collection for memory storage
+// Initialize Qdrant Cloud Collections
+// Run this script once to setup all agent collections
 
-import { NextResponse } from 'next/server';
-import { initializeCollection, checkQdrantHealth } from '@/lib/qdrant/client';
+import { initializeAgentCollections, verifyQdrantCloudSetup } from '@/lib/qdrant/cloud-config';
 
 export async function GET() {
     try {
-        // Check if Qdrant is healthy
-        const isHealthy = await checkQdrantHealth();
+        console.log('🚀 Starting Qdrant Cloud initialization...');
 
-        if (!isHealthy) {
-            return NextResponse.json({
+        // Step 1: Verify connection
+        console.log('📡 Verifying Qdrant Cloud connection...');
+        const status = await verifyQdrantCloudSetup();
+
+        if (!status.connected) {
+            return Response.json({
                 success: false,
-                error: 'Qdrant is not running or not accessible'
-            }, { status: 503 });
+                error: 'Failed to connect to Qdrant Cloud',
+                details: status.error,
+                message: 'Please check your NEXT_PUBLIC_QDRANT_URL and NEXT_PUBLIC_QDRANT_API_KEY',
+            }, { status: 500 });
         }
 
-        // Initialize collection
-        await initializeCollection();
+        console.log('✅ Connected to Qdrant Cloud');
+        console.log(`📊 Existing collections: ${status.collections}`);
 
-        return NextResponse.json({
+        // Step 2: Initialize all agent collections
+        console.log('🔧 Initializing agent collections...');
+        await initializeAgentCollections();
+
+        // Step 3: Verify again
+        const finalStatus = await verifyQdrantCloudSetup();
+
+        return Response.json({
             success: true,
-            message: 'Qdrant collection initialized successfully',
-            collectionName: 'bandhannova_memories'
+            message: 'Qdrant Cloud initialized successfully',
+            collections: finalStatus.collections,
+            details: {
+                url: process.env.NEXT_PUBLIC_QDRANT_URL,
+                hasApiKey: !!process.env.NEXT_PUBLIC_QDRANT_API_KEY,
+            },
         });
-    } catch (error) {
-        console.error('Error initializing Qdrant:', error);
-        return NextResponse.json({
+    } catch (error: any) {
+        console.error('❌ Qdrant initialization failed:', error);
+
+        return Response.json({
             success: false,
-            error: String(error)
+            error: error.message,
+            stack: error.stack,
         }, { status: 500 });
     }
 }

@@ -18,27 +18,14 @@ export interface MemoryPoint {
 }
 
 /**
- * Generate embedding for text using OpenAI API
- * This is a placeholder - you'll need to implement actual embedding generation
+ * Generate embedding for text using Transformers.js
+ * Free, local embeddings - no API needed!
  */
 async function generateEmbedding(text: string): Promise<number[]> {
-    // TODO: Implement actual embedding generation using OpenAI API
-    // For now, return a dummy vector
-    // In production, call: POST https://api.openai.com/v1/embeddings
-
     try {
-        const response = await fetch('/api/embeddings', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ text }),
-        });
-
-        if (!response.ok) {
-            throw new Error('Embedding generation failed');
-        }
-
-        const data = await response.json();
-        return data.embedding;
+        // Import dynamically to avoid issues with SSR
+        const { getEmbedding } = await import('../embeddings/transformers');
+        return await getEmbedding(text);
     } catch (error) {
         console.error('Error generating embedding:', error);
         // Return zero vector as fallback
