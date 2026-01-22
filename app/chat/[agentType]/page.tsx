@@ -917,26 +917,26 @@ export default function ChatPage() {
                                 <div
                                     className="rounded-xl flex items-center justify-center"
                                     style={{
-                                        width: '44px',
-                                        height: '44px',
+                                        width: isDesktop ? '44px' : '36px',
+                                        height: isDesktop ? '44px' : '36px',
                                         background: agent.gradient,
                                         boxShadow: '0 4px 16px rgba(0, 0, 0, 0.2)'
                                     }}
                                 >
-                                    <Icon className="w-5 h-5 text-white" />
+                                    <Icon className={isDesktop ? 'w-5 h-5' : 'w-4 h-4'} style={{ color: 'white' }} />
                                 </div>
                                 <div>
                                     <h1
                                         className="font-semibold"
                                         style={{
                                             color: 'var(--foreground)',
-                                            fontSize: isDesktop ? '17px' : '15px',
+                                            fontSize: isDesktop ? '16px' : '14px',
                                             marginBottom: '2px'
                                         }}
                                     >
                                         {agent.name}
                                     </h1>
-                                    <p style={{ color: 'var(--foreground-tertiary)', fontSize: isDesktop ? '13px' : '12px' }}>
+                                    <p style={{ color: 'var(--foreground-tertiary)', fontSize: isDesktop ? '12px' : '11px' }}>
                                         {agent.description}
                                     </p>
                                 </div>
@@ -947,7 +947,7 @@ export default function ChatPage() {
                     {/* Messages Area - Centered */}
                     <div
                         className="relative flex-1 overflow-y-auto flex justify-center"
-                        style={{ paddingBottom: '120px', padding: '0 24px 120px 24px' }}
+                        style={{ paddingBottom: isDesktop ? '120px' : '100px', padding: isDesktop ? '0 24px 120px 24px' : '0 12px 100px 12px' }}
                     >
                         <div className="max-w-5xl w-full">
                             {messages.length === 0 ? (
@@ -955,20 +955,20 @@ export default function ChatPage() {
                                     initial={{ opacity: 0, y: 20 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     className="text-center"
-                                    style={{ paddingTop: '100px', paddingBottom: '80px' }}
+                                    style={{ paddingTop: isDesktop ? '100px' : '60px', paddingBottom: isDesktop ? '80px' : '40px' }}
                                 >
                                     <h2
                                         className="font-bold"
                                         style={{
-                                            fontSize: '42px',
+                                            fontSize: isDesktop ? '42px' : '28px',
                                             color: 'var(--foreground)',
-                                            marginBottom: '16px'
+                                            marginBottom: isDesktop ? '16px' : '12px'
                                         }}
                                     >
                                         Start a conversation
                                     </h2>
                                     <p style={{
-                                        fontSize: '16px',
+                                        fontSize: isDesktop ? '16px' : '14px',
                                         color: 'var(--foreground-secondary)',
                                         lineHeight: '1.6'
                                     }}>
@@ -976,7 +976,7 @@ export default function ChatPage() {
                                     </p>
                                 </motion.div>
                             ) : (
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '32px', paddingTop: '40px', paddingBottom: '120px' }}>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: isDesktop ? '32px' : '20px', paddingTop: isDesktop ? '40px' : '24px', paddingBottom: isDesktop ? '120px' : '100px' }}>
                                     {messages.map((message, index) => (
                                         <motion.div
                                             key={message.id}
@@ -1016,18 +1016,6 @@ export default function ChatPage() {
                                                     overflow: 'hidden'
                                                 }}
                                             >
-                                                {/* Gradient Accent Bar - Only for AI messages */}
-                                                {message.role === 'assistant' && (
-                                                    <div style={{
-                                                        position: 'absolute',
-                                                        top: 0,
-                                                        left: 0,
-                                                        width: '4px',
-                                                        height: '100%',
-                                                        background: 'linear-gradient(180deg, #8b5cf6 0%, #6366f1 100%)',
-                                                        boxShadow: '0 0 12px rgba(139, 92, 246, 0.5)'
-                                                    }} />
-                                                )}
                                                 {/* User/AI Label */}
                                                 <div style={{
                                                     marginBottom: isDesktop ? '16px' : '12px',
