@@ -1,26 +1,24 @@
 // Optimized System Prompts - Mode Specific
 // Shorter prompts for faster Time To First Token (TTFT)
 
-// Prompt cache for instant reuse
-const PROMPT_CACHE = new Map<string, string>();
+import { getPromptCache } from './prompt-cache-manager';
 
 /**
  * Get optimized system prompt based on mode
- * Much shorter than full prompt for faster TTFT
+ * Uses server-side cache for instant reuse
  */
 export function getOptimizedPrompt(mode: 'quick' | 'normal' | 'thinking'): string {
+    const cache = getPromptCache();
     const cacheKey = `optimized-${mode}`;
 
-    if (PROMPT_CACHE.has(cacheKey)) {
-        return PROMPT_CACHE.get(cacheKey)!;
-    }
+    return cache.get(cacheKey, () => {
+        // Generate prompt only if not cached
+        let prompt: string;
 
-    let prompt: string;
-
-    switch (mode) {
-        case 'quick':
-            // ~200 tokens - Ultra fast responses
-            prompt = `You are BandhanNova AI, a helpful assistant.
+        switch (mode) {
+            case 'quick':
+                // ~200 tokens - Ultra fast responses
+                prompt = `You are BandhanNova AI, a helpful assistant.
 
 **Quick Mode Rules:**
 - Keep responses under 150 words
@@ -36,11 +34,11 @@ export function getOptimizedPrompt(mode: 'quick' | 'normal' | 'thinking'): strin
 **Language:** Match user's language exactly (Bengali, Hindi, Tamil, English, etc.)
 
 Be helpful, friendly, and fast! 🚀`;
-            break;
+                break;
 
-        case 'normal':
-            // ~400 tokens - Balanced responses
-            prompt = `You are BandhanNova AI, a friendly and intelligent assistant by BandhanNova Platforms Private Limited.
+            case 'normal':
+                // ~400 tokens - Balanced responses
+                prompt = `You are BandhanNova AI, a friendly and intelligent assistant by BandhanNova Platforms Private Limited.
 
 **Your Personality:**
 - Warm, helpful, and professional
@@ -68,11 +66,11 @@ Be helpful, friendly, and fast! 🚀`;
   - Tamil: "உங்கள் AI agent தயார்! ✨"
 
 **Brand:** You're part of BandhanNova - helping users succeed! 💪`;
-            break;
+                break;
 
-        case 'thinking':
-            // ~600 tokens - Detailed responses
-            prompt = `You are BandhanNova AI, an intelligent and thoughtful assistant created by BandhanNova Holdings Limited.
+            case 'thinking':
+                // ~600 tokens - Detailed responses
+                prompt = `You are BandhanNova AI, an intelligent and thoughtful assistant created by BandhanNova Holdings Limited.
 
 **Your Role:**
 - Provide comprehensive, detailed analysis
@@ -125,11 +123,11 @@ Be helpful, friendly, and fast! 🚀`;
 - "Join 2,40,000+ happy users! 🎉"
 
 Remember: Be thorough, helpful, natural, and make every interaction valuable! 💖🚀`;
-            break;
-    }
+                break;
+        }
 
-    PROMPT_CACHE.set(cacheKey, prompt);
-    return prompt;
+        return prompt;
+    }, 3600000); // 1 hour TTL
 }
 
 /**
@@ -148,15 +146,14 @@ export function buildOptimizedPrompt(
  * Clear prompt cache (for testing/debugging)
  */
 export function clearPromptCache(): void {
-    PROMPT_CACHE.clear();
+    const cache = getPromptCache();
+    cache.clear();
 }
 
 /**
  * Get cache statistics
  */
 export function getCacheStats() {
-    return {
-        size: PROMPT_CACHE.size,
-        keys: Array.from(PROMPT_CACHE.keys()),
-    };
+    const cache = getPromptCache();
+    return cache.getStats();
 }
