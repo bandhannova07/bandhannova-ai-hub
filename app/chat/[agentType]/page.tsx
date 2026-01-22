@@ -993,41 +993,74 @@ export default function ChatPage() {
                                             <div
                                                 className={message.role === 'user' ? 'user-message-book' : 'ai-message-book'}
                                                 style={{
-                                                    padding: message.role === 'user' ? '20px 28px' : '32px 36px',
+                                                    padding: message.role === 'user'
+                                                        ? (isDesktop ? '20px 28px' : '16px 20px')
+                                                        : (isDesktop ? '28px 32px' : '20px 24px'),
                                                     background: message.role === 'user'
-                                                        ? 'linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%)'
-                                                        : 'rgba(255, 255, 255, 0.02)',
-                                                    borderLeft: message.role === 'user'
-                                                        ? 'none'
-                                                        : '4px solid rgba(139, 92, 246, 0.3)',
-                                                    borderRight: message.role === 'user'
-                                                        ? '4px solid rgba(99, 102, 241, 0.5)'
-                                                        : 'none',
-                                                    borderRadius: '8px',
+                                                        ? 'linear-gradient(135deg, rgba(99, 102, 241, 0.12) 0%, rgba(139, 92, 246, 0.12) 100%)'
+                                                        : 'linear-gradient(135deg, rgba(139, 92, 246, 0.08) 0%, rgba(99, 102, 241, 0.08) 100%)',
+                                                    backdropFilter: message.role === 'assistant' ? 'blur(12px)' : 'none',
+                                                    border: message.role === 'user'
+                                                        ? '1px solid rgba(99, 102, 241, 0.2)'
+                                                        : '1px solid rgba(139, 92, 246, 0.2)',
+                                                    borderRadius: message.role === 'user'
+                                                        ? '16px 16px 4px 16px'
+                                                        : '16px 16px 16px 4px',
                                                     marginLeft: message.role === 'user' ? 'auto' : '0',
                                                     marginRight: message.role === 'user' ? '0' : 'auto',
-                                                    maxWidth: message.role === 'user' ? '85%' : '100%'
+                                                    maxWidth: message.role === 'user' ? '85%' : '100%',
+                                                    boxShadow: message.role === 'assistant'
+                                                        ? '0 8px 32px rgba(139, 92, 246, 0.12), 0 2px 8px rgba(0, 0, 0, 0.1)'
+                                                        : '0 4px 16px rgba(99, 102, 241, 0.1)',
+                                                    position: 'relative',
+                                                    overflow: 'hidden'
                                                 }}
                                             >
+                                                {/* Gradient Accent Bar - Only for AI messages */}
+                                                {message.role === 'assistant' && (
+                                                    <div style={{
+                                                        position: 'absolute',
+                                                        top: 0,
+                                                        left: 0,
+                                                        width: '4px',
+                                                        height: '100%',
+                                                        background: 'linear-gradient(180deg, #8b5cf6 0%, #6366f1 100%)',
+                                                        boxShadow: '0 0 12px rgba(139, 92, 246, 0.5)'
+                                                    }} />
+                                                )}
                                                 {/* User/AI Label */}
                                                 <div style={{
-                                                    marginBottom: '16px',
+                                                    marginBottom: isDesktop ? '16px' : '12px',
                                                     display: 'flex',
                                                     alignItems: 'center',
-                                                    gap: '8px'
+                                                    gap: '10px',
+                                                    flexWrap: 'wrap'
                                                 }}>
-                                                    <span style={{
-                                                        fontSize: '13px',
-                                                        fontWeight: '700',
-                                                        color: message.role === 'user' ? '#6366f1' : '#8b5cf6',
-                                                        textTransform: 'uppercase',
-                                                        letterSpacing: '1px'
+                                                    <div style={{
+                                                        display: 'inline-flex',
+                                                        alignItems: 'center',
+                                                        gap: '6px',
+                                                        padding: '4px 12px',
+                                                        borderRadius: '20px',
+                                                        background: message.role === 'user'
+                                                            ? 'linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(139, 92, 246, 0.2) 100%)'
+                                                            : 'linear-gradient(135deg, rgba(139, 92, 246, 0.2) 0%, rgba(99, 102, 241, 0.2) 100%)',
+                                                        border: `1px solid ${message.role === 'user' ? 'rgba(99, 102, 241, 0.3)' : 'rgba(139, 92, 246, 0.3)'}`
                                                     }}>
-                                                        {message.role === 'user' ? 'You' : agent.name}
-                                                    </span>
+                                                        <span style={{
+                                                            fontSize: isDesktop ? '12px' : '11px',
+                                                            fontWeight: '700',
+                                                            color: message.role === 'user' ? '#6366f1' : '#8b5cf6',
+                                                            textTransform: 'uppercase',
+                                                            letterSpacing: '0.5px'
+                                                        }}>
+                                                            {message.role === 'user' ? '👤 You' : '🤖 ' + agent.name}
+                                                        </span>
+                                                    </div>
                                                     <span style={{
-                                                        fontSize: '11px',
-                                                        color: 'var(--foreground-tertiary)'
+                                                        fontSize: isDesktop ? '11px' : '10px',
+                                                        color: 'var(--foreground-tertiary)',
+                                                        opacity: 0.7
                                                     }}>
                                                         {message.timestamp.toLocaleTimeString()}
                                                     </span>
@@ -1038,10 +1071,11 @@ export default function ChatPage() {
                                                     className="message-content-book"
                                                     style={{
                                                         color: 'var(--foreground)',
-                                                        fontSize: isDesktop ? '17px' : '16px',
-                                                        lineHeight: '1.8',
-                                                        letterSpacing: '0.3px',
-                                                        fontWeight: '400'
+                                                        fontSize: isDesktop ? '16px' : '15px',
+                                                        lineHeight: '1.7',
+                                                        letterSpacing: '0.2px',
+                                                        fontWeight: '400',
+                                                        wordBreak: 'break-word'
                                                     }}
                                                 >
                                                     {message.role === 'assistant' && index === messages.length - 1 && !message.content ? (
