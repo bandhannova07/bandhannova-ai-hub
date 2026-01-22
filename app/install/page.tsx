@@ -77,8 +77,24 @@ export default function InstallPage() {
 
     async function handleInstall() {
         if (!deferredPrompt) {
-            // If prompt not available, just redirect to dashboard
-            localStorage.setItem('installPromptShown', 'attempted');
+            // Show manual installation instructions
+            const userAgent = navigator.userAgent.toLowerCase();
+            let instructions = '';
+
+            if (userAgent.includes('chrome') && !userAgent.includes('edg')) {
+                instructions = '📱 **Chrome Installation:**\n\n1. Tap the menu (⋮) in the top right\n2. Select "Install app" or "Add to Home screen"\n3. Follow the prompts';
+            } else if (userAgent.includes('safari')) {
+                instructions = '📱 **Safari Installation:**\n\n1. Tap the Share button (□↑)\n2. Scroll and tap "Add to Home Screen"\n3. Tap "Add"';
+            } else if (userAgent.includes('firefox')) {
+                instructions = '📱 **Firefox Installation:**\n\n1. Tap the menu (⋮)\n2. Select "Install"\n3. Follow the prompts';
+            } else if (userAgent.includes('edg')) {
+                instructions = '📱 **Edge Installation:**\n\n1. Tap the menu (⋯)\n2. Select "Apps" > "Install this site as an app"\n3. Follow the prompts';
+            } else {
+                instructions = '📱 **Manual Installation:**\n\nLook for an "Install" or "Add to Home Screen" option in your browser menu.';
+            }
+
+            alert(`BandhanNova can be installed!\n\n${instructions}\n\nOr continue using in browser.`);
+            localStorage.setItem('installPromptShown', 'manual');
             router.push('/dashboard');
             return;
         }
