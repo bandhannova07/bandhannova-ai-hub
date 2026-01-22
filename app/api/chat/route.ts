@@ -1,11 +1,20 @@
-// Chat API Endpoint with Streaming
-// Uses optimized prompts for 6x faster Time To First Token
+// Chat API Endpoint with Model-Based Architecture
+// Uses subscription-tier based model access with fallback chains
 
 import { NextRequest } from 'next/server';
-import { buildOptimizedPrompt } from '@/lib/ai/optimized-prompts';
-import { AIMode, getModelChain, getTimeout } from '@/lib/ai/models/config';
+import {
+    getModelConfig,
+    hasModelAccess,
+    getApiKeyTier,
+    ModelId,
+    AI_MODELS
+} from '@/lib/ai/model-tiers';
+import { getApiKeyForTier } from '@/lib/ai/api-keys';
+import { getUserTierSimple } from '@/lib/db/get-user-tier';
+import { checkAndIncrementExtremeUsage } from '@/lib/ai/usage-tracker';
 import { detectLanguage, getLanguageInstruction } from '@/lib/ai/language-detection';
-import { getUserLanguage, storeUserLanguage } from '@/lib/qdrant/memory';
+import { buildOptimizedPrompt } from '@/lib/ai/optimized-prompts';
+import { AIMode } from '@/lib/ai/models/config';
 
 export const runtime = 'edge';
 
@@ -13,50 +22,71 @@ export async function POST(req: NextRequest) {
     try {
         const {
             message,
-            agentType,
+            modelId,
             responseMode,
-            model,
             conversationHistory,
             userId,
         } = await req.json();
 
         // Validation
-        if (!message || !agentType || !responseMode) {
+        if (!message || !modelId) {
             return new Response(
-                JSON.stringify({ error: 'Missing required fields' }),
+                JSON.stringify({ error: 'Missing required fields: message and modelId' }),
                 { status: 400, headers: { 'Content-Type': 'application/json' } }
             );
         }
 
-        // Validate mode
-        const mode = responseMode as AIMode;
-        if (!['quick', 'normal', 'thinking'].includes(mode)) {
+        // Get user's subscription tier
+        const userTier = userId ? await getUserTierSimple(userId) : 'free';
+        console.log(`🎯 User tier: ${userTier}`);
+
+        // Validate model access
+        if (!hasModelAccess(userTier, modelId as ModelId)) {
             return new Response(
-                JSON.stringify({ error: 'Invalid mode' }),
+                JSON.stringify({
+                    error: 'Model not available for your subscription tier',
+                    requiredTier: AI_MODELS[modelId as ModelId]?.minTier,
+                    currentTier: userTier
+                }),
+                { status: 403, headers: { 'Content-Type': 'application/json' } }
+            );
+        }
+
+        // Get model configuration
+        const modelConfig = getModelConfig(modelId as ModelId);
+        if (!modelConfig) {
+            return new Response(
+                JSON.stringify({ error: 'Invalid model ID' }),
                 { status: 400, headers: { 'Content-Type': 'application/json' } }
             );
         }
 
-        // 🌍 Language Preference System
-        let userLanguage: string | null = null;
-
-        // Try to get user's saved language preference
-        if (userId) {
-            userLanguage = await getUserLanguage(userId);
-        }
-
-        // If no saved preference, detect from current message
-        if (!userLanguage) {
-            userLanguage = detectLanguage(message);
-
-            // Save for future use (only on first message)
-            if (userId && (!conversationHistory || conversationHistory.length === 0)) {
-                await storeUserLanguage(userId, userLanguage);
-                console.log(`🌍 First message detected: ${userLanguage}`);
+        // Check usage limits for BandhanNova 2.0 eXtreme
+        if (modelConfig.isExtreme && userId) {
+            const usageCheck = await checkAndIncrementExtremeUsage(userId, userTier);
+            if (!usageCheck.allowed) {
+                return new Response(
+                    JSON.stringify({
+                        error: 'Daily limit reached',
+                        message: usageCheck.message,
+                        currentUsage: usageCheck.currentUsage,
+                        limit: usageCheck.limit
+                    }),
+                    { status: 429, headers: { 'Content-Type': 'application/json' } }
+                );
             }
         }
 
-        // Build optimized prompt (cached, 200-600 tokens instead of 3000+!)
+        // Get appropriate API key for this model
+        const apiKeyTier = getApiKeyTier(modelId as ModelId);
+        const apiKey = getApiKeyForTier(apiKeyTier);
+        console.log(`🔑 Using API key tier: ${apiKeyTier}`);
+
+        // Language detection
+        let userLanguage = detectLanguage(message);
+
+        // Build system prompt
+        const mode = (responseMode as AIMode) || 'normal';
         let systemPrompt = buildOptimizedPrompt(mode, message);
 
         // Add language instruction if not English
@@ -79,81 +109,76 @@ export async function POST(req: NextRequest) {
         // Add current user message
         messages.push({ role: 'user', content: message });
 
-        // Get model chain and timeout for this mode
-        const models = getModelChain(mode);
-        const timeout = getTimeout(mode);
+        // Build fallback chain: primary + fallbacks
+        const modelChain = [modelConfig.primaryModel, ...modelConfig.fallbackModels];
+        console.log(`🔗 Model chain: ${modelChain.join(' → ')}`);
 
-        // Create streaming model caller
-        const streamingModelCaller = async (
-            modelName: string,
-            prompt: string,
-            timeoutMs: number
-        ): Promise<ReadableStream> => {
-            const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
-                    'HTTP-Referer': process.env.NEXT_PUBLIC_APP_URL || 'https://www.bandhannova.in',
-                    'X-Title': 'BandhanNova AI Hub',
-                },
-                body: JSON.stringify({
-                    model: modelName,
-                    messages,
-                    stream: true,
-                    temperature: getTemperature(mode),
-                    max_tokens: getMaxTokens(mode),
-                }),
-                signal: AbortSignal.timeout(timeoutMs),
-            });
-
-            if (!response.ok) {
-                throw new Error(`Model ${modelName} failed: ${response.statusText}`);
-            }
-
-            return response.body!;
-        };
-
-        // Execute with fallback chain
-        let currentModelIndex = 0;
-        let lastError: Error | null = null;
-
-        // Try each model in the chain
-        for (let i = 0; i < models.length; i++) {
-            const modelName = models[i];
-            currentModelIndex = i;
+        // Try each model in the fallback chain
+        for (let i = 0; i < modelChain.length; i++) {
+            const currentModel = modelChain[i];
 
             try {
-                const stream = await streamingModelCaller(modelName, message, timeout);
+                console.log(`🤖 Trying model: ${currentModel} (attempt ${i + 1}/${modelChain.length})`);
+
+                const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`,
+                        'HTTP-Referer': process.env.NEXT_PUBLIC_APP_URL || 'https://www.bandhannova.in',
+                        'X-Title': 'BandhanNova AI Hub',
+                    },
+                    body: JSON.stringify({
+                        model: currentModel,
+                        messages,
+                        stream: true,
+                        temperature: modelConfig.temperature,
+                        max_tokens: modelConfig.maxTokens,
+                    }),
+                    signal: AbortSignal.timeout(30000), // 30 second timeout
+                });
+
+                if (!response.ok) {
+                    // Check for rate limit
+                    if (response.status === 429) {
+                        console.log(`⚠️ Rate limited on ${currentModel}, trying next model...`);
+                        continue;
+                    }
+                    throw new Error(`Model ${currentModel} failed: ${response.statusText}`);
+                }
+
+                console.log(`✅ Success with ${currentModel}`);
 
                 // Return streaming response
-                return new Response(stream, {
+                return new Response(response.body, {
                     headers: {
                         'Content-Type': 'text/event-stream; charset=utf-8',
                         'Cache-Control': 'no-cache',
                         'Connection': 'keep-alive',
-                        'X-Model-Used': modelName,
+                        'X-Model-Used': currentModel,
+                        'X-Model-Config': modelConfig.name,
+                        'X-User-Tier': userTier,
                         'X-Attempt': String(i + 1),
                     },
                 });
+
             } catch (error: any) {
-                lastError = error;
-                console.error(`[API] Model ${modelName} failed (attempt ${i + 1}):`, error.message);
+                console.error(`❌ Model ${currentModel} failed:`, error.message);
 
                 // If this was the last model, throw error
-                if (i === models.length - 1) {
-                    break;
+                if (i === modelChain.length - 1) {
+                    throw new Error(
+                        `All models in fallback chain failed. Last error: ${error.message}`
+                    );
                 }
 
                 // Otherwise, continue to next model
-                console.log(`[API] Trying next model in fallback chain...`);
+                console.log(`🔄 Trying next model in fallback chain...`);
             }
         }
 
-        // All models failed
-        throw new Error(
-            `All models failed after ${models.length} attempts. Last error: ${lastError?.message || 'Unknown'}`
-        );
+        // Should never reach here
+        throw new Error('Unexpected error: fallback chain exhausted');
 
     } catch (error) {
         console.error('💥 Chat API error:', error);
@@ -165,26 +190,4 @@ export async function POST(req: NextRequest) {
             { status: 500, headers: { 'Content-Type': 'application/json' } }
         );
     }
-}
-
-// Helper: Get temperature based on response mode
-function getTemperature(responseMode: AIMode): number {
-    const temperatureMap: Record<AIMode, number> = {
-        'quick': 0.3,      // More focused
-        'normal': 0.7,     // Balanced
-        'thinking': 0.5,   // Thoughtful
-    };
-
-    return temperatureMap[responseMode] || 0.7;
-}
-
-// Helper: Get max tokens based on response mode
-function getMaxTokens(responseMode: AIMode): number {
-    const tokensMap: Record<AIMode, number> = {
-        'quick': 1000,      // Short responses
-        'normal': 4000,     // Medium responses
-        'thinking': 8000,   // Long responses
-    };
-
-    return tokensMap[responseMode] || 4000;
 }

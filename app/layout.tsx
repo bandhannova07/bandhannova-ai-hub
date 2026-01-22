@@ -23,12 +23,12 @@ const spaceGrotesk = Space_Grotesk({
 });
 
 export const metadata: Metadata = {
-  title: "BandhanNova - Where AI Doesn't Just Answer, You Grow",
+  title: "BandhanNova Platforms– Building AI that actually helps",
   description: "India's first next-generation AI life-growing platform designed for the Gen-Z era. Multi-brain AI system for learning, creativity, psychology, career building, and personal growth.",
   keywords: ["AI platform", "Indian AI", "Gen-Z", "personal growth", "AI learning", "career building", "multi-language AI"],
   authors: [{ name: "BandhanNova" }],
   openGraph: {
-    title: "BandhanNova - Where AI Doesn't Just Answer, You Grow",
+    title: "BandhanNova Platforms– Building AI that actually helps",
     description: "India's first next-generation AI life-growing platform for Gen-Z",
     type: "website",
   },

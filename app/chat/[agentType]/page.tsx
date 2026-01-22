@@ -35,6 +35,7 @@ import {
 import { getCurrentUser } from '@/lib/auth-simple';
 import { getAllDBs } from '@/lib/database/multi-db';
 import { MarkdownRenderer } from './components/MarkdownRenderer';
+import { ThinkingProcess } from './components/ThinkingProcess';
 import { GeminiLoader } from './components/GeminiLoader';
 import {
     getAllConversations,
@@ -48,7 +49,8 @@ import {
     type Message as StoredMessage
 } from '@/lib/storage/localStorage';
 import { storeMemory } from '@/lib/qdrant/memory';
-import { getCurrentPlan, getModelsByPlan, canAccessModel } from '@/lib/plans/helpers';
+import { getModelsForTier, AI_MODELS, type ModelId, type SubscriptionTier } from '@/lib/ai/model-tiers';
+import { getUserTierSimple } from '@/lib/db/get-user-tier';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -127,12 +129,14 @@ const AGENT_CONFIG: Record<string, any> = {
         icon: MessageCircleIcon,
         gradient: 'linear-gradient(135deg, #06b6d4 0%, #0891b2 100%)',
         color: '#06b6d4',
-        description: 'General assistant',
+        description: '5-Agent Intelligence System',
         models: [
-            'nousresearch/hermes-3-llama-3.1-405b:free',
-            'meta-llama/llama-3.1-405b-instruct:free',
-            'xiaomi/mimo-v2-flash:free',
-            'google/gemini-2.0-flash-exp:free'
+            '5 Specialized AI Agents',
+            'Intent Analyzer',
+            'Research Agent',
+            'Reasoning Agent',
+            'Optimizer Agent',
+            'Memory & Personality'
         ]
     },
     'website-builder': {
@@ -190,6 +194,41 @@ type Conversation = {
     timestamp: Date;
 };
 
+// Helper function to parse thinking process from message content
+function parseMessageContent(content: string) {
+    const thinkingMatch = content.match(/<thinking-start>([\s\S]*?)<\/thinking-end>/);
+
+    if (thinkingMatch) {
+        const thinkingContent = thinkingMatch[1].trim();
+        const answerContent = content.replace(/<thinking-start>[\s\S]*?<\/thinking-end>/, '').trim();
+
+        return {
+            hasThinking: true,
+            thinking: thinkingContent,
+            answer: answerContent,
+            isComplete: content.includes('</thinking-end>')
+        };
+    }
+
+    // Check if thinking has started but not ended (still streaming)
+    if (content.includes('<thinking-start>')) {
+        const thinkingContent = content.replace('<thinking-start>', '').trim();
+        return {
+            hasThinking: true,
+            thinking: thinkingContent,
+            answer: '',
+            isComplete: false
+        };
+    }
+
+    return {
+        hasThinking: false,
+        thinking: '',
+        answer: content,
+        isComplete: true
+    };
+}
+
 export default function ChatPage() {
     const params = useParams();
     const router = useRouter();
@@ -217,9 +256,10 @@ export default function ChatPage() {
     const [isTyping, setIsTyping] = useState(false);
 
     const [isDesktop, setIsDesktop] = useState(false);
-    const [selectedModel, setSelectedModel] = useState('auto');
+    const [selectedModel, setSelectedModel] = useState<ModelId>('ispat-v2-flash'); // Default to free tier model
     const [showPlusMenu, setShowPlusMenu] = useState(false);
-    const [responseMode, setResponseMode] = useState('normal');
+    const [userTier, setUserTier] = useState<SubscriptionTier>('free'); // User's subscription tier
+    const responseMode = 'normal'; // Fixed to normal mode for conversational AI
 
     // Set sidebar open by default on desktop
     useEffect(() => {
@@ -334,6 +374,16 @@ export default function ChatPage() {
             return;
         }
         setUser(currentUser);
+
+        // Load user's subscription tier
+        try {
+            const tier = await getUserTierSimple(currentUser.id);
+            setUserTier(tier);
+        } catch (error) {
+            console.error('Error loading user tier:', error);
+            setUserTier('free'); // Default to free on error
+        }
+
         // Load conversations after user is set
         loadConversations();
     }
@@ -476,9 +526,8 @@ export default function ChatPage() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     message: userInput,
-                    agentType,
+                    modelId: selectedModel, // Send modelId instead of agentType
                     responseMode,
-                    model: selectedModel,
                     conversationHistory,
                     userId
                 }),
@@ -598,11 +647,11 @@ export default function ChatPage() {
             console.error('Error sending message:', error);
             setIsTyping(false);
 
-            // Show error message
+            // Show network error message
             const errorMessage = {
                 id: `msg_error_${Date.now()}`,
                 role: 'assistant' as const,
-                content: 'Sorry, I encountered an error. Please try again.',
+                content: '⚠️ Sorry, BandhanNova cannot connect due to network issues. Please check your internet connection and try again.',
                 timestamp: new Date(),
             };
 
@@ -997,6 +1046,25 @@ export default function ChatPage() {
                                                 >
                                                     {message.role === 'assistant' && index === messages.length - 1 && !message.content ? (
                                                         <GeminiLoader />
+                                                    ) : message.role === 'assistant' ? (
+                                                        <>
+                                                            {(() => {
+                                                                const parsed = parseMessageContent(message.content);
+                                                                return (
+                                                                    <>
+                                                                        {parsed.hasThinking && (
+                                                                            <ThinkingProcess
+                                                                                content={parsed.thinking}
+                                                                                isComplete={parsed.isComplete}
+                                                                            />
+                                                                        )}
+                                                                        {parsed.answer && (
+                                                                            <MarkdownRenderer content={parsed.answer} />
+                                                                        )}
+                                                                    </>
+                                                                );
+                                                            })()}
+                                                        </>
                                                     ) : (
                                                         <MarkdownRenderer content={message.content} />
                                                     )}
@@ -1127,90 +1195,82 @@ export default function ChatPage() {
                                             </button>
                                         </div>
 
-                                        {/* Response Section */}
-                                        <div style={{ marginBottom: '14px' }}>
-                                            <p className="small" style={{ fontWeight: '600', color: 'var(--foreground-tertiary)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                                                Response
-                                            </p>
-                                            <button
-                                                onClick={() => { setResponseMode('quick'); setShowPlusMenu(false); }}
-                                                className="w-full flex items-center gap-3 rounded-xl hover:bg-white/10 hover:scale-105 active:scale-95 transition-all"
-                                                style={{ padding: '10px 12px', marginBottom: '4px', background: responseMode === 'quick' ? 'rgba(139, 92, 246, 0.2)' : 'transparent' }}
-                                            >
-                                                <Zap className="w-4 h-4" style={{ color: '#f59e0b' }} />
-                                                <span className="body" style={{ color: 'var(--foreground)' }}>Quick Response</span>
-                                            </button>
-                                            <button
-                                                onClick={() => { setResponseMode('normal'); setShowPlusMenu(false); }}
-                                                className="w-full flex items-center gap-3 rounded-xl hover:bg-white/10 hover:scale-105 active:scale-95 transition-all"
-                                                style={{ padding: '10px 12px', marginBottom: '4px', background: responseMode === 'normal' ? 'rgba(139, 92, 246, 0.2)' : 'transparent' }}
-                                            >
-                                                <MessageCircleIcon className="w-4 h-4" style={{ color: '#10b981' }} />
-                                                <span className="body" style={{ color: 'var(--foreground)' }}>Normal</span>
-                                            </button>
-                                            <button
-                                                onClick={() => { setResponseMode('thinking'); setShowPlusMenu(false); }}
-                                                className="w-full flex items-center gap-3 rounded-xl hover:bg-white/10 hover:scale-105 active:scale-95 transition-all"
-                                                style={{ padding: '10px 12px', background: responseMode === 'thinking' ? 'rgba(139, 92, 246, 0.2)' : 'transparent' }}
-                                            >
-                                                <Brain className="w-4 h-4" style={{ color: '#8b5cf6' }} />
-                                                <span className="body" style={{ color: 'var(--foreground)' }}>Thinking</span>
-                                            </button>
-                                        </div>
-
                                         {/* Models Section */}
                                         <div>
                                             <p className="small" style={{ fontWeight: '600', color: 'var(--foreground-tertiary)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                                                Models
+                                                Models ({userTier.toUpperCase()} Tier)
                                             </p>
-                                            {/* Auto Intelligence - Always available */}
-                                            <button
-                                                onClick={() => { setSelectedModel('auto'); setShowPlusMenu(false); }}
-                                                className="w-full flex items-center gap-3 rounded-xl hover:bg-white/10 hover:scale-105 active:scale-95 transition-all"
-                                                style={{ padding: '10px 12px', marginBottom: '4px', background: selectedModel === 'auto' ? 'rgba(139, 92, 246, 0.2)' : 'transparent' }}
-                                            >
-                                                <Brain className="w-4 h-4" style={{ color: '#8b5cf6' }} />
-                                                <span className="body" style={{ color: 'var(--foreground)' }}>Auto Intelligence</span>
-                                            </button>
 
-                                            {/* Plan-based models */}
+                                            {/* Get models for user's tier */}
                                             {(() => {
-                                                const userPlan = getCurrentPlan();
-                                                const allowedModels = getModelsByPlan(userPlan);
+                                                const availableModels = getModelsForTier(userTier);
 
-                                                const modelConfigs = [
-                                                    { id: 'ispat-v2-fast', name: 'Ispat v2 Fast', icon: Sparkles, color: '#06b6d4' },
-                                                    { id: 'barud2-pro', name: 'Barud2 Pro', icon: Zap, color: '#f59e0b' },
-                                                    { id: 'barud3', name: 'Barud3', icon: Zap, color: '#ef4444' },
-                                                    { id: 'ispat-v3-pro', name: 'Ispat v3 Pro', icon: Sparkles, color: '#8b5cf6' },
-                                                    { id: 'barud3-maxx', name: 'Barud3 Maxx', icon: Zap, color: '#f97316' },
-                                                    { id: 'ispat-v3-ultra', name: 'Ispat v3 Ultra', icon: Sparkles, color: '#a855f7' },
-                                                    { id: 'ispat-v3-maxx', name: 'Ispat v3 Maxx', icon: Sparkles, color: '#c026d3' }
-                                                ];
+                                                return availableModels.map(modelConfig => {
+                                                    const isSelected = selectedModel === modelConfig.id;
 
-                                                return modelConfigs.map(model => {
-                                                    const isAllowed = allowedModels.includes(model.id);
-                                                    const Icon = model.icon;
+                                                    // Icon mapping for models
+                                                    const getModelIcon = (id: ModelId) => {
+                                                        if (id.includes('ispat')) return Sparkles;
+                                                        if (id.includes('barud')) return Zap;
+                                                        if (id.includes('extreme')) return Brain;
+                                                        return MessageCircleIcon;
+                                                    };
 
-                                                    if (!isAllowed) return null; // Don't show locked models
+                                                    const Icon = getModelIcon(modelConfig.id);
 
                                                     return (
                                                         <button
-                                                            key={model.id}
-                                                            onClick={() => { setSelectedModel(model.id); setShowPlusMenu(false); }}
+                                                            key={modelConfig.id}
+                                                            onClick={() => { setSelectedModel(modelConfig.id); setShowPlusMenu(false); }}
                                                             className="w-full flex items-center gap-3 rounded-xl hover:bg-white/10 hover:scale-105 active:scale-95 transition-all"
                                                             style={{
                                                                 padding: '10px 12px',
                                                                 marginBottom: '4px',
-                                                                background: selectedModel === model.id ? 'rgba(139, 92, 246, 0.2)' : 'transparent'
+                                                                background: isSelected ? 'rgba(139, 92, 246, 0.2)' : 'transparent',
+                                                                border: isSelected ? '1px solid rgba(139, 92, 246, 0.3)' : '1px solid transparent'
                                                             }}
                                                         >
-                                                            <Icon className="w-4 h-4" style={{ color: model.color }} />
-                                                            <span className="body" style={{ color: 'var(--foreground)' }}>{model.name}</span>
+                                                            <Icon className="w-4 h-4" style={{ color: isSelected ? '#8b5cf6' : 'var(--foreground-tertiary)' }} />
+                                                            <div className="flex-1 text-left">
+                                                                <span className="body block" style={{ color: 'var(--foreground)', fontSize: '14px', fontWeight: isSelected ? '600' : '400' }}>
+                                                                    {modelConfig.displayName}
+                                                                </span>
+                                                                {modelConfig.isExtreme && (
+                                                                    <span className="small block" style={{ color: 'var(--foreground-tertiary)', fontSize: '11px', marginTop: '2px' }}>
+                                                                        Research & Analysis
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                            {isSelected && (
+                                                                <Check className="w-4 h-4" style={{ color: '#8b5cf6' }} />
+                                                            )}
                                                         </button>
                                                     );
                                                 });
                                             })()}
+
+                                            {/* Upgrade prompt for non-maxx users */}
+                                            {userTier !== 'maxx' && (
+                                                <div
+                                                    className="rounded-xl mt-3"
+                                                    style={{
+                                                        padding: '12px',
+                                                        background: 'rgba(139, 92, 246, 0.1)',
+                                                        border: '1px solid rgba(139, 92, 246, 0.2)'
+                                                    }}
+                                                >
+                                                    <p className="small" style={{ color: 'var(--foreground-secondary)', fontSize: '12px', marginBottom: '6px' }}>
+                                                        🚀 Want more models?
+                                                    </p>
+                                                    <button
+                                                        onClick={() => router.push('/dashboard')}
+                                                        className="text-xs font-semibold hover:underline"
+                                                        style={{ color: '#8b5cf6' }}
+                                                    >
+                                                        Upgrade to {userTier === 'free' ? 'PRO' : userTier === 'pro' ? 'ULTRA' : 'MAXX'} →
+                                                    </button>
+                                                </div>
+                                            )}
                                         </div>
                                     </motion.div>
                                 )}
