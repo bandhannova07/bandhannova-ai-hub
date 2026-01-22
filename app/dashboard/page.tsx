@@ -898,7 +898,7 @@ export default function DashboardPage() {
                                         marginBottom: '16px'
                                     }}
                                 >
-                                    Choose Your <span className="gradient-text">Growth Plan</span>
+                                    🌐 BandhanNova <span className="gradient-text">Pricing Plans</span>
                                 </h1>
                                 <p
                                     className="body-large text-center mx-auto"
@@ -907,91 +907,112 @@ export default function DashboardPage() {
                                         marginBottom: '30px'
                                     }}
                                 >
-                                    Unlock the full potential of AI-powered growth with plans designed for every journey
+                                    Simple + Powerful - Choose the perfect plan for your AI journey
                                 </p>
                             </motion.div>
 
+                            {/* Pricing Cards Grid */}
                             <div
-                                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 plans-grid-mobile"
-                                style={{ gap: '48px', marginBottom: '60px', padding: '0 16px' }}
+                                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4"
+                                style={{ gap: '24px', marginBottom: '60px', padding: '0 16px' }}
                             >
                                 {[
                                     {
-                                        name: 'Free',
+                                        name: 'FREE',
+                                        emoji: '🆓',
                                         price: '₹0',
                                         period: 'forever',
                                         icon: Sparkles,
                                         gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                                         popular: false,
-                                        features: [
-                                            '20 Messages/Day with Conversational AI',
-                                            '5 Image Generation/Day',
-                                            'Only 5 Research Chat/Day',
-                                            '15 Messages/Day with Every Featured AI Agents',
-                                            'AI Remember Limited Memories',
-                                            'Unlimited Web Searching with Research & Discovery AI',
-                                            "Limited Access of BandhanNova's latest models Ispat-v2-fast, Barud2-pro and Barud3"
-                                        ]
+                                        forWho: 'New users',
+                                        features: {
+                                            'AI Chat Access': '✅ Yes',
+                                            'Response Speed': '🐢 Slow',
+                                            'Daily AI Queries': '20 / day',
+                                            'Best AI Models Access': '❌ No',
+                                            'Multi-AI Routing': '❌ No',
+                                            'Memory (Chat Context)': '❌ No',
+                                            'Study Problem Solver': '❌ Limited',
+                                            'Courses Access': '🆓 Free Courses',
+                                            'Blogs (AI + Tech)': '✅ Yes',
+                                            'Affiliate Tool Suggestions': '✅ Limited',
+                                            'Ads': '✅ Yes',
+                                            'Priority Support': '❌ No'
+                                        }
                                     },
                                     {
-                                        name: 'Pro',
+                                        name: 'PRO',
+                                        emoji: '🔵',
                                         price: '₹249',
                                         period: 'per month',
                                         icon: Zap,
                                         gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
                                         popular: false,
-                                        features: [
-                                            '30+ Messages/Day with Conversational AI',
-                                            '10+ Image Generation/Day',
-                                            'Only 15 Research Chat/Day',
-                                            'Expanded AI Memories',
-                                            '25+ Messages/Day with Every Featured AI Agents',
-                                            'Unlimited Web Searching with Research & Discovery AI',
-                                            'Local Languages Available',
-                                            'Agent Remembers The User',
-                                            "Limited Full Access of BandhanNova's most trained models Ispat-v2-fast, Ispat-v3-pro/ultra/maxx and Barud2-pro, Barud3 and Barud3-maxx"
-                                        ]
+                                        forWho: 'Students',
+                                        features: {
+                                            'AI Chat Access': '✅ Yes',
+                                            'Response Speed': '⚡ Fast',
+                                            'Daily AI Queries': '70 / day',
+                                            'Best AI Models Access': '✅ Limited',
+                                            'Multi-AI Routing': '❌ No',
+                                            'Memory (Chat Context)': '✅ Basic',
+                                            'Study Problem Solver': '✅ Yes',
+                                            'Courses Access': '✅ 10% off',
+                                            'Blogs (AI + Tech)': '✅ Yes',
+                                            'Affiliate Tool Suggestions': '✅ Yes',
+                                            'Ads': '❌ No',
+                                            'Priority Support': '❌ No'
+                                        }
                                     },
                                     {
-                                        name: 'Ultra',
-                                        price: '₹699',
+                                        name: 'ULTRA',
+                                        emoji: '🟣',
+                                        price: '₹599',
                                         period: 'per month',
                                         badge: 'Most Popular',
                                         icon: Crown,
                                         gradient: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
                                         popular: true,
-                                        features: [
-                                            'more Chats with Conversational AI',
-                                            'More Image Generation/Day',
-                                            'Ultra Fast Memory Management',
-                                            'More Research Chats',
-                                            'Expanded AI Memories',
-                                            'Many Messages Per Day with Every Featured AI Agents',
-                                            'Unlimited Web Searching with Research & Discovery AI',
-                                            'Many Local Language Available',
-                                            'Agent Remembers The User',
-                                            "Access of BandhanNova's most trained models Ispat-v2-fast, Ispat-v3-pro/ultra/maxx and Barud2-pro, Barud3 and Barud3-maxx"
-                                        ]
+                                        forWho: 'Creators & Learners',
+                                        features: {
+                                            'AI Chat Access': '✅ Yes',
+                                            'Response Speed': '🚀 Faster',
+                                            'Daily AI Queries': '300 / day',
+                                            'Best AI Models Access': '✅ Full',
+                                            'Multi-AI Routing': '✅ Yes',
+                                            'Memory (Chat Context)': '✅ Extended',
+                                            'Study Problem Solver': '✅ Advanced',
+                                            'Courses Access': '✅ 20% off',
+                                            'Blogs (AI + Tech)': '✅ Yes',
+                                            'Affiliate Tool Suggestions': '✅ Yes',
+                                            'Ads': '❌ No',
+                                            'Priority Support': '✅ Yes'
+                                        }
                                     },
                                     {
-                                        name: 'Maxx',
+                                        name: 'MAXX',
+                                        emoji: '🔴',
                                         price: '₹1,999',
                                         period: 'per month',
                                         icon: Infinity,
                                         gradient: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
                                         popular: false,
-                                        features: [
-                                            'Unlimited Messages/Day with Conversational AI',
-                                            'Unlimited Image Generation/Day',
-                                            'Ultra Fast Memory Management',
-                                            'Many Research Chat/Day',
-                                            'Ultra Fast AI Memories',
-                                            'Unlimited Messages/Day with Every Featured AI Agents',
-                                            'Unlimited Web Searching with Research & Discovery AI',
-                                            'All Local Language Available',
-                                            'Agent Never Forget The User',
-                                            "Full Access of BandhanNova's most trained models Ispat-v2-fast, Ispat-v3-pro/ultra/maxx and Barud2-pro, Barud3 and Barud3-maxx"
-                                        ]
+                                        forWho: 'Power Users & Builders',
+                                        features: {
+                                            'AI Chat Access': '✅ Yes',
+                                            'Response Speed': '🧠 Ultra Fast',
+                                            'Daily AI Queries': 'Unlimited',
+                                            'Best AI Models Access': '✅ Premium + Priority',
+                                            'Multi-AI Routing': '✅ Advanced',
+                                            'Memory (Chat Context)': '✅ Long-Term Memory',
+                                            'Study Problem Solver': '✅ Expert Level',
+                                            'Courses Access': '✅ 50% off',
+                                            'Blogs (AI + Tech)': '✅ Yes',
+                                            'Affiliate Tool Suggestions': '✅ Smart + Priority',
+                                            'Ads': '❌ No',
+                                            'Priority Support': '✅ 24/7'
+                                        }
                                     }
                                 ].map((plan, index) => {
                                     const Icon = plan.icon;
@@ -1004,17 +1025,17 @@ export default function DashboardPage() {
                                             whileHover={{ scale: 1.03, y: -8 }}
                                             className="relative glass rounded-3xl border transition-all"
                                             style={{
-                                                padding: '40px 28px',
+                                                padding: '32px 24px',
                                                 borderColor: plan.popular ? 'var(--primary-purple)' : 'rgba(255, 255, 255, 0.1)',
                                                 backdropFilter: 'blur(20px)',
-                                                minHeight: '750px',
+                                                minHeight: '850px',
                                                 display: 'flex',
                                                 flexDirection: 'column'
                                             }}
                                         >
                                             {plan.popular && (
                                                 <div
-                                                    className="absolute -top-4 left-1/2 transform -translate-x-1/2 px-4 py-1 h-7 w-28 rounded-2xl text-sm font-semibold text-center flex flex-col justify-center"
+                                                    className="absolute -top-4 left-1/2 transform -translate-x-1/2 px-4 py-1 rounded-2xl text-sm font-semibold text-white"
                                                     style={{ background: 'var(--gradient-hero)' }}
                                                 >
                                                     {plan.badge}
@@ -1022,85 +1043,96 @@ export default function DashboardPage() {
                                             )}
 
                                             <div
-                                                className="rounded-2xl flex items-center justify-center mb-6 mx-auto"
+                                                className="rounded-2xl flex items-center justify-center mb-4 mx-auto"
                                                 style={{
-                                                    width: '64px',
-                                                    height: '64px',
+                                                    width: '56px',
+                                                    height: '56px',
                                                     background: plan.gradient,
                                                     boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)'
                                                 }}
                                             >
-                                                <Icon className="w-8 h-8 text-white" />
+                                                <Icon className="w-7 h-7 text-white" />
                                             </div>
 
                                             <h3
-                                                className="h3 text-center"
+                                                className="text-center font-bold mb-2"
                                                 style={{
                                                     color: 'var(--foreground)',
-                                                    marginBottom: '16px'
+                                                    fontSize: '24px'
                                                 }}
                                             >
-                                                {plan.name}
+                                                {plan.emoji} {plan.name}
                                             </h3>
 
-                                            <div className="mb-6 text-center">
-                                                <div className="flex items-baseline gap-2 justify-center">
+                                            <div className="mb-4 text-center">
+                                                <div className="flex items-baseline gap-2 justify-center mb-2">
                                                     <span
-                                                        className="h2"
+                                                        className="font-bold"
                                                         style={{
-                                                            color: 'var(--foreground)'
+                                                            color: 'var(--foreground)',
+                                                            fontSize: '32px'
                                                         }}
                                                     >
                                                         {plan.price}
                                                     </span>
                                                     <span
-                                                        className="body"
                                                         style={{
-                                                            color: 'var(--foreground-secondary)'
+                                                            color: 'var(--foreground-secondary)',
+                                                            fontSize: '14px'
                                                         }}
                                                     >
                                                         {plan.period}
                                                     </span>
                                                 </div>
+                                                <p
+                                                    className="text-sm"
+                                                    style={{ color: 'var(--foreground-tertiary)' }}
+                                                >
+                                                    For: {plan.forWho}
+                                                </p>
                                             </div>
 
-                                            <ul className="space-y-3 mb-6 flex-grow">
-                                                {plan.features.map((feature, i) => (
-                                                    <li key={i} className="flex items-start gap-3">
-                                                        <Check
-                                                            className="flex-shrink-0"
-                                                            style={{
-                                                                width: '20px',
-                                                                height: '20px',
-                                                                color: 'var(--accent-cyan)',
-                                                                marginTop: '2px'
-                                                            }}
-                                                        />
+                                            <div className="mb-6 flex-grow">
+                                                {Object.entries(plan.features).map(([feature, value], i) => (
+                                                    <div
+                                                        key={i}
+                                                        className="flex justify-between items-start py-2 border-b"
+                                                        style={{
+                                                            borderColor: 'rgba(255, 255, 255, 0.05)',
+                                                            fontSize: '13px'
+                                                        }}
+                                                    >
                                                         <span
                                                             style={{
-                                                                fontSize: '16px',
                                                                 color: 'var(--foreground-secondary)',
-                                                                lineHeight: '1.5'
+                                                                flex: 1
                                                             }}
                                                         >
                                                             {feature}
                                                         </span>
-                                                    </li>
+                                                        <span
+                                                            className="font-semibold text-right"
+                                                            style={{
+                                                                color: 'var(--foreground)',
+                                                                marginLeft: '8px'
+                                                            }}
+                                                        >
+                                                            {value}
+                                                        </span>
+                                                    </div>
                                                 ))}
-                                            </ul>
+                                            </div>
 
                                             <Button
                                                 onClick={async () => {
-                                                    if (plan.name === 'Free') {
+                                                    if (plan.name === 'FREE') {
                                                         alert('You are currently on the Free plan!');
                                                         return;
                                                     }
 
-                                                    // Simple Razorpay test
                                                     try {
                                                         const amount = parseInt(plan.price.replace(/[^0-9]/g, ''));
 
-                                                        // Create test order
                                                         const response = await fetch('/api/payment/test-order', {
                                                             method: 'POST',
                                                             headers: { 'Content-Type': 'application/json' },
@@ -1114,17 +1146,15 @@ export default function DashboardPage() {
                                                             return;
                                                         }
 
-                                                        // Open Razorpay
                                                         const options = {
                                                             key: data.keyId,
                                                             amount: data.amount * 100,
                                                             currency: 'INR',
                                                             name: 'BandhanNova AI Hub',
-                                                            description: `${plan.name} Plan - Test Payment`,
+                                                            description: `${plan.name} Plan`,
                                                             order_id: data.orderId,
                                                             handler: async function (response: any) {
                                                                 try {
-                                                                    // Verify payment
                                                                     const verifyRes = await fetch('/api/payment/verify-test', {
                                                                         method: 'POST',
                                                                         headers: { 'Content-Type': 'application/json' },
@@ -1134,17 +1164,13 @@ export default function DashboardPage() {
                                                                             razorpay_signature: response.razorpay_signature,
                                                                             planName: plan.name,
                                                                             amount: data.amount,
-                                                                            userId: user?.id // Pass user ID for DB update
+                                                                            userId: user?.id
                                                                         })
                                                                     });
 
                                                                     if (verifyRes.ok) {
-                                                                        // Store plan in localStorage for demo
                                                                         localStorage.setItem('userPlan', plan.name);
-
-                                                                        alert(`✅ Payment Successful!\n\nYou are now on ${plan.name} Plan!\n\nPayment ID: ${response.razorpay_payment_id}`);
-
-                                                                        // Reload to show new plan
+                                                                        alert(`✅ Payment Successful!\n\nYou are now on ${plan.name} Plan!`);
                                                                         window.location.reload();
                                                                     } else {
                                                                         alert('Payment verification failed. Please contact support.');
@@ -1167,28 +1193,21 @@ export default function DashboardPage() {
                                                 className="w-full rounded-xl font-semibold transition-all hover:scale-105"
                                                 style={{
                                                     padding: '14px',
-                                                    height: 'auto',
                                                     background: plan.name === stats.plan
-                                                        ? 'rgba(76, 175, 80, 0.2)' // Green for current plan
-                                                        : (plan.name === 'Free' && stats.plan !== 'Free')
-                                                            ? 'rgba(128, 128, 128, 0.2)' // Gray for Free when user has paid plan
+                                                        ? 'rgba(76, 175, 80, 0.2)'
+                                                        : (plan.name === 'FREE' && stats.plan !== 'Free')
+                                                            ? 'rgba(128, 128, 128, 0.2)'
                                                             : plan.popular ? 'var(--gradient-hero)' : 'rgba(255, 255, 255, 0.1)',
                                                     color: 'white',
                                                     border: plan.name === stats.plan
                                                         ? '2px solid rgba(76, 175, 80, 0.8)'
-                                                        : (plan.name === 'Free' && stats.plan !== 'Free')
-                                                            ? '1px solid rgba(128, 128, 128, 0.5)'
-                                                            : plan.popular ? 'none' : '1px solid rgba(255, 255, 255, 0.2)',
-                                                    cursor: (plan.name === stats.plan || (plan.name === 'Free' && stats.plan !== 'Free')) ? 'not-allowed' : 'pointer',
-                                                    opacity: (plan.name === stats.plan || (plan.name === 'Free' && stats.plan !== 'Free')) ? 0.7 : 1
+                                                        : plan.popular ? 'none' : '1px solid rgba(255, 255, 255, 0.2)',
+                                                    cursor: plan.name === stats.plan ? 'not-allowed' : 'pointer',
+                                                    opacity: plan.name === stats.plan ? 0.7 : 1
                                                 }}
-                                                disabled={plan.name === stats.plan || (plan.name === 'Free' && stats.plan !== 'Free')}
+                                                disabled={plan.name === stats.plan}
                                             >
-                                                {plan.name === stats.plan
-                                                    ? '✓ In Use'
-                                                    : (plan.name === 'Free' && stats.plan !== 'Free')
-                                                        ? 'Not Available'
-                                                        : 'Upgrade Now'}
+                                                {plan.name === stats.plan ? '✓ Current Plan' : 'Upgrade Now'}
                                             </Button>
                                         </motion.div>
                                     );
