@@ -84,6 +84,37 @@ export async function POST(req: NextRequest) {
         const apiKey = getApiKeyForTier(apiKeyTier);
         console.log(`🔑 Using API key tier: ${apiKeyTier}`);
 
+        // Perform Tavily search if enabled
+        let searchContext = '';
+        if (enableSearch) {
+            console.log('🔍 Performing Tavily search...');
+
+            // Use advanced research for Deep Research AI, quick search for others
+            if (modelId === 'bandhannova-research' || modelId === 'bandhannova-extreme') {
+                const { researchWithTavily } = await import('@/lib/ai/tavily-search');
+                const researchResult = await researchWithTavily(message);
+
+                if (researchResult && researchResult.status === 'completed') {
+                    searchContext = `\n\n**Research Results:**\n${researchResult.content}\n\n**Sources:**\n${researchResult.sources.map((s, i) => `${i + 1}. [${s.title}](${s.url})`).join('\n')}`;
+                    console.log('✅ Advanced research completed');
+                }
+            } else {
+                const { searchWithTavily } = await import('@/lib/ai/tavily-search');
+                const searchResult = await searchWithTavily(message, 'advanced');
+
+                if (searchResult && searchResult.results.length > 0) {
+                    searchContext = `\n\n**Web Search Results:**\n${searchResult.results.slice(0, 3).map((r, i) =>
+                        `${i + 1}. **${r.title}**\n   ${r.content}\n   Source: ${r.url}`
+                    ).join('\n\n')}`;
+
+                    if (searchResult.answer) {
+                        searchContext = `\n\n**Quick Answer:** ${searchResult.answer}\n${searchContext}`;
+                    }
+                    console.log('✅ Quick search completed');
+                }
+            }
+        }
+
         // Language detection
         let userLanguage = detectLanguage(message);
 
