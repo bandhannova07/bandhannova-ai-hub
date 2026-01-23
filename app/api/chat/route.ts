@@ -139,8 +139,11 @@ export async function POST(req: NextRequest) {
             messages.push(...recentHistory);
         }
 
-        // Add current user message
-        messages.push({ role: 'user', content: message });
+        // Add current user message with search context if available
+        const userMessageContent = searchContext
+            ? `${message}${searchContext}\n\n**Note:** Use the above search results to provide an accurate answer.`
+            : message;
+        messages.push({ role: 'user', content: userMessageContent });
 
         // Build fallback chain: primary + fallbacks
         const modelChain = [modelConfig.primaryModel, ...modelConfig.fallbackModels];

@@ -17,7 +17,9 @@ import {
     Check,
     Menu,
     X,
-    Plus
+    Paperclip,
+    Image as ImageIcon,
+    FileText
 } from 'lucide-react';
 import { getCurrentUser } from '@/lib/auth-simple';
 import { MarkdownRenderer } from '../chat/[agentType]/components/MarkdownRenderer';
@@ -64,6 +66,7 @@ export default function SearchPage() {
     const [isTyping, setIsTyping] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const deepInputRef = useRef<HTMLInputElement>(null);
+    const [showFileMenu, setShowFileMenu] = useState(false); // File upload menu toggle
 
     // Set sidebar state based on screen size
     useEffect(() => {
@@ -429,7 +432,7 @@ export default function SearchPage() {
             <div
                 className="relative flex-1 flex flex-col transition-all duration-300"
                 style={{
-                    marginLeft: isDesktop && sidebarOpen ? '320px' : '0'
+                    marginLeft: isDesktop && sidebarOpen ? '380px' : '0'
                 }}
             >
                 <div className="h-full flex flex-col">
@@ -441,10 +444,10 @@ export default function SearchPage() {
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: -20 }}
-                                className="flex-1 overflow-y-auto"
-                                style={{ padding: '60px 24px' }}
+                                className="flex-1 overflow-y-auto flex justify-center"
+                                style={{ padding: isDesktop ? '40px 24px' : '24px 16px' }}
                             >
-                                <div className="max-w-4xl mx-auto w-full">
+                                <div className="max-w-5xl w-full">
                                     {/* Search Hero */}
                                     {!hasSearched && (
                                         <motion.div
@@ -763,11 +766,73 @@ export default function SearchPage() {
                                     style={{
                                         background: 'var(--background)',
                                         borderTop: '1px solid var(--background-tertiary)',
-                                        padding: '20px 24px'
+                                        padding: isDesktop ? '20px 24px' : '16px 12px'
                                     }}
                                 >
                                     <form onSubmit={handleDeepResearch} className="max-w-5xl w-full">
-                                        <div className="relative">
+                                        <div className="flex items-center gap-2">
+                                            {/* File Upload Button with Dropdown */}
+                                            <div className="relative">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setShowFileMenu(!showFileMenu)}
+                                                    className="flex-shrink-0 rounded-2xl glass transition-all hover:scale-105"
+                                                    style={{
+                                                        padding: isDesktop ? '14px' : '12px',
+                                                        border: '1px solid rgba(255, 255, 255, 0.1)'
+                                                    }}
+                                                    title="Attach files or images"
+                                                >
+                                                    <Paperclip className={isDesktop ? 'w-5 h-5' : 'w-4 h-4'} style={{ color: 'var(--foreground-secondary)' }} />
+                                                </button>
+
+                                                {/* Dropdown Menu */}
+                                                {showFileMenu && (
+                                                    <div
+                                                        className="absolute bottom-full left-0 mb-2 glass rounded-xl overflow-hidden"
+                                                        style={{
+                                                            minWidth: '160px',
+                                                            border: '1px solid rgba(255, 255, 255, 0.1)',
+                                                            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
+                                                        }}
+                                                    >
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                setShowFileMenu(false);
+                                                                // Handle photo upload
+                                                            }}
+                                                            className="w-full flex items-center gap-3 transition-all hover:bg-white/5"
+                                                            style={{
+                                                                padding: '12px 16px',
+                                                                color: 'var(--foreground)',
+                                                                fontSize: '14px'
+                                                            }}
+                                                        >
+                                                            <ImageIcon className="w-4 h-4" style={{ color: '#6366f1' }} />
+                                                            <span>Photos</span>
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                setShowFileMenu(false);
+                                                                // Handle file upload
+                                                            }}
+                                                            className="w-full flex items-center gap-3 transition-all hover:bg-white/5"
+                                                            style={{
+                                                                padding: '12px 16px',
+                                                                color: 'var(--foreground)',
+                                                                fontSize: '14px',
+                                                                borderTop: '1px solid rgba(255, 255, 255, 0.05)'
+                                                            }}
+                                                        >
+                                                            <FileText className="w-4 h-4" style={{ color: '#8b5cf6' }} />
+                                                            <span>Files</span>
+                                                        </button>
+                                                    </div>
+                                                )}
+                                            </div>
+
                                             <input
                                                 ref={deepInputRef}
                                                 type="text"
@@ -775,30 +840,32 @@ export default function SearchPage() {
                                                 onChange={(e) => setInput(e.target.value)}
                                                 placeholder="Ask a research question..."
                                                 disabled={researching}
-                                                className="w-full glass rounded-3xl transition-all"
+                                                className="flex-1 glass rounded-3xl transition-all focus:border-purple-500"
                                                 style={{
-                                                    padding: '18px 70px 18px 24px',
-                                                    fontSize: '15px',
+                                                    padding: isDesktop ? '16px 20px' : '14px 16px',
+                                                    fontSize: isDesktop ? '15px' : '14px',
                                                     color: 'var(--foreground)',
                                                     border: '1px solid rgba(255, 255, 255, 0.1)',
                                                     outline: 'none',
                                                     backdropFilter: 'blur(20px)'
                                                 }}
                                             />
+
                                             <button
                                                 type="submit"
                                                 disabled={!input.trim() || researching}
-                                                className="absolute right-3 top-1/2 transform -translate-y-1/2 rounded-xl transition-all hover:scale-110 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                className="flex-shrink-0 rounded-2xl transition-all hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                                                 style={{
-                                                    padding: '12px',
+                                                    padding: isDesktop ? '14px' : '12px',
                                                     background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
-                                                    color: 'white'
+                                                    color: 'white',
+                                                    boxShadow: '0 4px 16px rgba(99, 102, 241, 0.3)'
                                                 }}
                                             >
                                                 {researching ? (
-                                                    <Loader2 className="w-5 h-5 animate-spin" />
+                                                    <Loader2 className={isDesktop ? 'w-5 h-5' : 'w-4 h-4'} style={{ animation: 'spin 1s linear infinite' }} />
                                                 ) : (
-                                                    <Send className="w-5 h-5" />
+                                                    <Send className={isDesktop ? 'w-5 h-5' : 'w-4 h-4'} />
                                                 )}
                                             </button>
                                         </div>

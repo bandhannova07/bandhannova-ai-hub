@@ -222,8 +222,14 @@ class TavilySearchManager {
 
             const client = tavily({ apiKey });
 
-            // Start research task
-            const { request_id } = await client.research(query, options);
+            // Start research task with type assertion
+            const researchResponse: any = await client.research(query, options);
+            const request_id = researchResponse?.request_id;
+
+            if (!request_id) {
+                throw new Error('No request_id received from Tavily');
+            }
+
             console.log(`📋 Research task started: ${request_id}`);
 
             // Poll for results
@@ -232,14 +238,14 @@ class TavilySearchManager {
                 const maxAttempts = 30; // 60 seconds max (30 * 2s)
 
                 while (attempts < maxAttempts) {
-                    const result = await client.getResearch(request_id);
+                    const result: any = await client.getResearch(request_id);
 
                     if (result.status === 'completed') {
                         console.log(`✅ Research completed successfully`);
                         return {
-                            content: result.content,
-                            sources: result.sources,
-                            status: 'completed'
+                            content: result.content || '',
+                            sources: result.sources || [],
+                            status: 'completed' as const
                         };
                     } else if (result.status === 'failed') {
                         console.error('❌ Research failed');

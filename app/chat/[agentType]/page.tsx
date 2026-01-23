@@ -259,6 +259,8 @@ export default function ChatPage() {
     const [selectedModel, setSelectedModel] = useState<ModelId>('ispat-v2-flash'); // Default to free tier model
     const [showPlusMenu, setShowPlusMenu] = useState(false);
     const [userTier, setUserTier] = useState<SubscriptionTier>('free'); // User's subscription tier
+    const [enableSearch, setEnableSearch] = useState(false); // Tavily AI search toggle
+    const [researchMode, setResearchMode] = useState<'web-searching' | 'deep-research'>('web-searching'); // Research mode for search-engine agent
     const responseMode = 'normal'; // Fixed to normal mode for conversational AI
 
     // Set sidebar open by default on desktop
@@ -529,7 +531,8 @@ export default function ChatPage() {
                     modelId: selectedModel, // Send modelId instead of agentType
                     responseMode,
                     conversationHistory,
-                    userId
+                    userId,
+                    enableSearch // Send search toggle state
                 }),
             });
 
@@ -1196,104 +1199,190 @@ export default function ChatPage() {
                                             zIndex: 1000
                                         }}
                                     >
-                                        {/* Media Section */}
-                                        <div style={{ marginBottom: '14px' }}>
-                                            <p className="small" style={{ fontWeight: '600', color: 'var(--foreground-tertiary)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                                                Media
-                                            </p>
-                                            <button
-                                                className="w-full flex items-center gap-3 rounded-xl hover:bg-white/10 hover:scale-105 active:scale-95 transition-all"
-                                                style={{ padding: '10px 12px', marginBottom: '4px' }}
-                                            >
-                                                <ImageIcon className="w-4 h-4" style={{ color: '#8b5cf6' }} />
-                                                <span className="body" style={{ color: 'var(--foreground)' }}>Upload Images</span>
-                                            </button>
-                                            <button
-                                                className="w-full flex items-center gap-3 rounded-xl hover:bg-white/10 hover:scale-105 active:scale-95 transition-all"
-                                                style={{ padding: '10px 12px' }}
-                                            >
-                                                <FileText className="w-4 h-4" style={{ color: '#8b5cf6' }} />
-                                                <span className="body" style={{ color: 'var(--foreground)' }}>Upload Files</span>
-                                            </button>
-                                        </div>
-
-                                        {/* Models Section */}
-                                        <div>
-                                            <p className="small" style={{ fontWeight: '600', color: 'var(--foreground-tertiary)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                                                Models ({userTier.toUpperCase()} Tier)
-                                            </p>
-
-                                            {/* Get models for user's tier */}
-                                            {(() => {
-                                                const availableModels = getModelsForTier(userTier);
-
-                                                return availableModels.map(modelConfig => {
-                                                    const isSelected = selectedModel === modelConfig.id;
-
-                                                    // Icon mapping for models
-                                                    const getModelIcon = (id: ModelId) => {
-                                                        if (id.includes('ispat')) return Sparkles;
-                                                        if (id.includes('barud')) return Zap;
-                                                        if (id.includes('extreme')) return Brain;
-                                                        return MessageCircleIcon;
-                                                    };
-
-                                                    const Icon = getModelIcon(modelConfig.id);
-
-                                                    return (
-                                                        <button
-                                                            key={modelConfig.id}
-                                                            onClick={() => { setSelectedModel(modelConfig.id); setShowPlusMenu(false); }}
-                                                            className="w-full flex items-center gap-3 rounded-xl hover:bg-white/10 hover:scale-105 active:scale-95 transition-all"
-                                                            style={{
-                                                                padding: '10px 12px',
-                                                                marginBottom: '4px',
-                                                                background: isSelected ? 'rgba(139, 92, 246, 0.2)' : 'transparent',
-                                                                border: isSelected ? '1px solid rgba(139, 92, 246, 0.3)' : '1px solid transparent'
-                                                            }}
-                                                        >
-                                                            <Icon className="w-4 h-4" style={{ color: isSelected ? '#8b5cf6' : 'var(--foreground-tertiary)' }} />
-                                                            <div className="flex-1 text-left">
-                                                                <span className="body block" style={{ color: 'var(--foreground)', fontSize: '14px', fontWeight: isSelected ? '600' : '400' }}>
-                                                                    {modelConfig.displayName}
-                                                                </span>
-                                                                {modelConfig.isExtreme && (
-                                                                    <span className="small block" style={{ color: 'var(--foreground-tertiary)', fontSize: '11px', marginTop: '2px' }}>
-                                                                        Research & Analysis
-                                                                    </span>
-                                                                )}
-                                                            </div>
-                                                            {isSelected && (
-                                                                <Check className="w-4 h-4" style={{ color: '#8b5cf6' }} />
-                                                            )}
-                                                        </button>
-                                                    );
-                                                });
-                                            })()}
-
-                                            {/* Upgrade prompt for non-maxx users */}
-                                            {userTier !== 'maxx' && (
-                                                <div
-                                                    className="rounded-xl mt-3"
-                                                    style={{
-                                                        padding: '12px',
-                                                        background: 'rgba(139, 92, 246, 0.1)',
-                                                        border: '1px solid rgba(139, 92, 246, 0.2)'
-                                                    }}
-                                                >
-                                                    <p className="small" style={{ color: 'var(--foreground-secondary)', fontSize: '12px', marginBottom: '6px' }}>
-                                                        🚀 Want more models?
+                                        {/* Conditional Dropdown based on Agent Type */}
+                                        {agentType === 'search-engine' ? (
+                                            // Research AI specific dropdown
+                                            <>
+                                                {/* Media Section */}
+                                                <div style={{ marginBottom: '14px' }}>
+                                                    <p className="small" style={{ fontWeight: '600', color: 'var(--foreground-tertiary)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                                                        Media
                                                     </p>
                                                     <button
-                                                        onClick={() => router.push('/dashboard')}
-                                                        className="text-xs font-semibold hover:underline"
-                                                        style={{ color: '#8b5cf6' }}
+                                                        className="w-full flex items-center gap-3 rounded-xl hover:bg-white/10 hover:scale-105 active:scale-95 transition-all"
+                                                        style={{ padding: '10px 12px', marginBottom: '4px' }}
                                                     >
-                                                        Upgrade to {userTier === 'free' ? 'PRO' : userTier === 'pro' ? 'ULTRA' : 'MAXX'} →
+                                                        <ImageIcon className="w-4 h-4" style={{ color: '#8b5cf6' }} />
+                                                        <span className="body" style={{ color: 'var(--foreground)' }}>Upload Images</span>
+                                                    </button>
+                                                    <button
+                                                        className="w-full flex items-center gap-3 rounded-xl hover:bg-white/10 hover:scale-105 active:scale-95 transition-all"
+                                                        style={{ padding: '10px 12px' }}
+                                                    >
+                                                        <FileText className="w-4 h-4" style={{ color: '#8b5cf6' }} />
+                                                        <span className="body" style={{ color: 'var(--foreground)' }}>Upload Files</span>
                                                     </button>
                                                 </div>
-                                            )}
-                                        </div>
+
+                                                {/* Research Modes Section */}
+                                                <div style={{ marginBottom: '14px' }}>
+                                                    <p className="small" style={{ fontWeight: '600', color: 'var(--foreground-tertiary)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                                                        Research Models
+                                                    </p>
+
+                                                    <button
+                                                        onClick={() => {
+                                                            setResearchMode('web-searching');
+                                                            setShowPlusMenu(false);
+                                                        }}
+                                                        className="w-full flex items-center gap-3 rounded-xl hover:bg-white/10 hover:scale-105 active:scale-95 transition-all"
+                                                        style={{
+                                                            padding: '10px 12px',
+                                                            marginBottom: '4px',
+                                                            background: researchMode === 'web-searching' ? 'rgba(99, 102, 241, 0.2)' : 'transparent',
+                                                            border: researchMode === 'web-searching' ? '1px solid rgba(99, 102, 241, 0.3)' : '1px solid transparent'
+                                                        }}
+                                                    >
+                                                        <Globe className="w-4 h-4" style={{ color: researchMode === 'web-searching' ? '#6366f1' : 'var(--foreground-tertiary)' }} />
+                                                        <div className="flex-1 text-left">
+                                                            <span className="body block" style={{ color: 'var(--foreground)', fontSize: '14px', fontWeight: researchMode === 'web-searching' ? '600' : '400' }}>
+                                                                BandhanNova 2.0 eXtreme
+                                                            </span>
+                                                            <span className="small block" style={{ color: 'var(--foreground-tertiary)', fontSize: '11px', marginTop: '2px' }}>
+                                                                Web searching
+                                                            </span>
+                                                        </div>
+                                                    </button>
+
+                                                    <button
+                                                        onClick={() => {
+                                                            setResearchMode('deep-research');
+                                                            setShowPlusMenu(false);
+                                                        }}
+                                                        className="w-full flex items-center gap-3 rounded-xl hover:bg-white/10 hover:scale-105 active:scale-95 transition-all"
+                                                        style={{
+                                                            padding: '10px 12px',
+                                                            background: researchMode === 'deep-research' ? 'rgba(139, 92, 246, 0.2)' : 'transparent',
+                                                            border: researchMode === 'deep-research' ? '1px solid rgba(139, 92, 246, 0.3)' : '1px solid transparent'
+                                                        }}
+                                                    >
+                                                        <MessageCircleIcon className="w-4 h-4" style={{ color: researchMode === 'deep-research' ? '#8b5cf6' : 'var(--foreground-tertiary)' }} />
+                                                        <div className="flex-1 text-left">
+                                                            <span className="body block" style={{ color: 'var(--foreground)', fontSize: '14px', fontWeight: researchMode === 'deep-research' ? '600' : '400' }}>
+                                                                BandhanNova 2.0 eXtreme
+                                                            </span>
+                                                            <span className="small block" style={{ color: 'var(--foreground-tertiary)', fontSize: '11px', marginTop: '2px' }}>
+                                                                Deep research
+                                                            </span>
+                                                        </div>
+                                                    </button>
+                                                </div>
+                                            </>
+                                        ) : (
+                                            // Default dropdown for other agents
+                                            <>
+                                                {/* Media Section */}
+                                                <div style={{ marginBottom: '14px' }}>
+                                                    <p className="small" style={{ fontWeight: '600', color: 'var(--foreground-tertiary)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                                                        Media
+                                                    </p>
+                                                    <button
+                                                        className="w-full flex items-center gap-3 rounded-xl hover:bg-white/10 hover:scale-105 active:scale-95 transition-all"
+                                                        style={{ padding: '10px 12px', marginBottom: '4px' }}
+                                                    >
+                                                        <ImageIcon className="w-4 h-4" style={{ color: '#8b5cf6' }} />
+                                                        <span className="body" style={{ color: 'var(--foreground)' }}>Upload Images</span>
+                                                    </button>
+                                                    <button
+                                                        className="w-full flex items-center gap-3 rounded-xl hover:bg-white/10 hover:scale-105 active:scale-95 transition-all"
+                                                        style={{ padding: '10px 12px' }}
+                                                    >
+                                                        <FileText className="w-4 h-4" style={{ color: '#8b5cf6' }} />
+                                                        <span className="body" style={{ color: 'var(--foreground)' }}>Upload Files</span>
+                                                    </button>
+                                                </div>
+                                            </>
+                                        )}
+
+                                        {/* Models Section - Hidden for search-engine */}
+                                        {agentType !== 'search-engine' && (
+                                            <div>
+                                                <p className="small" style={{ fontWeight: '600', color: 'var(--foreground-tertiary)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                                                    Models ({userTier.toUpperCase()} Tier)
+                                                </p>
+
+                                                {/* Get models for user's tier */}
+                                                {(() => {
+                                                    const availableModels = getModelsForTier(userTier);
+
+                                                    return availableModels.map(modelConfig => {
+                                                        const isSelected = selectedModel === modelConfig.id;
+
+                                                        // Icon mapping for models
+                                                        const getModelIcon = (id: ModelId) => {
+                                                            if (id.includes('ispat')) return Sparkles;
+                                                            if (id.includes('barud')) return Zap;
+                                                            if (id.includes('extreme')) return Brain;
+                                                            return MessageCircleIcon;
+                                                        };
+
+                                                        const Icon = getModelIcon(modelConfig.id);
+
+                                                        return (
+                                                            <button
+                                                                key={modelConfig.id}
+                                                                onClick={() => { setSelectedModel(modelConfig.id); setShowPlusMenu(false); }}
+                                                                className="w-full flex items-center gap-3 rounded-xl hover:bg-white/10 hover:scale-105 active:scale-95 transition-all"
+                                                                style={{
+                                                                    padding: '10px 12px',
+                                                                    marginBottom: '4px',
+                                                                    background: isSelected ? 'rgba(139, 92, 246, 0.2)' : 'transparent',
+                                                                    border: isSelected ? '1px solid rgba(139, 92, 246, 0.3)' : '1px solid transparent'
+                                                                }}
+                                                            >
+                                                                <Icon className="w-4 h-4" style={{ color: isSelected ? '#8b5cf6' : 'var(--foreground-tertiary)' }} />
+                                                                <div className="flex-1 text-left">
+                                                                    <span className="body block" style={{ color: 'var(--foreground)', fontSize: '14px', fontWeight: isSelected ? '600' : '400' }}>
+                                                                        {modelConfig.displayName}
+                                                                    </span>
+                                                                    {modelConfig.isExtreme && (
+                                                                        <span className="small block" style={{ color: 'var(--foreground-tertiary)', fontSize: '11px', marginTop: '2px' }}>
+                                                                            Research & Analysis
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                                {isSelected && (
+                                                                    <Check className="w-4 h-4" style={{ color: '#8b5cf6' }} />
+                                                                )}
+                                                            </button>
+                                                        );
+                                                    });
+                                                })()}
+
+                                                {/* Upgrade prompt for non-maxx users */}
+                                                {userTier !== 'maxx' && (
+                                                    <div
+                                                        className="rounded-xl mt-3"
+                                                        style={{
+                                                            padding: '12px',
+                                                            background: 'rgba(139, 92, 246, 0.1)',
+                                                            border: '1px solid rgba(139, 92, 246, 0.2)'
+                                                        }}
+                                                    >
+                                                        <p className="small" style={{ color: 'var(--foreground-secondary)', fontSize: '12px', marginBottom: '6px' }}>
+                                                            🚀 Want more models?
+                                                        </p>
+                                                        <button
+                                                            onClick={() => router.push('/dashboard')}
+                                                            className="text-xs font-semibold hover:underline"
+                                                            style={{ color: '#8b5cf6' }}
+                                                        >
+                                                            Upgrade to {userTier === 'free' ? 'PRO' : userTier === 'pro' ? 'ULTRA' : 'MAXX'} →
+                                                        </button>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
                                     </motion.div>
                                 )}
                             </div>
@@ -1348,6 +1437,31 @@ export default function ChatPage() {
                                 }}
                                 disabled={loading}
                             />
+
+                            {/* Search Toggle Button */}
+                            <Button
+                                onClick={() => setEnableSearch(!enableSearch)}
+                                className="flex-shrink-0"
+                                style={{
+                                    width: isDesktop ? '52px' : '46px',
+                                    height: isDesktop ? '52px' : '46px',
+                                    borderRadius: '16px',
+                                    background: enableSearch
+                                        ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+                                        : 'rgba(255, 255, 255, 0.05)',
+                                    border: enableSearch
+                                        ? 'none'
+                                        : '1px solid rgba(255, 255, 255, 0.15)',
+                                    color: enableSearch ? 'white' : 'var(--foreground-secondary)',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s ease',
+                                    boxShadow: enableSearch ? '0 4px 16px rgba(102, 126, 234, 0.4)' : 'none'
+                                }}
+                                title={enableSearch ? '🔍 AI Search ON' : 'Enable AI Search'}
+                            >
+                                <Search className={isDesktop ? 'w-5 h-5' : 'w-4 h-4'} />
+                            </Button>
+
                             <Button
                                 onClick={handleSend}
                                 disabled={!input.trim() || loading}
