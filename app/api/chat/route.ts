@@ -15,6 +15,7 @@ import { checkAndIncrementExtremeUsage } from '@/lib/ai/usage-tracker';
 import { detectLanguage, getLanguageInstruction } from '@/lib/ai/language-detection';
 import { buildOptimizedPrompt } from '@/lib/ai/optimized-prompts';
 import { AIMode } from '@/lib/ai/models/config';
+import { searchWithTavily } from '@/lib/ai/tavily-search';
 
 export const runtime = 'edge';
 
@@ -26,6 +27,7 @@ export async function POST(req: NextRequest) {
             responseMode,
             conversationHistory,
             userId,
+            enableSearch = false, // New: Enable Tavily AI search
         } = await req.json();
 
         // Validation
