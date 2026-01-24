@@ -159,7 +159,7 @@ export default function SignupPage() {
             />
 
             {/* Main Content */}
-            <div className="relative z-10 w-full" style={{ padding: '48px 24px' }}>
+            <div className="relative z-10 w-full" style={{ padding: '48px 4px' }}>
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -182,7 +182,7 @@ export default function SignupPage() {
                     </div>
 
                     {/* Signup Card */}
-                    <Card className="glass-strong border-0" style={{ padding: '32px' }}>
+                    <Card className="glass-strong border-0" style={{ padding: '32px', marginBottom: '8px' }}>
                         <CardHeader style={{ padding: '0 0 24px 0' }}>
                             <CardTitle className="h1 text-center" style={{ color: 'var(--foreground)', marginBottom: '8px' }}>
                                 Create Your Account

@@ -14,6 +14,9 @@ import { getUserTierSimple } from '@/lib/db/get-user-tier';
 import { checkAndIncrementExtremeUsage } from '@/lib/ai/usage-tracker';
 import { detectLanguage, getLanguageInstruction } from '@/lib/ai/language-detection';
 import { buildOptimizedPrompt } from '@/lib/ai/optimized-prompts';
+import { getAgentPrompt } from '@/lib/ai/agent-manager';
+import { getModelIdentityPrompt } from '@/lib/ai/model-prompts';
+import { COMPANY_KEYWORDS, getCompanyKnowledgeJSON } from '@/lib/ai/company-knowledge';
 import { AIMode } from '@/lib/ai/models/config';
 import { searchWithTavily } from '@/lib/ai/tavily-search';
 
@@ -28,6 +31,7 @@ export async function POST(req: NextRequest) {
             conversationHistory,
             userId,
             enableSearch = false, // New: Enable Tavily AI search
+            agentType, // New: Agent type for specific persona
         } = await req.json();
 
         // Validation
@@ -120,7 +124,29 @@ export async function POST(req: NextRequest) {
 
         // Build system prompt
         const mode = (responseMode as AIMode) || 'normal';
-        let systemPrompt = buildOptimizedPrompt(mode, message);
+        let systemPrompt: string;
+
+        // 1. Get Agent Persona
+        if (agentType) {
+            systemPrompt = getAgentPrompt(agentType, mode);
+        } else {
+            systemPrompt = buildOptimizedPrompt(mode, message);
+        }
+
+        // 2. Inject Model Identity (Top Layer)
+        const modelIdentity = getModelIdentityPrompt(modelId as ModelId);
+        systemPrompt = `${modelIdentity}\n\n${systemPrompt}`;
+
+        // 3. Inject Company Knowledge (Conditional Layer)
+        // Check if message contains any company keywords
+        const lowerMessage = message.toLowerCase();
+        const hasCompanyKeyword = COMPANY_KEYWORDS.some(keyword => lowerMessage.includes(keyword));
+
+        if (hasCompanyKeyword) {
+            console.log('🏢 Transforming prompt with Company Knowledge');
+            const companyContext = getCompanyKnowledgeJSON();
+            systemPrompt = `${systemPrompt}\n\n**RELEVANT CONTEXT (Use this to answer questions about BandhanNova):**\n${companyContext}`;
+        }
 
         // Add language instruction if not English
         if (userLanguage && userLanguage !== 'en') {

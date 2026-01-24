@@ -777,7 +777,7 @@ export default function DashboardPage() {
                                     </h3>
                                     <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3" style={{ gap: '12px' }}>
                                         {AI_AGENTS.filter(agent =>
-                                            ['study-learning', 'search-engine', 'future-jobs-career'].includes(agent.id)
+                                            ['study-learning', 'search-engine', 'decision-maker', 'creator-social', 'future-jobs-career'].includes(agent.id)
                                         ).map((agent, index) => {
                                             const Icon = agent.icon;
                                             return (

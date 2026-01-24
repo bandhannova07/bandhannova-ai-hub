@@ -528,7 +528,8 @@ export default function ChatPage() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     message: userInput,
-                    modelId: selectedModel, // Send modelId instead of agentType
+                    modelId: selectedModel, // Send modelId
+                    agentType, // Send agentType to get specific persona
                     responseMode,
                     conversationHistory,
                     userId,
@@ -1438,29 +1439,7 @@ export default function ChatPage() {
                                 disabled={loading}
                             />
 
-                            {/* Search Toggle Button */}
-                            <Button
-                                onClick={() => setEnableSearch(!enableSearch)}
-                                className="flex-shrink-0"
-                                style={{
-                                    width: isDesktop ? '52px' : '46px',
-                                    height: isDesktop ? '52px' : '46px',
-                                    borderRadius: '16px',
-                                    background: enableSearch
-                                        ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
-                                        : 'rgba(255, 255, 255, 0.05)',
-                                    border: enableSearch
-                                        ? 'none'
-                                        : '1px solid rgba(255, 255, 255, 0.15)',
-                                    color: enableSearch ? 'white' : 'var(--foreground-secondary)',
-                                    cursor: 'pointer',
-                                    transition: 'all 0.2s ease',
-                                    boxShadow: enableSearch ? '0 4px 16px rgba(102, 126, 234, 0.4)' : 'none'
-                                }}
-                                title={enableSearch ? '🔍 AI Search ON' : 'Enable AI Search'}
-                            >
-                                <Search className={isDesktop ? 'w-5 h-5' : 'w-4 h-4'} />
-                            </Button>
+
 
                             <Button
                                 onClick={handleSend}
