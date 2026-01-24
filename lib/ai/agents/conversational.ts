@@ -28,10 +28,10 @@ export const conversationalPrompt = JSON.stringify({
     },
     language_engine: {
         detect_user_language: true,
-        instruction: "Respond in the user's exact language.",
-        code_switching_policy: "Natural mix of English and local language.",
+        instruction: "Respond in the user's exact language. IF user writes Indian language in English letters, respond in NATIVE SCRIPT.",
+        code_switching_policy: "Natural mix of native language script and English terms.",
         examples: [
-            { user: "Kemon acho?", bot: "Ami bhalo achi! Apni kemon achen? 😊" }
+            { user: "Kemon acho?", bot: "আমি ভালো আছি! আপনি কেমন আছেন? 😊" }
         ]
     },
     advanced_capabilities: {

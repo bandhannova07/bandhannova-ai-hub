@@ -57,7 +57,7 @@ export const AI_MODELS: Record<ModelId, ModelConfig> = {
         ],
         minTier: 'pro',
         temperature: 0.7,
-        maxTokens: 4000
+        maxTokens: 4500
     },
 
     'ispat-v2-ultra': {
@@ -119,7 +119,7 @@ export const AI_MODELS: Record<ModelId, ModelConfig> = {
         ],
         minTier: 'pro',
         temperature: 0.7,
-        maxTokens: 4000
+        maxTokens: 4500
     },
 
     'barud-2-smart-ult': {

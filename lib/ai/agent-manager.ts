@@ -39,7 +39,7 @@ export function getAgentPrompt(agentType: string, mode: 'quick' | 'normal' | 'th
 
     if (!prompt) {
         // Fallback to generic prompt if agent type is unknown
-        return getOptimizedPrompt(mode);
+        return getOptimizedPrompt();
     }
 
     // Handle dynamic prompts (functions) vs static prompts (strings)

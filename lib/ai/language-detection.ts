@@ -82,8 +82,8 @@ export function getLanguageInstruction(languageCode: string): string {
     const languageName = getLanguageName(languageCode);
 
     if (languageCode === 'en') {
-        return 'Respond in English.';
+        return 'Respond in English. However, if the user writes in an Indian language using English letters (Transliteration), detect the language (Bengali, Tamil, Hindi, etc.) and ALWAYS respond in that language\'s NATIVE SCRIPT (e.g., Bengali script for Bengali, Tamil script for Tamil). Do NOT use English letters for Indian languages.';
     }
 
-    return `IMPORTANT: User prefers ${languageName}. Respond primarily in ${languageName} with controlled English mixing for technical terms (80% ${languageName}, 20% English).`;
+    return `IMPORTANT: User prefers ${languageName}. Respond primarily in ${languageName} script. Even if the user writes in English letters (Transliteration), you MUST respond in the ${languageName} native script. Mix valid English terms only for technical concepts (80% ${languageName}, 20% English).`;
 }
