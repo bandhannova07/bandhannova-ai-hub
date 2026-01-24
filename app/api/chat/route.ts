@@ -20,7 +20,8 @@ import { COMPANY_KEYWORDS, getCompanyKnowledgeJSON } from '@/lib/ai/company-know
 import { AIMode } from '@/lib/ai/models/config';
 import { searchWithTavily } from '@/lib/ai/tavily-search';
 
-export const runtime = 'edge';
+export const maxDuration = 60; // Allow up to 60 seconds for execution
+export const runtime = 'nodejs';
 
 export async function POST(req: NextRequest) {
     try {
