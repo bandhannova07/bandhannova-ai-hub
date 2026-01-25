@@ -129,7 +129,7 @@ const AGENT_CONFIG: Record<string, any> = {
         icon: MessageCircleIcon,
         gradient: 'linear-gradient(135deg, #06b6d4 0%, #0891b2 100%)',
         color: '#06b6d4',
-        description: '5-Agent Intelligence System',
+        description: 'Your intelligent daily assistant',
         models: [
             '5 Specialized AI Agents',
             'Intent Analyzer',

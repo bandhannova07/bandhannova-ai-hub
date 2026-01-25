@@ -244,7 +244,7 @@ export default function Home() {
             {[
               {
                 title: 'Conversational AI',
-                description: 'Context-aware AI that understands the platform and remembers your preferences',
+                description: 'Your intelligent daily assistant',
                 icon: '💬',
                 gradient: 'linear-gradient(135deg, #C683D7 0%, #00D9FF 100%)',
               },

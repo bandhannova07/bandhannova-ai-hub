@@ -12,7 +12,9 @@ export type ModelId =
     | 'barud-2-smart-pro'
     | 'barud-2-smart-ult'
     | 'barud-2-smart-max'
-    | 'bandhannova-2-extreme';
+    | 'bandhannova-2-extreme'
+    | 'groq-llama3-70b'
+    | 'groq-mixtral-8x7b';
 
 export interface ModelConfig {
     id: ModelId;
@@ -168,6 +170,30 @@ export const AI_MODELS: Record<ModelId, ModelConfig> = {
         temperature: 0.5,
         maxTokens: 10000,
         isExtreme: true
+    },
+
+    // Groq Models
+    'groq-llama3-70b': {
+        id: 'groq-llama3-70b',
+        name: 'Groq Llama 3.3 70B',
+        displayName: '⚡ Groq Llama 3.3',
+        description: 'Ultra-fast inference with Llama 3.3 70B',
+        primaryModel: 'llama-3.3-70b-versatile', // Updated to supported model
+        fallbackModels: ['llama-3.1-8b-instant'],
+        minTier: 'free',
+        temperature: 0.7,
+        maxTokens: 8192
+    },
+    'groq-mixtral-8x7b': {
+        id: 'groq-mixtral-8x7b',
+        name: 'Groq Mixtral 8x7B',
+        displayName: '⚡ Groq Mixtral',
+        description: 'High performance Mixtral model on Groq LPU',
+        primaryModel: 'mixtral-8x7b-32768',
+        fallbackModels: ['llama3-70b-8192'],
+        minTier: 'pro',
+        temperature: 0.7,
+        maxTokens: 32768
     }
 };
 
@@ -176,14 +202,17 @@ export const TIER_MODEL_ACCESS: Record<SubscriptionTier, ModelId[]> = {
     free: [
         'ispat-v2-flash',
         'barud-2-smart-fls',
-        'bandhannova-2-extreme'
+        'bandhannova-2-extreme',
+        'groq-llama3-70b'
     ],
     pro: [
         'ispat-v2-flash',
         'barud-2-smart-fls',
         'ispat-v2-pro',
         'barud-2-smart-pro',
-        'bandhannova-2-extreme'
+        'bandhannova-2-extreme',
+        'groq-llama3-70b',
+        'groq-mixtral-8x7b'
     ],
     ultra: [
         'ispat-v2-flash',
@@ -192,7 +221,9 @@ export const TIER_MODEL_ACCESS: Record<SubscriptionTier, ModelId[]> = {
         'barud-2-smart-pro',
         'ispat-v2-ultra',
         'barud-2-smart-ult',
-        'bandhannova-2-extreme'
+        'bandhannova-2-extreme',
+        'groq-llama3-70b',
+        'groq-mixtral-8x7b'
     ],
     maxx: [
         'ispat-v2-flash',
@@ -203,7 +234,9 @@ export const TIER_MODEL_ACCESS: Record<SubscriptionTier, ModelId[]> = {
         'barud-2-smart-ult',
         'ispat-v2-maxx',
         'barud-2-smart-max',
-        'bandhannova-2-extreme'
+        'bandhannova-2-extreme',
+        'groq-llama3-70b',
+        'groq-mixtral-8x7b'
     ]
 };
 

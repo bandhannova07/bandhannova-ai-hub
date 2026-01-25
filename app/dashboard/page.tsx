@@ -111,7 +111,7 @@ const AI_AGENTS = [
         name: 'Conversational AI',
         icon: MessageCircle,
         gradient: 'linear-gradient(135deg, #06b6d4 0%, #0891b2 100%)',
-        description: 'General chat, questions, friendly assistance',
+        description: 'Your intelligent daily assistant',
         features: ['General Chat', 'Q&A', 'Daily Help'],
         buttonText: 'Start Chatting'
     },
