@@ -4,7 +4,7 @@
 export class GroqKeyManager {
     private static instance: GroqKeyManager;
     private currentKeyIndex: number = 1;
-    private readonly maxKeys: number = 12; // Supporting up to 12 keys as requested (10-12)
+    private readonly maxKeys: number = 15; // Supporting up to 15 keys as requested (10-12)
 
     private constructor() { }
 

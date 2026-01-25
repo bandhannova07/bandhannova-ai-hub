@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "register-shards": "tsx scripts/register-shards.ts",
-    "health-check": "tsx scripts/health-monitor.ts"
+    "health-check": "tsx scripts/health-monitor.ts",
+    "verify-apis": "tsx scripts/verify-all-keys.ts"
   },
   "dependencies": {
     "@qdrant/js-client-rest": "^1.16.2",

@@ -5,11 +5,12 @@ import { NextRequest } from 'next/server';
 import {
     getModelConfig,
     hasModelAccess,
-    getApiKeyTier,
     ModelId,
     AI_MODELS
 } from '@/lib/ai/model-tiers';
-import { getApiKeyForTier } from '@/lib/ai/api-keys';
+import { getRotatedApiKey } from '@/lib/ai/api-keys';
+import { callGroqAPIStreaming } from '@/lib/ai/groq-api';
+import { callGeminiAPIStreaming } from '@/lib/ai/gemini-api';
 import { getUserTierSimple } from '@/lib/db/get-user-tier';
 import { checkAndIncrementExtremeUsage } from '@/lib/ai/usage-tracker';
 import { detectLanguage, getLanguageInstruction } from '@/lib/ai/language-detection';
@@ -17,8 +18,9 @@ import { buildOptimizedPrompt } from '@/lib/ai/optimized-prompts';
 import { getAgentPrompt } from '@/lib/ai/agent-manager';
 import { getModelIdentityPrompt } from '@/lib/ai/model-prompts';
 import { COMPANY_KEYWORDS, getCompanyKnowledgeJSON } from '@/lib/ai/company-knowledge';
-import { AIMode } from '@/lib/ai/models/config';
 import { searchWithTavily } from '@/lib/ai/tavily-search';
+
+type AIMode = 'quick' | 'normal' | 'thinking';
 
 export const maxDuration = 60; // Allow up to 60 seconds for execution
 export const runtime = 'nodejs';
@@ -84,11 +86,6 @@ export async function POST(req: NextRequest) {
             }
         }
 
-        // Get appropriate API key for this model
-        const apiKeyTier = getApiKeyTier(modelId as ModelId);
-        const apiKey = getApiKeyForTier(apiKeyTier);
-        console.log(`🔑 Using API key tier: ${apiKeyTier}`);
-
         // Perform Tavily search if enabled
         let searchContext = '';
         if (enableSearch) {
@@ -135,6 +132,7 @@ export async function POST(req: NextRequest) {
         }
 
         // 2. Inject Model Identity (Top Layer)
+        // This makes sure Groq/Gemini models pretend to be the selected model
         const modelIdentity = getModelIdentityPrompt(modelId as ModelId);
         systemPrompt = `${modelIdentity}\n\n${systemPrompt}`;
 
@@ -172,71 +170,91 @@ export async function POST(req: NextRequest) {
             : message;
         messages.push({ role: 'user', content: userMessageContent });
 
-        // Build fallback chain: primary + fallbacks
-        const modelChain = [modelConfig.primaryModel, ...modelConfig.fallbackModels];
-        console.log(`🔗 Model chain: ${modelChain.join(' → ')}`);
+        // Iterate through the backend chain
+        const backends = modelConfig.backends;
 
-        // Try each model in the fallback chain
-        for (let i = 0; i < modelChain.length; i++) {
-            const currentModel = modelChain[i];
+        for (let i = 0; i < backends.length; i++) {
+            const backend = backends[i];
+            const currentModelId = backend.modelId;
+            const logPrefix = `Attempt ${i + 1}/${backends.length} [${backend.provider.toUpperCase()}]:`;
 
             try {
-                console.log(`🤖 Trying model: ${currentModel} (attempt ${i + 1}/${modelChain.length})`);
+                console.log(`${logPrefix} Trying model ${currentModelId}...`);
 
-                const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${apiKey}`,
-                        'HTTP-Referer': process.env.NEXT_PUBLIC_APP_URL || 'https://www.bandhannova.in',
-                        'X-Title': 'BandhanNova AI Hub',
-                    },
-                    body: JSON.stringify({
-                        model: currentModel,
-                        messages,
-                        stream: true,
-                        temperature: modelConfig.temperature,
-                        max_tokens: modelConfig.maxTokens,
-                    }),
-                    signal: AbortSignal.timeout(30000), // 30 second timeout
-                });
+                let responseStream: ReadableStream;
 
-                if (!response.ok) {
-                    // Check for rate limit
-                    if (response.status === 429) {
-                        console.log(`⚠️ Rate limited on ${currentModel}, trying next model...`);
-                        continue;
+                if (backend.provider === 'openrouter') {
+                    // OpenRouter Logic
+                    const apiKey = getRotatedApiKey();
+
+                    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${apiKey}`,
+                            'HTTP-Referer': process.env.NEXT_PUBLIC_APP_URL || 'https://www.bandhannova.in',
+                            'X-Title': 'BandhanNova AI Hub',
+                        },
+                        body: JSON.stringify({
+                            model: currentModelId,
+                            messages,
+                            stream: true,
+                            temperature: modelConfig.temperature,
+                            max_tokens: modelConfig.maxTokens,
+                        }),
+                        signal: AbortSignal.timeout(40000), // 40s timeout for OpenRouter
+                    });
+
+                    if (!response.ok) {
+                        if (response.status === 429) {
+                            console.warn(`${logPrefix} Rate limited (429).`);
+                            continue;
+                        }
+                        throw new Error(`OpenRouter API status: ${response.status}`);
                     }
-                    throw new Error(`Model ${currentModel} failed: ${response.statusText}`);
+
+                    if (!response.body) throw new Error('No response body from OpenRouter');
+                    responseStream = response.body;
+
+                } else if (backend.provider === 'groq') {
+                    // Groq Logic
+                    // Note: callGroqAPIStreaming handles its own retries/rotation internally
+                    responseStream = await callGroqAPIStreaming(messages, currentModelId);
+
+                } else if (backend.provider === 'gemini') {
+                    // Gemini Logic
+                    // Note: callGeminiAPIStreaming handles its own retries/rotation internally
+                    responseStream = await callGeminiAPIStreaming(messages, currentModelId);
+
+                } else {
+                    console.error(`Unknown provider: ${backend.provider}`);
+                    continue;
                 }
 
-                console.log(`✅ Success with ${currentModel}`);
+                console.log(`${logPrefix} ✅ Success!`);
 
                 // Return streaming response
-                return new Response(response.body, {
+                return new Response(responseStream, {
                     headers: {
                         'Content-Type': 'text/event-stream; charset=utf-8',
                         'Cache-Control': 'no-cache',
                         'Connection': 'keep-alive',
-                        'X-Model-Used': currentModel,
-                        'X-Model-Config': modelConfig.name,
+                        'X-Model-Used': currentModelId,
+                        'X-Provider': backend.provider,
                         'X-User-Tier': userTier,
                         'X-Attempt': String(i + 1),
                     },
                 });
 
             } catch (error: any) {
-                console.error(`❌ Model ${currentModel} failed:`, error.message);
+                console.error(`${logPrefix} ❌ Failed:`, error.message);
 
-                // If this was the last model, throw error
-                if (i === modelChain.length - 1) {
+                // If this was the last backend, throw error
+                if (i === backends.length - 1) {
                     throw new Error(
-                        `All models in fallback chain failed. Last error: ${error.message}`
+                        `All backend providers failed. Last error: ${error.message}`
                     );
                 }
-
-                // Otherwise, continue to next model
-                console.log(`🔄 Trying next model in fallback chain...`);
             }
         }
 
