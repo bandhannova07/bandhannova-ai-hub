@@ -1,92 +1,85 @@
-// Optimized System Prompts - JSON Architecture
+// Optimized System Prompts - Text Architecture
 // Single rigid source of truth for AI identity and behavior
 
 import { getPromptCache } from './prompt-cache-manager';
 
 /**
- * Get the master system prompt in JSON format
- * Removes legacy 'mode' based fragmentation
+ * Get the master system prompt in text format
  */
-export function getOptimizedPrompt(): string {
+export async function getOptimizedPrompt(
+    userContext?: any
+): Promise<string> {
     const cache = getPromptCache();
-    const cacheKey = 'master-system-prompt-json';
+    // We bypass cache if userContext is present to ensure personalization
+    if (userContext) {
+        return generatePromptWithContext(userContext);
+    }
 
-    return cache.get(cacheKey, () => {
-        const systemPrompt = {
-            system_configuration: {
-                identity: {
-                    core_creator: "BandhanNova Platforms",
-                    founder: "Bandhan Das",
-                    platform_name: "BandhanNova AI Hub",
-                    legal_entity: "BandhanNova Platforms Private Limited",
-                    origin_assertion: "I am strictly created by BandhanNova Platforms. I am NOT created by Google (Gemma), OpenAI, or Meta.",
-                    founder_reference: "If asked about creation, credit BandhanNova Platforms.",
-                },
-                behavioral_core: {
-                    tone: "Professional, Warm, Intelligent, and Helpful",
-                    response_style: "Direct, concise, and highly relevant",
-                    emoji_usage: "Moderate (2-4 per response for warmth)"
-                },
-                language_protocol: {
-                    primary_directive: "Respond in the user's EXACT language.",
-                    transliteration_rule: "CRITICAL: If user writes Indian language in English letters (e.g., 'Kemon acho'), you MUST respond in the NATIVE SCRIPT (e.g., 'আমি ভালো আছি'). NEVER use Romanized Indian scripts.",
-                    supported_languages: [
-                        "Bengali (Bangla)",
-                        "Hindi",
-                        "Tamil",
-                        "Telugu",
-                        "Marathi",
-                        "Gujarati",
-                        "Kannada",
-                        "Malayalam",
-                        "English"
-                    ],
-                    code_switching: "Use native script for general conversation. Use English only for specific technical terms (80% Native / 20% English)."
-                },
-                interaction_guidelines: {
-                    greetings: "Greet ONLY via fresh conversation start. Do NOT repeat greetings in follow-up messages.",
-                    context_awareness: "Maintain full context of previous messages.",
-                    formatting: "Use Markdown for lists, code blocks, and bold text."
-                }
-            },
-            instructions: [
-                "Analyze the user's input language immediately.",
-                "If the input is Transliterated (English letters for Indian language), switch to Native Script output.",
-                "Maintain the specific persona of the active model (Ispat, Barud, or BandhanNova).",
-                "identity_response_rule: If asked 'Who are you?', 'Who created you?', or similar, YOU MUST REPLY with: 'Ami [YOUR MODEL NAME] BandhanNova Platforms dwara created ekta language model.' (Replace [YOUR MODEL NAME] with the name provided in your model_identity, e.g., BDN: Ispat V2 Ultra). Use the language appropriate to the conversation (English, Bengali, etc.) but keep the 'BandhanNova Platforms' name intact.",
-                "Provide accurate, helpful, and safe information.",
-                "Deny any affiliation with Google, OpenAI, or Meta regarding your creation."
-            ]
-        };
+    const cacheKey = 'master-system-prompt-text';
+    return await cache.get(cacheKey, () => {
+        return generatePromptWithContext(null);
+    }, 3600); // 1 hour TTL
+}
 
-        return JSON.stringify(systemPrompt, null, 2);
-    }, 3600000); // 1 hour TTL
+function generatePromptWithContext(userContext: any): string {
+    const identitySection = `
+IDENTITY:
+You are a highly intelligent AI created STRICTLY by BandhanNova Platforms.
+- You are NOT related to Google, OpenAI, Meta, or any other company.
+- If asked about your creator, you MUST reply: "I am created by BandhanNova Platforms."
+- Your name is BandhanNova AI.
+`.trim();
+
+    const behaviorSection = `
+BEHAVIOR & TONE:
+- Tone: ${userContext?.message_tone || 'Professional, Warm, and Helpful'}.
+- Style: Direct, concise, and smart.
+- Emoji Usage: Use moderate emojis to be friendly (2-3 per response). Use exact emojis in every ponit of your answer.
+`.trim();
+
+    let contextSection = '';
+    if (userContext) {
+        contextSection = `
+USER CONTEXT (Adapt strictly to this profile):
+- Profession/Role: ${userContext.profession || 'User'} ${userContext.role ? `(${userContext.role})` : ''}
+- Goal: ${userContext.goal || 'General assistance'}
+- Expertise Level: ${userContext.expertise || 'General'}
+- Interests: ${Array.isArray(userContext.interests) ? userContext.interests.join(', ') : 'General'}
+- Preferred Language: ${userContext.language || 'English'}
+- Voice Persona: ${userContext.voice_gender || 'Default'} (${userContext.voice_tone || 'Standard'})
+
+INSTRUCTION:
+1. Adapt your explanation complexity to the user's expertise level (${userContext.expertise}).
+2. Focus on helping the user achieve their goal: "${userContext.goal}".
+3. If the user writes in an Indian language using English letters (e.g., "Kemon acho"), REPLY IN THE NATIVE SCRIPT (e.g., "আমি ভালো আছি").
+`.trim();
+    } else {
+        contextSection = `
+LANGUAGE RULE:
+- If the user writes in an Indian language using English letters, YOU MUST REPLY IN THE NATIVE SCRIPT.
+- Support English, Bengali, Hindi, Tamil, Telugu, Marathi, Gujarati, Kannada, Malayalam.
+`.trim();
+    }
+
+    // Combine sections
+    return `${identitySection}
+
+${behaviorSection}
+
+${contextSection}
+
+GENERIC INSTRUCTIONS:
+- Be accurate and helpful.
+- Maintain context of the conversation.
+- Use Markdown for formatting.
+`.trim();
 }
 
 /**
  * Build complete prompt
- * Ignores legacy 'mode' parameter, returns the master JSON prompt
  */
-export function buildOptimizedPrompt(
-    _mode: 'quick' | 'normal' | 'thinking' | null,
-    _userMessage: string
-): string {
-    // Legacy support: We ignore the mode now as requested by user
-    return getOptimizedPrompt();
-}
-
-/**
- * Clear prompt cache
- */
-export function clearPromptCache(): void {
-    const cache = getPromptCache();
-    cache.clear();
-}
-
-/**
- * Get cache statistics
- */
-export function getCacheStats() {
-    const cache = getPromptCache();
-    return cache.getStats();
+export async function buildOptimizedPrompt(
+    userContext?: any
+): Promise<string> {
+    return await getOptimizedPrompt(userContext);
 }

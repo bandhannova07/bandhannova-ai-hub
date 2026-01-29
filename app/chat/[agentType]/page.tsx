@@ -4,7 +4,7 @@
 import '../chat-dark.css';
 import '../chat-light.css';
 
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useParams, useRouter } from 'next/navigation';
 import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
@@ -30,7 +30,11 @@ import {
     Search,
     Globe,
     FileText,
-    Zap
+    Zap,
+    ThumbsUp,
+    ThumbsDown,
+    Share2,
+    MessageSquare
 } from 'lucide-react';
 import { getCurrentUser } from '@/lib/auth-simple';
 import { getAllDBs } from '@/lib/database/multi-db';
@@ -65,6 +69,9 @@ import {
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { TTSPlayer } from '@/components/tts-player';
+import { getSupabase } from '@/lib/supabase';
+import { SUGGESTIONS, type Profession, type AgentId } from '@/lib/ai/suggestions';
 
 const AGENT_CONFIG: Record<string, any> = {
     'creator-social': {
@@ -260,8 +267,21 @@ export default function ChatPage() {
     const [showPlusMenu, setShowPlusMenu] = useState(false);
     const [userTier, setUserTier] = useState<SubscriptionTier>('free'); // User's subscription tier
     const [enableSearch, setEnableSearch] = useState(false); // Tavily AI search toggle
-    const [researchMode, setResearchMode] = useState<'web-searching' | 'deep-research'>('web-searching'); // Research mode for search-engine agent
+    const [researchMode, setResearchMode] = useState<'web-searching' | 'deep-research'>('deep-research'); // Research mode for search-engine agent
+
     const responseMode = 'normal'; // Fixed to normal mode for conversational AI
+
+    const [userLanguage, setUserLanguage] = useState<string>('English');
+    const [userGender, setUserGender] = useState<'male' | 'female'>('female');
+    const [userProfession, setUserProfession] = useState<Profession>('other');
+    const [showFeedbackModal, setShowFeedbackModal] = useState<string | null>(null); // messageId for feedback
+    const [feedbackText, setFeedbackText] = useState('');
+    const [feedbackStatus, setFeedbackStatus] = useState<Record<string, 'helpful' | 'not-useful'>>({});
+    const [sharedId, setSharedId] = useState<string | null>(null);
+    const [isSending, setIsSending] = useState(false);
+
+    // Initialize Supabase client
+    const supabase = getSupabase();
 
     // Set sidebar open by default on desktop
     useEffect(() => {
@@ -281,6 +301,38 @@ export default function ChatPage() {
 
     useEffect(() => {
         checkAuth();
+    }, []);
+
+    // Load user's onboarding preferences for TTS
+    useEffect(() => {
+        const loadOnboardingPreferences = async () => {
+            try {
+                const { data: { user } } = await supabase.auth.getUser();
+                if (!user) return;
+
+                const { data, error } = await supabase
+                    .from('user_onboarding')
+                    .select('language, voice_gender, profession')
+                    .eq('user_id', user.id)
+                    .single();
+
+                if (error) {
+                    console.log('No onboarding data found, using defaults');
+                    return;
+                }
+
+                if (data) {
+                    console.log('✅ Loaded onboarding preferences:', data);
+                    if (data.language) setUserLanguage(data.language);
+                    if (data.voice_gender) setUserGender(data.voice_gender);
+                    if (data.profession) setUserProfession(data.profession as Profession);
+                }
+            } catch (error) {
+                console.error('Error loading onboarding preferences:', error);
+            }
+        };
+
+        loadOnboardingPreferences();
     }, []);
 
     const [isCreatingConversation, setIsCreatingConversation] = useState(false);
@@ -381,8 +433,24 @@ export default function ChatPage() {
         try {
             const tier = await getUserTierSimple(currentUser.id);
             setUserTier(tier);
+
+            // Load onboarding preferences (Voice/Lang)
+            const databases = getAllDBs();
+            for (const db of databases) {
+                const { data: onboarding, error } = await db
+                    .from('user_onboarding')
+                    .select('language, voice_gender')
+                    .eq('user_id', currentUser.id)
+                    .single();
+
+                if (onboarding && !error) {
+                    if (onboarding.language) setUserLanguage(onboarding.language);
+                    if (onboarding.voice_gender) setUserGender(onboarding.voice_gender as 'male' | 'female');
+                    break;
+                }
+            }
         } catch (error) {
-            console.error('Error loading user tier:', error);
+            console.error('Error loading user data:', error);
             setUserTier('free'); // Default to free on error
         }
 
@@ -460,6 +528,8 @@ export default function ChatPage() {
         }
 
         setLoading(true);
+        setIsSending(true);
+        setTimeout(() => setIsSending(false), 5500); // 5.5 seconds label
 
         try {
             // Create or get conversation
@@ -671,6 +741,62 @@ export default function ChatPage() {
         setTimeout(() => setCopiedId(null), 2000);
     }
 
+    function handleShare(message: Message) {
+        if (navigator.share) {
+            navigator.share({
+                title: 'BandhanNova AI Response',
+                text: message.content,
+                url: window.location.href
+            }).then(() => {
+                setSharedId(message.id);
+                setTimeout(() => setSharedId(null), 2000);
+            }).catch(console.error);
+        } else {
+            navigator.clipboard.writeText(`${message.content}\n\nShared from BandhanNova AI Hub: ${window.location.href}`);
+            setSharedId(message.id);
+            setTimeout(() => setSharedId(null), 2000);
+        }
+    }
+
+    async function submitFeedback(messageId: string, helpful: boolean) {
+        if (!helpful) {
+            setShowFeedbackModal(messageId);
+            return;
+        }
+
+        // Handle helpful feedback
+        setFeedbackStatus(prev => ({ ...prev, [messageId]: 'helpful' }));
+
+        // In a real app, you'd save this to Supabase
+        await supabase.from('ai_feedback').insert({
+            user_id: user?.id,
+            message_id: messageId,
+            agent_type: agentType,
+            helpful: true,
+            timestamp: new Date().toISOString()
+        });
+    }
+
+    async function handleFeedbackDetailSubmit() {
+        if (!showFeedbackModal) return;
+
+        const messageId = showFeedbackModal;
+        setFeedbackStatus(prev => ({ ...prev, [messageId]: 'not-useful' }));
+        setShowFeedbackModal(null);
+
+        // Save detailed feedback
+        await supabase.from('ai_feedback').insert({
+            user_id: user?.id,
+            message_id: messageId,
+            agent_type: agentType,
+            helpful: false,
+            comment: feedbackText,
+            timestamp: new Date().toISOString()
+        });
+
+        setFeedbackText('');
+    }
+
     function handleNewChat() {
         setMessages([]);
         setCurrentConversationId(null);
@@ -721,743 +847,943 @@ export default function ChatPage() {
     }
 
     return (
-        <div className="relative h-screen flex overflow-hidden">
-            {/* Gradient Mesh Background */}
-            <div
-                className="fixed inset-0 opacity-30"
-                style={{ background: 'var(--gradient-mesh)' }}
-            />
-
-            {/* Conversation Sidebar */}
-            <aside
-                className={`fixed inset-y-0 left-0 z-50 glass border-r transition-transform duration-300 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-                    }`}
-                style={{
-                    width: isDesktop ? '380px' : '70vw',
-                    borderColor: 'var(--background-tertiary)',
-                    backdropFilter: 'blur(20px)',
-                }}
-            >
+        <>
+            <div className="relative h-screen flex overflow-hidden">
+                {/* Gradient Mesh Background */}
                 <div
-                    className="flex flex-col h-full"
-                    style={{ padding: '24px', paddingTop: '80px' }}
-                >
-                    {/* Logo */}
-                    <div style={{ marginBottom: '32px', marginTop: '8px' }}>
-                        <div className="flex items-center gap-3">
-                            <div
-                                className="rounded-xl flex items-center justify-center"
-                                style={{
-                                    width: '48px',
-                                    height: '48px',
-                                    background: agent.gradient,
-                                    boxShadow: '0 4px 16px rgba(0, 0, 0, 0.2)'
-                                }}
-                            >
-                                <Icon className="w-6 h-6 text-white" />
-                            </div>
-                            <div>
-                                <h1 className="font-bold" style={{ fontSize: '18px', color: 'var(--foreground)' }}>
-                                    {agent.name}
-                                </h1>
-                                <p style={{ fontSize: '12px', color: 'var(--foreground-tertiary)' }}>
-                                    {agent.description}
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Sidebar Header */}
-                    <div style={{ marginBottom: '20px' }}>
-                        <h2
-                            className="font-bold"
-                            style={{ fontSize: '18px', color: 'var(--foreground)', marginBottom: '16px' }}
-                        >
-                            Conversations
-                        </h2>
-
-                        <button
-                            onClick={handleNewChat}
-                            className="w-full flex items-center justify-center gap-2 rounded-xl text-white font-semibold transition-all hover:scale-105 active:scale-95"
-                            style={{
-                                padding: '14px',
-                                background: agent.gradient
-                            }}
-                        >
-                            <Plus className="w-5 h-5" />
-                            <span style={{ fontSize: '15px' }}>New Conversation</span>
-                        </button>
-                    </div>
-
-                    {/* Conversations List */}
-                    <div className="flex-1 overflow-y-auto" style={{ marginBottom: '16px' }}>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                            {conversations.map((conv) => (
-                                <button
-                                    key={conv.id}
-                                    onClick={() => handleConversationClick(conv.id)}
-                                    className="text-left rounded-xl hover:bg-white/5 transition-all hover:scale-[1.02]"
-                                    style={{
-                                        padding: '14px',
-                                        background: currentConversationId === conv.id ? 'rgba(255,255,255,0.1)' : 'transparent',
-                                        border: currentConversationId === conv.id ? '1px solid rgba(255,255,255,0.1)' : '1px solid transparent'
-                                    }}
-                                >
-                                    <p
-                                        className="font-medium line-clamp-1"
-                                        style={{
-                                            fontSize: '14px',
-                                            color: 'var(--foreground)',
-                                            marginBottom: '4px'
-                                        }}
-                                    >
-                                        {conv.title}
-                                    </p>
-                                    <p
-                                        className="line-clamp-1"
-                                        style={{
-                                            fontSize: '12px',
-                                            color: 'var(--foreground-tertiary)'
-                                        }}
-                                    >
-                                        {conv.lastMessage}
-                                    </p>
-                                    <div className="flex items-center gap-1" style={{ marginTop: '4px' }}>
-                                        <Clock className="w-3 h-3" style={{ color: 'var(--foreground-tertiary)' }} />
-                                        <span style={{ fontSize: '11px', color: 'var(--foreground-tertiary)' }} suppressHydrationWarning>
-                                            {conv.timestamp.toLocaleTimeString()}
-                                        </span>
-                                    </div>
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* Back to Dashboard Button */}
-                    <button
-                        onClick={() => router.push('/dashboard')}
-                        className="flex items-center justify-center gap-2 rounded-xl hover:scale-105 transition-all"
-                        style={{
-                            padding: '14px',
-                            background: 'rgba(255, 255, 255, 0.05)',
-                            color: 'var(--foreground)',
-                            border: '1px solid rgba(255, 255, 255, 0.1)'
-                        }}
-                    >
-                        <ArrowLeft className="w-5 h-5" />
-                        <span style={{ fontSize: '15px', fontWeight: '600' }}>Back to Dashboard</span>
-                    </button>
-                </div>
-            </aside>
-
-            {/* Mobile Sidebar Overlay - Only on Mobile */}
-            {sidebarOpen && !isDesktop && (
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    onClick={() => setSidebarOpen(false)}
-                    className="fixed inset-0 bg-black/50 z-40"
+                    className="fixed inset-0 opacity-30"
+                    style={{ background: 'var(--gradient-mesh)' }}
                 />
-            )}
 
-            {/* Mobile Sidebar Toggle Button - Top Left */}
-            {!isDesktop && (
-                <button
-                    onClick={() => setSidebarOpen(!sidebarOpen)}
-                    className="fixed top-5 left-5 z-50 flex items-center justify-center rounded-2xl glass transition-all hover:scale-105"
+                {/* Conversation Sidebar */}
+                <aside
+                    className={`fixed inset-y-0 left-0 z-50 glass border-r transition-transform duration-300 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+                        }`}
                     style={{
-                        width: '44px',
-                        height: '44px',
-                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                        width: isDesktop ? '380px' : '70vw',
+                        borderColor: 'var(--background-tertiary)',
+                        backdropFilter: 'blur(20px)',
                     }}
                 >
-                    {sidebarOpen ? (
-                        <X className="w-5 h-5" style={{ color: 'var(--foreground)' }} />
-                    ) : (
-                        <Menu className="w-5 h-5" style={{ color: 'var(--foreground)' }} />
-                    )}
-                </button>
-            )}
-
-            {/* Desktop Sidebar Toggle Button - Top Left */}
-            {isDesktop && (
-                <button
-                    onClick={() => setSidebarOpen(!sidebarOpen)}
-                    className="fixed top-5 left-5 z-50 flex items-center justify-center rounded-2xl glass transition-all hover:scale-105"
-                    style={{
-                        width: '44px',
-                        height: '44px',
-                        border: '1px solid rgba(255, 255, 255, 0.1)',
-                    }}
-                >
-                    {sidebarOpen ? (
-                        <X className="w-5 h-5" style={{ color: 'var(--foreground)' }} />
-                    ) : (
-                        <Menu className="w-5 h-5" style={{ color: 'var(--foreground)' }} />
-                    )}
-                </button>
-            )}
-
-            {/* Main Chat Area */}
-            <div
-                className="relative flex-1 flex flex-col transition-all duration-300"
-                style={{
-                    marginLeft: isDesktop && sidebarOpen ? '320px' : '0'
-                }}
-            >
-                {/* Content Wrapper - Centers everything */}
-                <div className="h-full flex flex-col">
-                    {/* Header - Simple */}
-                    <header
-                        className="relative flex items-center justify-center"
-                        style={{
-                            padding: isDesktop ? '28px 24px 20px 24px' : '20px 16px 16px 16px',
-                            paddingLeft: !isDesktop ? '70px' : '24px',
-                            background: 'transparent'
-                        }}
+                    <div
+                        className="flex flex-col h-full"
+                        style={{ padding: '24px', paddingTop: '80px' }}
                     >
-                        <div className="max-w-5xl w-full flex items-center justify-between">
+                        {/* Logo */}
+                        <div style={{ marginBottom: '32px', marginTop: '8px' }}>
                             <div className="flex items-center gap-3">
                                 <div
                                     className="rounded-xl flex items-center justify-center"
                                     style={{
-                                        width: isDesktop ? '44px' : '36px',
-                                        height: isDesktop ? '44px' : '36px',
+                                        width: '48px',
+                                        height: '48px',
                                         background: agent.gradient,
                                         boxShadow: '0 4px 16px rgba(0, 0, 0, 0.2)'
                                     }}
                                 >
-                                    <Icon className={isDesktop ? 'w-5 h-5' : 'w-4 h-4'} style={{ color: 'white' }} />
+                                    <Icon className="w-6 h-6 text-white" />
                                 </div>
                                 <div>
-                                    <h1
-                                        className="font-semibold"
-                                        style={{
-                                            color: 'var(--foreground)',
-                                            fontSize: isDesktop ? '16px' : '14px',
-                                            marginBottom: '2px'
-                                        }}
-                                    >
+                                    <h1 className="font-bold" style={{ fontSize: '18px', color: 'var(--foreground)' }}>
                                         {agent.name}
                                     </h1>
-                                    <p style={{ color: 'var(--foreground-tertiary)', fontSize: isDesktop ? '12px' : '11px' }}>
+                                    <p style={{ fontSize: '12px', color: 'var(--foreground-tertiary)' }}>
                                         {agent.description}
                                     </p>
                                 </div>
                             </div>
                         </div>
-                    </header>
 
-                    {/* Messages Area - Centered */}
-                    <div
-                        className="relative flex-1 overflow-y-auto flex justify-center"
-                        style={{ paddingBottom: isDesktop ? '120px' : '100px', padding: isDesktop ? '0 24px 120px 24px' : '0 12px 100px 12px' }}
-                    >
-                        <div className="max-w-5xl w-full">
-                            {messages.length === 0 ? (
-                                <motion.div
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    className="text-center"
-                                    style={{ paddingTop: isDesktop ? '100px' : '60px', paddingBottom: isDesktop ? '80px' : '40px' }}
-                                >
-                                    <h2
-                                        className="font-bold"
+                        {/* Sidebar Header */}
+                        <div style={{ marginBottom: '20px' }}>
+                            <h2
+                                className="font-bold"
+                                style={{ fontSize: '18px', color: 'var(--foreground)', marginBottom: '16px' }}
+                            >
+                                Conversations
+                            </h2>
+
+                            <button
+                                onClick={handleNewChat}
+                                className="w-full flex items-center justify-center gap-2 rounded-xl text-white font-semibold transition-all hover:scale-105 active:scale-95"
+                                style={{
+                                    padding: '14px',
+                                    background: agent.gradient
+                                }}
+                            >
+                                <Plus className="w-5 h-5" />
+                                <span style={{ fontSize: '15px' }}>New Conversation</span>
+                            </button>
+                        </div>
+
+                        {/* Conversations List */}
+                        <div className="flex-1 overflow-y-auto" style={{ marginBottom: '16px' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                {conversations.map((conv) => (
+                                    <button
+                                        key={conv.id}
+                                        onClick={() => handleConversationClick(conv.id)}
+                                        className="text-left rounded-xl hover:bg-white/5 transition-all hover:scale-[1.02]"
                                         style={{
-                                            fontSize: isDesktop ? '42px' : '28px',
-                                            color: 'var(--foreground)',
-                                            marginBottom: isDesktop ? '16px' : '12px'
+                                            padding: '14px',
+                                            background: currentConversationId === conv.id ? 'rgba(255,255,255,0.1)' : 'transparent',
+                                            border: currentConversationId === conv.id ? '1px solid rgba(255,255,255,0.1)' : '1px solid transparent'
                                         }}
                                     >
-                                        Start a conversation
-                                    </h2>
-                                    <p style={{
-                                        fontSize: isDesktop ? '16px' : '14px',
-                                        color: 'var(--foreground-secondary)',
-                                        lineHeight: '1.6'
-                                    }}>
-                                        Ask me anything about {agent.name.toLowerCase()}
-                                    </p>
-                                </motion.div>
-                            ) : (
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: isDesktop ? '32px' : '20px', paddingTop: isDesktop ? '40px' : '24px', paddingBottom: isDesktop ? '120px' : '100px' }}>
-                                    {messages.map((message, index) => (
-                                        <motion.div
-                                            key={message.id}
-                                            initial={{ opacity: 0, y: 20 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            transition={{ delay: index * 0.05 }}
+                                        <p
+                                            className="font-medium line-clamp-1"
                                             style={{
-                                                width: '100%',
-                                                display: 'flex',
-                                                flexDirection: 'column',
-                                                gap: '12px'
+                                                fontSize: '14px',
+                                                color: 'var(--foreground)',
+                                                marginBottom: '4px'
                                             }}
                                         >
-                                            <div
-                                                className={message.role === 'user' ? 'user-message-book' : 'ai-message-book'}
-                                                style={{
-                                                    padding: message.role === 'user'
-                                                        ? (isDesktop ? '20px 28px' : '16px 20px')
-                                                        : (isDesktop ? '28px 32px' : '20px 24px'),
-                                                    background: message.role === 'user'
-                                                        ? 'linear-gradient(135deg, rgba(99, 102, 241, 0.12) 0%, rgba(139, 92, 246, 0.12) 100%)'
-                                                        : 'linear-gradient(135deg, rgba(139, 92, 246, 0.08) 0%, rgba(99, 102, 241, 0.08) 100%)',
-                                                    backdropFilter: message.role === 'assistant' ? 'blur(12px)' : 'none',
-                                                    border: message.role === 'user'
-                                                        ? '1px solid rgba(99, 102, 241, 0.2)'
-                                                        : '1px solid rgba(139, 92, 246, 0.2)',
-                                                    borderRadius: message.role === 'user'
-                                                        ? '16px 16px 4px 16px'
-                                                        : '16px 16px 16px 4px',
-                                                    marginLeft: message.role === 'user' ? 'auto' : '0',
-                                                    marginRight: message.role === 'user' ? '0' : 'auto',
-                                                    maxWidth: message.role === 'user' ? '85%' : '100%',
-                                                    boxShadow: message.role === 'assistant'
-                                                        ? '0 8px 32px rgba(139, 92, 246, 0.12), 0 2px 8px rgba(0, 0, 0, 0.1)'
-                                                        : '0 4px 16px rgba(99, 102, 241, 0.1)',
-                                                    position: 'relative',
-                                                    overflow: 'hidden'
-                                                }}
-                                            >
-                                                {/* User/AI Label */}
-                                                <div style={{
-                                                    marginBottom: isDesktop ? '16px' : '12px',
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    gap: '10px',
-                                                    flexWrap: 'wrap'
-                                                }}>
-                                                    <div style={{
-                                                        display: 'inline-flex',
-                                                        alignItems: 'center',
-                                                        gap: '6px',
-                                                        padding: '4px 12px',
-                                                        borderRadius: '20px',
-                                                        background: message.role === 'user'
-                                                            ? 'linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(139, 92, 246, 0.2) 100%)'
-                                                            : 'linear-gradient(135deg, rgba(139, 92, 246, 0.2) 0%, rgba(99, 102, 241, 0.2) 100%)',
-                                                        border: `1px solid ${message.role === 'user' ? 'rgba(99, 102, 241, 0.3)' : 'rgba(139, 92, 246, 0.3)'}`
-                                                    }}>
-                                                        <span style={{
-                                                            fontSize: isDesktop ? '12px' : '11px',
-                                                            fontWeight: '700',
-                                                            color: message.role === 'user' ? '#6366f1' : '#8b5cf6',
-                                                            textTransform: 'uppercase',
-                                                            letterSpacing: '0.5px'
-                                                        }}>
-                                                            {message.role === 'user' ? '👤 You' : '🤖 ' + agent.name}
-                                                        </span>
-                                                    </div>
-                                                    <span style={{
-                                                        fontSize: isDesktop ? '11px' : '10px',
-                                                        color: 'var(--foreground-tertiary)',
-                                                        opacity: 0.7
-                                                    }}>
-                                                        {message.timestamp.toLocaleTimeString()}
-                                                    </span>
-                                                </div>
-
-                                                {/* Message Text */}
-                                                <div
-                                                    className="message-content-book"
-                                                    style={{
-                                                        color: 'var(--foreground)',
-                                                        fontSize: isDesktop ? '16px' : '15px',
-                                                        lineHeight: '1.7',
-                                                        letterSpacing: '0.2px',
-                                                        fontWeight: '400',
-                                                        wordBreak: 'break-word'
-                                                    }}
-                                                >
-                                                    {message.role === 'assistant' && index === messages.length - 1 && !message.content ? (
-                                                        <GeminiLoader />
-                                                    ) : message.role === 'assistant' ? (
-                                                        <>
-                                                            {(() => {
-                                                                const parsed = parseMessageContent(message.content);
-                                                                return (
-                                                                    <>
-                                                                        {parsed.hasThinking && (
-                                                                            <ThinkingProcess
-                                                                                content={parsed.thinking}
-                                                                                isComplete={parsed.isComplete}
-                                                                            />
-                                                                        )}
-                                                                        {parsed.answer && (
-                                                                            <MarkdownRenderer content={parsed.answer} />
-                                                                        )}
-                                                                    </>
-                                                                );
-                                                            })()}
-                                                        </>
-                                                    ) : (
-                                                        <MarkdownRenderer content={message.content} />
-                                                    )}
-                                                </div>
-
-                                                {/* Copy Button for AI Messages */}
-                                                {message.role === 'assistant' && (
-                                                    <div style={{
-                                                        marginTop: '20px',
-                                                        paddingTop: '16px',
-                                                        borderTop: '1px solid rgba(255, 255, 255, 0.05)',
-                                                        display: 'flex',
-                                                        gap: '12px'
-                                                    }}>
-                                                        <button
-                                                            onClick={() => handleCopy(message.content, message.id)}
-                                                            className="rounded-lg hover:bg-white/5 transition-all hover:scale-105"
-                                                            style={{
-                                                                padding: '8px 14px',
-                                                                fontSize: '13px',
-                                                                color: 'var(--foreground-secondary)',
-                                                                display: 'flex',
-                                                                alignItems: 'center',
-                                                                gap: '6px',
-                                                                border: '1px solid rgba(255, 255, 255, 0.1)'
-                                                            }}
-                                                        >
-                                                            {copiedId === message.id ? (
-                                                                <>
-                                                                    <Check className="w-3.5 h-3.5" />
-                                                                    <span>Copied</span>
-                                                                </>
-                                                            ) : (
-                                                                <>
-                                                                    <Copy className="w-3.5 h-3.5" />
-                                                                    <span>Copy</span>
-                                                                </>
-                                                            )}
-                                                        </button>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </motion.div>
-                                    ))}
-
-
-                                    <div ref={messagesEndRef} />
-                                </div>
-                            )}
+                                            {conv.title}
+                                        </p>
+                                        <p
+                                            className="line-clamp-1"
+                                            style={{
+                                                fontSize: '12px',
+                                                color: 'var(--foreground-tertiary)'
+                                            }}
+                                        >
+                                            {conv.lastMessage}
+                                        </p>
+                                        <div className="flex items-center gap-1" style={{ marginTop: '4px' }}>
+                                            <Clock className="w-3 h-3" style={{ color: 'var(--foreground-tertiary)' }} />
+                                            <span style={{ fontSize: '11px', color: 'var(--foreground-tertiary)' }} suppressHydrationWarning>
+                                                {conv.timestamp.toLocaleTimeString()}
+                                            </span>
+                                        </div>
+                                    </button>
+                                ))}
+                            </div>
                         </div>
-                    </div>
-                </div>
-                {/* End Content Wrapper */}
 
-                {/* Floating Input Box - Centered like ChatGPT */}
-                <div
-                    className="fixed bottom-0 transition-all duration-300 flex justify-center z-40"
-                    style={{
-                        left: isDesktop && sidebarOpen ? '320px' : '0',
-                        right: '0',
-                        padding: isDesktop ? '24px' : '16px',
-                        background: 'linear-gradient(to top, var(--background) 0%, var(--background) 70%, transparent 100%)',
-                        pointerEvents: 'none'
-                    }}
-                >
-                    <div
-                        className="w-full max-w-5xl glass rounded-3xl border"
+                        {/* Back to Dashboard Button */}
+                        <button
+                            onClick={() => router.push('/dashboard')}
+                            className="flex items-center justify-center gap-2 rounded-xl hover:scale-105 transition-all"
+                            style={{
+                                padding: '14px',
+                                background: 'rgba(255, 255, 255, 0.05)',
+                                color: 'var(--foreground)',
+                                border: '1px solid rgba(255, 255, 255, 0.1)'
+                            }}
+                        >
+                            <ArrowLeft className="w-5 h-5" />
+                            <span style={{ fontSize: '15px', fontWeight: '600' }}>Back to Dashboard</span>
+                        </button>
+                    </div>
+                </aside>
+
+                {/* Mobile Sidebar Overlay - Only on Mobile */}
+                {sidebarOpen && !isDesktop && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        onClick={() => setSidebarOpen(false)}
+                        className="fixed inset-0 bg-black/50 z-40"
+                    />
+                )}
+
+                {/* Mobile Sidebar Toggle Button - Top Left */}
+                {!isDesktop && (
+                    <button
+                        onClick={() => setSidebarOpen(!sidebarOpen)}
+                        className="fixed top-5 left-5 z-50 flex items-center justify-center rounded-2xl glass transition-all hover:scale-105"
                         style={{
-                            padding: isDesktop ? '20px' : '14px',
-                            borderColor: 'rgba(255, 255, 255, 0.15)',
-                            backdropFilter: 'blur(24px)',
-                            background: 'rgba(255, 255, 255, 0.05)',
-                            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
-                            pointerEvents: 'auto'
+                            width: '44px',
+                            height: '44px',
+                            border: '1px solid rgba(255, 255, 255, 0.1)',
                         }}
                     >
+                        {sidebarOpen ? (
+                            <X className="w-5 h-5" style={{ color: 'var(--foreground)' }} />
+                        ) : (
+                            <Menu className="w-5 h-5" style={{ color: 'var(--foreground)' }} />
+                        )}
+                    </button>
+                )}
 
-                        {/* Input Row */}
-                        <div className="relative flex gap-3 items-center">
-                            {/* Plus Button with Dropdown */}
-                            <div className="relative">
-                                <button
-                                    onClick={() => setShowPlusMenu(!showPlusMenu)}
+                {/* Desktop Sidebar Toggle Button - Top Left */}
+                {isDesktop && (
+                    <button
+                        onClick={() => setSidebarOpen(!sidebarOpen)}
+                        className="fixed top-5 left-5 z-50 flex items-center justify-center rounded-2xl glass transition-all hover:scale-105"
+                        style={{
+                            width: '44px',
+                            height: '44px',
+                            border: '1px solid rgba(255, 255, 255, 0.1)',
+                        }}
+                    >
+                        {sidebarOpen ? (
+                            <X className="w-5 h-5" style={{ color: 'var(--foreground)' }} />
+                        ) : (
+                            <Menu className="w-5 h-5" style={{ color: 'var(--foreground)' }} />
+                        )}
+                    </button>
+                )}
+
+                {/* Main Chat Area */}
+                <div
+                    className="relative flex-1 flex flex-col transition-all duration-300"
+                    style={{
+                        marginLeft: isDesktop && sidebarOpen ? '380px' : '0',
+                        width: isDesktop && sidebarOpen ? 'calc(100% - 380px)' : '100%'
+                    }}
+                >
+                    {/* Content Wrapper - Centers everything */}
+                    <div className="h-full flex flex-col">
+                        {/* Header - Simple */}
+                        <header
+                            className="relative flex items-center justify-center"
+                            style={{
+                                padding: isDesktop ? '28px 24px 20px 24px' : '20px 16px 16px 16px',
+                                paddingLeft: !isDesktop ? '70px' : '24px',
+                                background: 'transparent'
+                            }}
+                        >
+                            <div className="max-w-5xl w-full flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <div
+                                        className="rounded-xl flex items-center justify-center"
+                                        style={{
+                                            width: isDesktop ? '44px' : '36px',
+                                            height: isDesktop ? '44px' : '36px',
+                                            background: agent.gradient,
+                                            boxShadow: '0 4px 16px rgba(0, 0, 0, 0.2)'
+                                        }}
+                                    >
+                                        <Icon className={isDesktop ? 'w-5 h-5' : 'w-4 h-4'} style={{ color: 'white' }} />
+                                    </div>
+                                    <div>
+                                        <h1
+                                            className="font-semibold"
+                                            style={{
+                                                color: 'var(--foreground)',
+                                                fontSize: isDesktop ? '16px' : '14px',
+                                                marginBottom: '2px'
+                                            }}
+                                        >
+                                            {agent.name}
+                                        </h1>
+                                        <p style={{ color: 'var(--foreground-tertiary)', fontSize: isDesktop ? '12px' : '11px' }}>
+                                            {agent.description}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </header>
+
+                        {/* Messages Area - Centered */}
+                        <div
+                            className="relative flex-1 overflow-y-auto flex justify-center"
+                            style={{ paddingBottom: isDesktop ? '120px' : '100px', padding: isDesktop ? '0 24px 120px 24px' : '0 12px 100px 12px' }}
+                        >
+                            <div className="max-w-5xl w-full">
+                                {messages.length === 0 ? (
+                                    <motion.div
+                                        initial={{ opacity: 0, y: 20 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        className="text-center"
+                                        style={{ paddingTop: isDesktop ? '140px' : '60px', paddingBottom: isDesktop ? '100px' : '40px' }}
+                                    >
+                                        <h2
+                                            className="font-bold"
+                                            style={{
+                                                fontSize: isDesktop ? '42px' : '28px',
+                                                color: 'var(--foreground)',
+                                                marginBottom: isDesktop ? '16px' : '12px'
+                                            }}
+                                        >
+                                            Start a conversation
+                                        </h2>
+                                        <p style={{
+                                            fontSize: isDesktop ? '16px' : '14px',
+                                            color: 'var(--foreground-secondary)',
+                                            lineHeight: '1.6',
+                                            marginBottom: '40px'
+                                        }}>
+                                            Ask me anything about {agent.name.toLowerCase()}
+                                        </p>
+
+                                        {/* Suggestions Grid */}
+                                        <div
+                                            className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-4xl mx-auto text-left"
+                                            style={{
+                                                padding: isDesktop ? '20px 0' : '0'
+                                            }}
+                                        >
+                                            {(SUGGESTIONS[agentType as AgentId]?.[userProfession] || SUGGESTIONS[agentType as AgentId]?.['other'] || []).map((suggestion, i) => (
+                                                <motion.button
+                                                    key={i}
+                                                    initial={{ opacity: 0, scale: 0.9 }}
+                                                    animate={{ opacity: 1, scale: 1 }}
+                                                    transition={{ delay: 0.2 + (i * 0.05) }}
+                                                    whileHover={{ scale: 1.02, backgroundColor: 'rgba(255, 255, 255, 0.05)' }}
+                                                    onClick={() => {
+                                                        setInput(suggestion);
+                                                        // handleSend(); // We'll let them review/edit first
+                                                    }}
+                                                    className="rounded-3xl border text-left transition-all flex items-center gap-6 glass"
+                                                    style={{
+                                                        borderColor: 'var(--background-tertiary)',
+                                                        background: 'rgba(255, 255, 255, 0.03)',
+                                                        padding: isDesktop ? '20px 18px' : '24px 20px',
+                                                        minHeight: isDesktop ? '10px' : 'auto'
+                                                    }}
+                                                >
+                                                    <Sparkles className={isDesktop ? "w-6 h-6 text-purple-400 flex-shrink-0" : "w-5 h-5 text-purple-400 flex-shrink-0"} />
+                                                    <span style={{
+                                                        color: 'var(--foreground-secondary)',
+                                                        fontSize: isDesktop ? '17px' : '15px',
+                                                        lineHeight: '1.6',
+                                                        fontWeight: '500'
+                                                    }}>{suggestion}</span>
+                                                </motion.button>
+                                            ))}
+                                        </div>
+                                    </motion.div>
+                                ) : (
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: isDesktop ? '32px' : '20px', paddingTop: isDesktop ? '40px' : '24px', paddingBottom: isDesktop ? '120px' : '100px' }}>
+                                        {messages.map((message, index) => (
+                                            <motion.div
+                                                key={message.id}
+                                                initial={{ opacity: 0, y: 20 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                transition={{ delay: index * 0.05 }}
+                                                style={{
+                                                    width: '100%',
+                                                    display: 'flex',
+                                                    flexDirection: 'column',
+                                                    gap: '12px'
+                                                }}
+                                            >
+                                                <div
+                                                    className={message.role === 'user' ? 'user-message-book' : 'ai-message-book'}
+                                                    style={{
+                                                        padding: message.role === 'user'
+                                                            ? (isDesktop ? '20px 28px' : '16px 20px')
+                                                            : (isDesktop ? '28px 32px' : '20px 24px'),
+                                                        background: message.role === 'user'
+                                                            ? 'linear-gradient(135deg, rgba(99, 102, 241, 0.12) 0%, rgba(139, 92, 246, 0.12) 100%)'
+                                                            : 'linear-gradient(135deg, rgba(139, 92, 246, 0.08) 0%, rgba(99, 102, 241, 0.08) 100%)',
+                                                        backdropFilter: message.role === 'assistant' ? 'blur(12px)' : 'none',
+                                                        border: message.role === 'user'
+                                                            ? '1px solid rgba(99, 102, 241, 0.2)'
+                                                            : '1px solid rgba(139, 92, 246, 0.2)',
+                                                        borderRadius: message.role === 'user'
+                                                            ? '16px 16px 4px 16px'
+                                                            : '16px 16px 16px 4px',
+                                                        marginLeft: message.role === 'user' ? 'auto' : '0',
+                                                        marginRight: message.role === 'user' ? '0' : 'auto',
+                                                        maxWidth: message.role === 'user' ? '85%' : '100%',
+                                                        boxShadow: message.role === 'assistant'
+                                                            ? '0 8px 32px rgba(139, 92, 246, 0.12), 0 2px 8px rgba(0, 0, 0, 0.1)'
+                                                            : '0 4px 16px rgba(99, 102, 241, 0.1)',
+                                                        position: 'relative',
+                                                        overflow: 'hidden'
+                                                    }}
+                                                >
+                                                    {/* User/AI Label */}
+                                                    <div style={{
+                                                        marginBottom: isDesktop ? '16px' : '12px',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        gap: '10px',
+                                                        flexWrap: 'wrap'
+                                                    }}>
+                                                        <div style={{
+                                                            display: 'inline-flex',
+                                                            alignItems: 'center',
+                                                            gap: '6px',
+                                                            padding: '4px 12px',
+                                                            borderRadius: '20px',
+                                                            background: message.role === 'user'
+                                                                ? 'linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(139, 92, 246, 0.2) 100%)'
+                                                                : 'linear-gradient(135deg, rgba(139, 92, 246, 0.2) 0%, rgba(99, 102, 241, 0.2) 100%)',
+                                                            border: `1px solid ${message.role === 'user' ? 'rgba(99, 102, 241, 0.3)' : 'rgba(139, 92, 246, 0.3)'}`
+                                                        }}>
+                                                            <span style={{
+                                                                fontSize: isDesktop ? '12px' : '11px',
+                                                                fontWeight: '700',
+                                                                color: message.role === 'user' ? '#6366f1' : '#8b5cf6',
+                                                                textTransform: 'uppercase',
+                                                                letterSpacing: '0.5px'
+                                                            }}>
+                                                                {message.role === 'user' ? '👤 You' : '🤖 ' + agent.name}
+                                                            </span>
+                                                        </div>
+                                                        <span style={{
+                                                            fontSize: isDesktop ? '11px' : '10px',
+                                                            color: 'var(--foreground-tertiary)',
+                                                            opacity: 0.7
+                                                        }}>
+                                                            {message.timestamp.toLocaleTimeString()}
+                                                        </span>
+                                                    </div>
+
+                                                    {/* Message Text */}
+                                                    <div
+                                                        className="message-content-book"
+                                                        style={{
+                                                            color: 'var(--foreground)',
+                                                            fontSize: isDesktop ? '16px' : '15px',
+                                                            lineHeight: '1.7',
+                                                            letterSpacing: '0.2px',
+                                                            fontWeight: '400',
+                                                            wordBreak: 'break-word'
+                                                        }}
+                                                    >
+                                                        {message.role === 'assistant' && index === messages.length - 1 && !message.content ? (
+                                                            <div className="flex flex-col gap-3 py-4 w-full">
+                                                                <Skeleton className="h-4 w-[90%] opacity-20" style={{ background: 'var(--foreground)' }} />
+                                                                <Skeleton className="h-4 w-[75%] opacity-20" style={{ background: 'var(--foreground)' }} />
+                                                                <Skeleton className="h-4 w-[85%] opacity-20" style={{ background: 'var(--foreground)' }} />
+                                                            </div>
+                                                        ) : message.role === 'assistant' ? (
+                                                            <>
+                                                                {(() => {
+                                                                    const parsed = parseMessageContent(message.content);
+                                                                    return (
+                                                                        <>
+                                                                            {parsed.hasThinking && (
+                                                                                <ThinkingProcess
+                                                                                    content={parsed.thinking}
+                                                                                    isComplete={parsed.isComplete}
+                                                                                />
+                                                                            )}
+                                                                            {parsed.answer && (
+                                                                                <MarkdownRenderer content={parsed.answer} />
+                                                                            )}
+                                                                        </>
+                                                                    );
+                                                                })()}
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <MarkdownRenderer content={message.content} />
+                                                                {index === messages.length - 2 && isSending && (
+                                                                    <motion.div
+                                                                        initial={{ opacity: 0 }}
+                                                                        animate={{ opacity: 1 }}
+                                                                        className="flex items-center gap-2 mt-4 pt-3 border-t border-white/10"
+                                                                    >
+                                                                        <div className="flex gap-1">
+                                                                            <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce" style={{ animationDelay: '0ms' }} />
+                                                                            <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce" style={{ animationDelay: '150ms' }} />
+                                                                            <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce" style={{ animationDelay: '300ms' }} />
+                                                                        </div>
+                                                                        <span className="text-[11px] font-bold text-indigo-400 uppercase letter-spacing-[0.5px]">Sending Message...</span>
+                                                                    </motion.div>
+                                                                )}
+                                                            </>
+                                                        )}
+                                                    </div>
+
+                                                    {/* Feedback Loop for AI Messages */}
+                                                    {message.role === 'assistant' && (
+                                                        <div style={{
+                                                            marginTop: '20px',
+                                                            paddingTop: '16px',
+                                                            borderTop: '1px solid var(--background-tertiary)',
+                                                            display: 'flex',
+                                                            flexDirection: 'column',
+                                                            gap: '16px'
+                                                        }}>
+                                                            {/* Generated By Footer */}
+                                                            {(!loading || index !== messages.length - 1) && (
+                                                                <div className="flex items-center gap-2" style={{ color: 'var(--foreground-tertiary)', fontSize: '11px', fontWeight: '500', opacity: 0.8 }}>
+                                                                    <div className="w-1.5 h-1.5 rounded-full bg-purple-500 animate-pulse" />
+                                                                    <span>✨ Generated by BandhanNova AI</span>
+                                                                </div>
+                                                            )}
+
+                                                            <div style={{
+                                                                display: 'flex',
+                                                                gap: isDesktop ? '12px' : '6px',
+                                                                alignItems: 'center',
+                                                                width: '100%',
+                                                                flexWrap: 'nowrap'
+                                                            }}>
+                                                                {/* Like & Dislike */}
+                                                                <button
+                                                                    onClick={() => submitFeedback(message.id, true)}
+                                                                    className={`rounded-2xl transition-all hover:scale-110 active:scale-90 flex items-center justify-center flex-shrink-0 action-bar-btn ${feedbackStatus[message.id] === 'helpful' ? 'bg-green-500/20 text-green-500 border-green-500/50' : 'text-foreground hover:text-green-500 hover:bg-white/5'}`}
+                                                                    data-action-bar-btn
+                                                                    style={{
+                                                                        width: isDesktop ? '44px' : '40px',
+                                                                        height: isDesktop ? '44px' : '40px',
+                                                                        padding: '0',
+                                                                        border: '1px solid',
+                                                                        borderColor: feedbackStatus[message.id] === 'helpful' ? '' : 'var(--background-tertiary)',
+                                                                        background: feedbackStatus[message.id] === 'helpful' ? '' : 'var(--background-secondary)',
+                                                                        color: feedbackStatus[message.id] === 'helpful' ? '' : 'var(--foreground)'
+                                                                    }}
+                                                                    title="Helpful"
+                                                                >
+                                                                    <ThumbsUp className={isDesktop ? "w-5 h-5" : "w-4 h-4"} />
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => submitFeedback(message.id, false)}
+                                                                    className={`rounded-2xl transition-all hover:scale-110 active:scale-90 flex items-center justify-center flex-shrink-0 action-bar-btn ${feedbackStatus[message.id] === 'not-useful' ? 'bg-red-500/20 text-red-500 border-red-500/50' : 'text-foreground hover:bg-white/5'}`}
+                                                                    data-action-bar-btn
+                                                                    style={{
+                                                                        width: isDesktop ? '44px' : '40px',
+                                                                        height: isDesktop ? '44px' : '40px',
+                                                                        padding: '0',
+                                                                        border: '1px solid',
+                                                                        borderColor: feedbackStatus[message.id] === 'not-useful' ? '' : 'var(--background-tertiary)',
+                                                                        background: feedbackStatus[message.id] === 'not-useful' ? '' : 'var(--background-secondary)',
+                                                                        color: feedbackStatus[message.id] === 'not-useful' ? '' : 'var(--foreground)' // Force theme color (Black in light, White in dark)
+                                                                    }}
+                                                                    title="Not useful"
+                                                                >
+                                                                    <ThumbsDown className={isDesktop ? "w-5 h-5" : "w-4 h-4"} />
+                                                                </button>
+
+                                                                <button
+                                                                    onClick={() => handleCopy(message.content, message.id)}
+                                                                    className="rounded-2xl hover:bg-white/5 transition-all hover:scale-105 active:scale-95 flex items-center justify-center flex-shrink-0 action-bar-btn"
+                                                                    data-action-bar-btn
+                                                                    style={{
+                                                                        width: isDesktop ? '44px' : '40px',
+                                                                        height: isDesktop ? '44px' : '40px',
+                                                                        padding: '0',
+                                                                        border: '1px solid var(--background-tertiary)',
+                                                                        background: 'var(--background-secondary)',
+                                                                        color: 'var(--foreground)'
+                                                                    }}
+                                                                    title="Copy Content"
+                                                                >
+                                                                    {copiedId === message.id ? <Check className={isDesktop ? "w-5 h-5" : "w-4 h-4"} /> : <Copy className={isDesktop ? "w-5 h-5" : "w-4 h-4"} />}
+                                                                </button>
+
+                                                                <button
+                                                                    onClick={() => handleShare(message)}
+                                                                    className="rounded-2xl hover:bg-white/5 transition-all hover:scale-105 active:scale-95 flex items-center justify-center flex-shrink-0 action-bar-btn"
+                                                                    data-action-bar-btn
+                                                                    style={{
+                                                                        width: isDesktop ? '44px' : '40px',
+                                                                        height: isDesktop ? '44px' : '40px',
+                                                                        padding: '0',
+                                                                        border: '1px solid var(--background-tertiary)',
+                                                                        background: 'var(--background-secondary)',
+                                                                        color: 'var(--foreground)'
+                                                                    }}
+                                                                    title="Share Response"
+                                                                >
+                                                                    {sharedId === message.id ? <Check className={isDesktop ? "w-5 h-5" : "w-4 h-4"} /> : <Share2 className={isDesktop ? "w-5 h-5" : "w-4 h-4"} />}
+                                                                </button>
+
+                                                                {/* TTS Player - Only for supported languages */}
+                                                                {(!loading || index !== messages.length - 1) &&
+                                                                    ['English', 'Bengali', 'Hindi', 'Tamil', 'Telugu', 'Marathi', 'Gujarati', 'Kannada', 'Malayalam'].includes(userLanguage) && (
+                                                                        <TTSPlayer
+                                                                            text={parseMessageContent(message.content).answer}
+                                                                            language={userLanguage}
+                                                                            gender={userGender}
+                                                                            autoPlay={false}
+                                                                            isDesktop={isDesktop}
+                                                                            className="rounded-2xl transition-all hover:scale-105 active:scale-95 flex items-center justify-center action-bar-btn"
+                                                                            style={{
+                                                                                width: isDesktop ? '44px' : '40px',
+                                                                                height: isDesktop ? '44px' : '40px',
+                                                                                padding: '0',
+                                                                                border: '1px solid var(--background-tertiary)',
+                                                                                background: 'var(--background-secondary)',
+                                                                                color: 'var(--foreground)'
+                                                                            }}
+                                                                        />
+                                                                    )}
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </motion.div>
+                                        ))}
+
+
+                                        <div ref={messagesEndRef} />
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                    {/* End Content Wrapper */}
+
+                    {/* Floating Input Box - Centered like ChatGPT */}
+                    <div
+                        className="fixed bottom-0 transition-all duration-300 flex justify-center z-40"
+                        style={{
+                            left: isDesktop && sidebarOpen ? '380px' : '0',
+                            right: '0',
+                            padding: isDesktop ? '24px' : '16px',
+                            background: 'linear-gradient(to top, var(--background) 0%, var(--background) 70%, transparent 100%)',
+                            pointerEvents: 'none'
+                        }}
+                    >
+                        <div
+                            className="w-full max-w-5xl glass rounded-3xl border"
+                            style={{
+                                padding: isDesktop ? '20px' : '14px',
+                                borderColor: 'rgba(255, 255, 255, 0.15)',
+                                backdropFilter: 'blur(24px)',
+                                background: 'rgba(255, 255, 255, 0.05)',
+                                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
+                                pointerEvents: 'auto'
+                            }}
+                        >
+
+                            {/* Input Row */}
+                            <div className="relative flex gap-3 items-center">
+                                {/* Plus Button with Dropdown */}
+                                <div className="relative">
+                                    <button
+                                        onClick={() => setShowPlusMenu(!showPlusMenu)}
+                                        className="rounded-2xl text-white font-semibold hover:scale-105 active:scale-95 transition-all"
+                                        style={{
+                                            padding: isDesktop ? '16px' : '14px',
+                                            background: 'rgba(139, 92, 246, 0.8)',
+                                            boxShadow: '0 4px 16px rgba(139, 92, 246, 0.3)'
+                                        }}
+                                    >
+                                        <Plus className={isDesktop ? 'w-5 h-5' : 'w-4 h-4'} />
+                                    </button>
+
+                                    {/* Dropdown Menu */}
+                                    {showPlusMenu && (
+                                        <motion.div
+                                            initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                                            className="absolute bottom-full left-0 mb-3 glass rounded-2xl border"
+                                            style={{
+                                                width: isDesktop ? '280px' : '260px',
+                                                padding: '14px',
+                                                borderColor: 'var(--background-tertiary)',
+                                                backdropFilter: 'blur(24px)',
+                                                background: 'var(--background-secondary)',
+                                                boxShadow: '0 12px 40px rgba(0, 0, 0, 0.3)',
+                                                zIndex: 1000
+                                            }}
+                                        >
+                                            {/* Conditional Dropdown based on Agent Type */}
+                                            {agentType === 'search-engine' ? (
+                                                // Research AI specific dropdown
+                                                <>
+                                                    {/* Media Section */}
+                                                    <div style={{ marginBottom: '14px' }}>
+                                                        <p className="small" style={{ fontWeight: '600', color: 'var(--foreground-tertiary)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                                                            Media
+                                                        </p>
+                                                        <button
+                                                            className="w-full flex items-center gap-3 rounded-xl hover:bg-white/10 hover:scale-105 active:scale-95 transition-all"
+                                                            style={{ padding: '10px 12px', marginBottom: '4px' }}
+                                                        >
+                                                            <ImageIcon className="w-4 h-4" style={{ color: '#8b5cf6' }} />
+                                                            <span className="body" style={{ color: 'var(--foreground)' }}>Upload Images</span>
+                                                        </button>
+                                                        <button
+                                                            className="w-full flex items-center gap-3 rounded-xl hover:bg-white/10 hover:scale-105 active:scale-95 transition-all"
+                                                            style={{ padding: '10px 12px' }}
+                                                        >
+                                                            <FileText className="w-4 h-4" style={{ color: '#8b5cf6' }} />
+                                                            <span className="body" style={{ color: 'var(--foreground)' }}>Upload Files</span>
+                                                        </button>
+                                                    </div>
+
+                                                    {/* Research Modes Section */}
+                                                    <div style={{ marginBottom: '14px' }}>
+                                                        <p className="small" style={{ fontWeight: '600', color: 'var(--foreground-tertiary)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                                                            Research Models
+                                                        </p>
+
+                                                        <button
+                                                            onClick={() => {
+                                                                setResearchMode('web-searching');
+                                                                setShowPlusMenu(false);
+                                                            }}
+                                                            className="w-full flex items-center gap-3 rounded-xl hover:bg-white/10 hover:scale-105 active:scale-95 transition-all"
+                                                            style={{
+                                                                padding: '10px 12px',
+                                                                marginBottom: '4px',
+                                                                background: researchMode === 'web-searching' ? 'rgba(99, 102, 241, 0.2)' : 'transparent',
+                                                                border: researchMode === 'web-searching' ? '1px solid rgba(99, 102, 241, 0.3)' : '1px solid transparent'
+                                                            }}
+                                                        >
+                                                            <Globe className="w-4 h-4" style={{ color: researchMode === 'web-searching' ? '#6366f1' : 'var(--foreground-tertiary)' }} />
+                                                            <div className="flex-1 text-left">
+                                                                <span className="body block" style={{ color: 'var(--foreground)', fontSize: '14px', fontWeight: researchMode === 'web-searching' ? '600' : '400' }}>
+                                                                    BandhanNova 2.0 eXtreme
+                                                                </span>
+                                                                <span className="small block" style={{ color: 'var(--foreground-tertiary)', fontSize: '11px', marginTop: '2px' }}>
+                                                                    Web searching
+                                                                </span>
+                                                            </div>
+                                                        </button>
+
+                                                        <button
+                                                            onClick={() => {
+                                                                setResearchMode('deep-research');
+                                                                setShowPlusMenu(false);
+                                                            }}
+                                                            className="w-full flex items-center gap-3 rounded-xl hover:bg-white/10 hover:scale-105 active:scale-95 transition-all"
+                                                            style={{
+                                                                padding: '10px 12px',
+                                                                background: researchMode === 'deep-research' ? 'rgba(139, 92, 246, 0.2)' : 'transparent',
+                                                                border: researchMode === 'deep-research' ? '1px solid rgba(139, 92, 246, 0.3)' : '1px solid transparent'
+                                                            }}
+                                                        >
+                                                            <MessageCircleIcon className="w-4 h-4" style={{ color: researchMode === 'deep-research' ? '#8b5cf6' : 'var(--foreground-tertiary)' }} />
+                                                            <div className="flex-1 text-left">
+                                                                <span className="body block" style={{ color: 'var(--foreground)', fontSize: '14px', fontWeight: researchMode === 'deep-research' ? '600' : '400' }}>
+                                                                    BandhanNova 2.0 eXtreme
+                                                                </span>
+                                                                <span className="small block" style={{ color: 'var(--foreground-tertiary)', fontSize: '11px', marginTop: '2px' }}>
+                                                                    Deep research
+                                                                </span>
+                                                            </div>
+                                                        </button>
+                                                    </div>
+                                                </>
+                                            ) : (
+                                                // Default dropdown for other agents
+                                                <>
+                                                    {/* Media Section */}
+                                                    <div style={{ marginBottom: '14px' }}>
+                                                        <p className="small" style={{ fontWeight: '600', color: 'var(--foreground-tertiary)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                                                            Media
+                                                        </p>
+                                                        <button
+                                                            className="w-full flex items-center gap-3 rounded-xl hover:bg-white/10 hover:scale-105 active:scale-95 transition-all"
+                                                            style={{ padding: '10px 12px', marginBottom: '4px' }}
+                                                        >
+                                                            <ImageIcon className="w-4 h-4" style={{ color: '#8b5cf6' }} />
+                                                            <span className="body" style={{ color: 'var(--foreground)' }}>Upload Images</span>
+                                                        </button>
+                                                        <button
+                                                            className="w-full flex items-center gap-3 rounded-xl hover:bg-white/10 hover:scale-105 active:scale-95 transition-all"
+                                                            style={{ padding: '10px 12px' }}
+                                                        >
+                                                            <FileText className="w-4 h-4" style={{ color: '#8b5cf6' }} />
+                                                            <span className="body" style={{ color: 'var(--foreground)' }}>Upload Files</span>
+                                                        </button>
+                                                    </div>
+                                                </>
+                                            )}
+
+                                            {/* Models Section - Hidden for search-engine */}
+                                            {agentType !== 'search-engine' && (
+                                                <div>
+                                                    <p className="small" style={{ fontWeight: '600', color: 'var(--foreground-tertiary)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                                                        Models ({userTier.toUpperCase()} Tier)
+                                                    </p>
+
+                                                    {/* Get models for user's tier */}
+                                                    {(() => {
+                                                        const availableModels = getModelsForTier(userTier);
+
+                                                        return availableModels.map(modelConfig => {
+                                                            const isSelected = selectedModel === modelConfig.id;
+
+                                                            // Icon mapping for models
+                                                            const getModelIcon = (id: ModelId) => {
+                                                                if (id.includes('ispat')) return Sparkles;
+                                                                if (id.includes('barud')) return Zap;
+                                                                if (id.includes('extreme')) return Brain;
+                                                                return MessageCircleIcon;
+                                                            };
+
+                                                            const Icon = getModelIcon(modelConfig.id);
+
+                                                            return (
+                                                                <button
+                                                                    key={modelConfig.id}
+                                                                    onClick={() => { setSelectedModel(modelConfig.id); setShowPlusMenu(false); }}
+                                                                    className="w-full flex items-center gap-3 rounded-xl hover:bg-white/10 hover:scale-105 active:scale-95 transition-all"
+                                                                    style={{
+                                                                        padding: '10px 12px',
+                                                                        marginBottom: '4px',
+                                                                        background: isSelected ? 'rgba(139, 92, 246, 0.2)' : 'transparent',
+                                                                        border: isSelected ? '1px solid rgba(139, 92, 246, 0.3)' : '1px solid transparent'
+                                                                    }}
+                                                                >
+                                                                    <Icon className="w-4 h-4" style={{ color: isSelected ? '#8b5cf6' : 'var(--foreground-tertiary)' }} />
+                                                                    <div className="flex-1 text-left">
+                                                                        <span className="body block" style={{ color: 'var(--foreground)', fontSize: '14px', fontWeight: isSelected ? '600' : '400' }}>
+                                                                            {modelConfig.displayName}
+                                                                        </span>
+                                                                        {modelConfig.isExtreme && (
+                                                                            <span className="small block" style={{ color: 'var(--foreground-tertiary)', fontSize: '11px', marginTop: '2px' }}>
+                                                                                Research & Analysis
+                                                                            </span>
+                                                                        )}
+                                                                    </div>
+                                                                    {isSelected && (
+                                                                        <Check className="w-4 h-4" style={{ color: '#8b5cf6' }} />
+                                                                    )}
+                                                                </button>
+                                                            );
+                                                        });
+                                                    })()}
+
+                                                    {/* Upgrade prompt for non-maxx users */}
+                                                    {userTier !== 'maxx' && (
+                                                        <div
+                                                            className="rounded-xl mt-3"
+                                                            style={{
+                                                                padding: '12px',
+                                                                background: 'rgba(139, 92, 246, 0.1)',
+                                                                border: '1px solid rgba(139, 92, 246, 0.2)'
+                                                            }}
+                                                        >
+                                                            <p className="small" style={{ color: 'var(--foreground-secondary)', fontSize: '12px', marginBottom: '6px' }}>
+                                                                🚀 Want more models?
+                                                            </p>
+                                                            <button
+                                                                onClick={() => router.push('/dashboard')}
+                                                                className="text-xs font-semibold hover:underline"
+                                                                style={{ color: '#8b5cf6' }}
+                                                            >
+                                                                Upgrade to {userTier === 'free' ? 'PRO' : userTier === 'pro' ? 'ULTRA' : 'MAXX'} →
+                                                            </button>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </motion.div>
+                                    )}
+                                </div>
+
+                                <Textarea
+                                    value={input}
+                                    onChange={(e) => setInput(e.target.value)}
+                                    onKeyDown={(e) => {
+                                        // Desktop: Ctrl to send, Ctrl+Shift for new line
+                                        // Mobile: Enter to send, Shift+Enter for new line
+                                        if (isDesktop) {
+                                            // Desktop keyboard shortcuts
+                                            if (e.key === 'Enter' && e.ctrlKey) {
+                                                if (e.shiftKey) {
+                                                    // Ctrl+Shift+Enter = new line (default behavior)
+                                                } else {
+                                                    // Ctrl+Enter = send
+                                                    e.preventDefault();
+                                                    handleSend();
+                                                }
+                                            }
+                                        } else {
+                                            // Mobile keyboard shortcuts
+                                            if (e.key === 'Enter') {
+                                                if (!e.shiftKey) {
+                                                    // Enter alone = send
+                                                    e.preventDefault();
+                                                    handleSend();
+                                                }
+                                                // Shift+Enter = new line (default behavior)
+                                            }
+                                        }
+                                    }}
+                                    placeholder="Type your message..."
+                                    className="flex-1 rounded-3xl border focus:outline-none transition-all focus:border-purple-500 hover:border-purple-400 body resize-none custom-scrollbar"
+                                    style={{
+                                        padding: isDesktop ? '16px 20px' : '14px 12px',
+                                        background: 'rgba(255, 255, 255, 0.05)',
+                                        borderColor: 'rgba(255, 255, 255, 0.15)',
+                                        color: 'var(--foreground)',
+                                        fontWeight: '400',
+                                        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+                                        minHeight: isDesktop ? '52px' : '46px',
+                                        maxHeight: isDesktop ? '200px' : '120px',
+                                        overflowY: 'auto'
+                                    }}
+                                    rows={1}
+                                    onInput={(e) => {
+                                        const target = e.target as HTMLTextAreaElement;
+                                        target.style.height = 'auto';
+                                        target.style.height = Math.min(target.scrollHeight, isDesktop ? 200 : 120) + 'px';
+                                    }}
+                                    disabled={loading}
+                                />
+
+
+
+                                <Button
+                                    onClick={handleSend}
+                                    disabled={!input.trim() || loading}
                                     className="rounded-2xl text-white font-semibold hover:scale-105 active:scale-95 transition-all"
                                     style={{
                                         padding: isDesktop ? '16px' : '14px',
-                                        background: 'rgba(139, 92, 246, 0.8)',
-                                        boxShadow: '0 4px 16px rgba(139, 92, 246, 0.3)'
+                                        background: agent.gradient,
+                                        boxShadow: '0 6px 20px rgba(0, 0, 0, 0.3), 0 0 20px rgba(139, 92, 246, 0.3)'
                                     }}
                                 >
-                                    <Plus className={isDesktop ? 'w-5 h-5' : 'w-4 h-4'} />
-                                </button>
-
-                                {/* Dropdown Menu */}
-                                {showPlusMenu && (
-                                    <motion.div
-                                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                                        className="absolute bottom-full left-0 mb-3 glass rounded-2xl border"
-                                        style={{
-                                            width: isDesktop ? '280px' : '260px',
-                                            padding: '14px',
-                                            borderColor: 'var(--background-tertiary)',
-                                            backdropFilter: 'blur(24px)',
-                                            background: 'var(--background-secondary)',
-                                            boxShadow: '0 12px 40px rgba(0, 0, 0, 0.3)',
-                                            zIndex: 1000
-                                        }}
-                                    >
-                                        {/* Conditional Dropdown based on Agent Type */}
-                                        {agentType === 'search-engine' ? (
-                                            // Research AI specific dropdown
-                                            <>
-                                                {/* Media Section */}
-                                                <div style={{ marginBottom: '14px' }}>
-                                                    <p className="small" style={{ fontWeight: '600', color: 'var(--foreground-tertiary)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                                                        Media
-                                                    </p>
-                                                    <button
-                                                        className="w-full flex items-center gap-3 rounded-xl hover:bg-white/10 hover:scale-105 active:scale-95 transition-all"
-                                                        style={{ padding: '10px 12px', marginBottom: '4px' }}
-                                                    >
-                                                        <ImageIcon className="w-4 h-4" style={{ color: '#8b5cf6' }} />
-                                                        <span className="body" style={{ color: 'var(--foreground)' }}>Upload Images</span>
-                                                    </button>
-                                                    <button
-                                                        className="w-full flex items-center gap-3 rounded-xl hover:bg-white/10 hover:scale-105 active:scale-95 transition-all"
-                                                        style={{ padding: '10px 12px' }}
-                                                    >
-                                                        <FileText className="w-4 h-4" style={{ color: '#8b5cf6' }} />
-                                                        <span className="body" style={{ color: 'var(--foreground)' }}>Upload Files</span>
-                                                    </button>
-                                                </div>
-
-                                                {/* Research Modes Section */}
-                                                <div style={{ marginBottom: '14px' }}>
-                                                    <p className="small" style={{ fontWeight: '600', color: 'var(--foreground-tertiary)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                                                        Research Models
-                                                    </p>
-
-                                                    <button
-                                                        onClick={() => {
-                                                            setResearchMode('web-searching');
-                                                            setShowPlusMenu(false);
-                                                        }}
-                                                        className="w-full flex items-center gap-3 rounded-xl hover:bg-white/10 hover:scale-105 active:scale-95 transition-all"
-                                                        style={{
-                                                            padding: '10px 12px',
-                                                            marginBottom: '4px',
-                                                            background: researchMode === 'web-searching' ? 'rgba(99, 102, 241, 0.2)' : 'transparent',
-                                                            border: researchMode === 'web-searching' ? '1px solid rgba(99, 102, 241, 0.3)' : '1px solid transparent'
-                                                        }}
-                                                    >
-                                                        <Globe className="w-4 h-4" style={{ color: researchMode === 'web-searching' ? '#6366f1' : 'var(--foreground-tertiary)' }} />
-                                                        <div className="flex-1 text-left">
-                                                            <span className="body block" style={{ color: 'var(--foreground)', fontSize: '14px', fontWeight: researchMode === 'web-searching' ? '600' : '400' }}>
-                                                                BandhanNova 2.0 eXtreme
-                                                            </span>
-                                                            <span className="small block" style={{ color: 'var(--foreground-tertiary)', fontSize: '11px', marginTop: '2px' }}>
-                                                                Web searching
-                                                            </span>
-                                                        </div>
-                                                    </button>
-
-                                                    <button
-                                                        onClick={() => {
-                                                            setResearchMode('deep-research');
-                                                            setShowPlusMenu(false);
-                                                        }}
-                                                        className="w-full flex items-center gap-3 rounded-xl hover:bg-white/10 hover:scale-105 active:scale-95 transition-all"
-                                                        style={{
-                                                            padding: '10px 12px',
-                                                            background: researchMode === 'deep-research' ? 'rgba(139, 92, 246, 0.2)' : 'transparent',
-                                                            border: researchMode === 'deep-research' ? '1px solid rgba(139, 92, 246, 0.3)' : '1px solid transparent'
-                                                        }}
-                                                    >
-                                                        <MessageCircleIcon className="w-4 h-4" style={{ color: researchMode === 'deep-research' ? '#8b5cf6' : 'var(--foreground-tertiary)' }} />
-                                                        <div className="flex-1 text-left">
-                                                            <span className="body block" style={{ color: 'var(--foreground)', fontSize: '14px', fontWeight: researchMode === 'deep-research' ? '600' : '400' }}>
-                                                                BandhanNova 2.0 eXtreme
-                                                            </span>
-                                                            <span className="small block" style={{ color: 'var(--foreground-tertiary)', fontSize: '11px', marginTop: '2px' }}>
-                                                                Deep research
-                                                            </span>
-                                                        </div>
-                                                    </button>
-                                                </div>
-                                            </>
-                                        ) : (
-                                            // Default dropdown for other agents
-                                            <>
-                                                {/* Media Section */}
-                                                <div style={{ marginBottom: '14px' }}>
-                                                    <p className="small" style={{ fontWeight: '600', color: 'var(--foreground-tertiary)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                                                        Media
-                                                    </p>
-                                                    <button
-                                                        className="w-full flex items-center gap-3 rounded-xl hover:bg-white/10 hover:scale-105 active:scale-95 transition-all"
-                                                        style={{ padding: '10px 12px', marginBottom: '4px' }}
-                                                    >
-                                                        <ImageIcon className="w-4 h-4" style={{ color: '#8b5cf6' }} />
-                                                        <span className="body" style={{ color: 'var(--foreground)' }}>Upload Images</span>
-                                                    </button>
-                                                    <button
-                                                        className="w-full flex items-center gap-3 rounded-xl hover:bg-white/10 hover:scale-105 active:scale-95 transition-all"
-                                                        style={{ padding: '10px 12px' }}
-                                                    >
-                                                        <FileText className="w-4 h-4" style={{ color: '#8b5cf6' }} />
-                                                        <span className="body" style={{ color: 'var(--foreground)' }}>Upload Files</span>
-                                                    </button>
-                                                </div>
-                                            </>
-                                        )}
-
-                                        {/* Models Section - Hidden for search-engine */}
-                                        {agentType !== 'search-engine' && (
-                                            <div>
-                                                <p className="small" style={{ fontWeight: '600', color: 'var(--foreground-tertiary)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                                                    Models ({userTier.toUpperCase()} Tier)
-                                                </p>
-
-                                                {/* Get models for user's tier */}
-                                                {(() => {
-                                                    const availableModels = getModelsForTier(userTier);
-
-                                                    return availableModels.map(modelConfig => {
-                                                        const isSelected = selectedModel === modelConfig.id;
-
-                                                        // Icon mapping for models
-                                                        const getModelIcon = (id: ModelId) => {
-                                                            if (id.includes('ispat')) return Sparkles;
-                                                            if (id.includes('barud')) return Zap;
-                                                            if (id.includes('extreme')) return Brain;
-                                                            return MessageCircleIcon;
-                                                        };
-
-                                                        const Icon = getModelIcon(modelConfig.id);
-
-                                                        return (
-                                                            <button
-                                                                key={modelConfig.id}
-                                                                onClick={() => { setSelectedModel(modelConfig.id); setShowPlusMenu(false); }}
-                                                                className="w-full flex items-center gap-3 rounded-xl hover:bg-white/10 hover:scale-105 active:scale-95 transition-all"
-                                                                style={{
-                                                                    padding: '10px 12px',
-                                                                    marginBottom: '4px',
-                                                                    background: isSelected ? 'rgba(139, 92, 246, 0.2)' : 'transparent',
-                                                                    border: isSelected ? '1px solid rgba(139, 92, 246, 0.3)' : '1px solid transparent'
-                                                                }}
-                                                            >
-                                                                <Icon className="w-4 h-4" style={{ color: isSelected ? '#8b5cf6' : 'var(--foreground-tertiary)' }} />
-                                                                <div className="flex-1 text-left">
-                                                                    <span className="body block" style={{ color: 'var(--foreground)', fontSize: '14px', fontWeight: isSelected ? '600' : '400' }}>
-                                                                        {modelConfig.displayName}
-                                                                    </span>
-                                                                    {modelConfig.isExtreme && (
-                                                                        <span className="small block" style={{ color: 'var(--foreground-tertiary)', fontSize: '11px', marginTop: '2px' }}>
-                                                                            Research & Analysis
-                                                                        </span>
-                                                                    )}
-                                                                </div>
-                                                                {isSelected && (
-                                                                    <Check className="w-4 h-4" style={{ color: '#8b5cf6' }} />
-                                                                )}
-                                                            </button>
-                                                        );
-                                                    });
-                                                })()}
-
-                                                {/* Upgrade prompt for non-maxx users */}
-                                                {userTier !== 'maxx' && (
-                                                    <div
-                                                        className="rounded-xl mt-3"
-                                                        style={{
-                                                            padding: '12px',
-                                                            background: 'rgba(139, 92, 246, 0.1)',
-                                                            border: '1px solid rgba(139, 92, 246, 0.2)'
-                                                        }}
-                                                    >
-                                                        <p className="small" style={{ color: 'var(--foreground-secondary)', fontSize: '12px', marginBottom: '6px' }}>
-                                                            🚀 Want more models?
-                                                        </p>
-                                                        <button
-                                                            onClick={() => router.push('/dashboard')}
-                                                            className="text-xs font-semibold hover:underline"
-                                                            style={{ color: '#8b5cf6' }}
-                                                        >
-                                                            Upgrade to {userTier === 'free' ? 'PRO' : userTier === 'pro' ? 'ULTRA' : 'MAXX'} →
-                                                        </button>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        )}
-                                    </motion.div>
-                                )}
+                                    <Send className={isDesktop ? 'w-5 h-5' : 'w-4 h-4'} />
+                                </Button>
                             </div>
-
-                            <Textarea
-                                value={input}
-                                onChange={(e) => setInput(e.target.value)}
-                                onKeyDown={(e) => {
-                                    // Desktop: Ctrl to send, Ctrl+Shift for new line
-                                    // Mobile: Enter to send, Shift+Enter for new line
-                                    if (isDesktop) {
-                                        // Desktop keyboard shortcuts
-                                        if (e.key === 'Enter' && e.ctrlKey) {
-                                            if (e.shiftKey) {
-                                                // Ctrl+Shift+Enter = new line (default behavior)
-                                            } else {
-                                                // Ctrl+Enter = send
-                                                e.preventDefault();
-                                                handleSend();
-                                            }
-                                        }
-                                    } else {
-                                        // Mobile keyboard shortcuts
-                                        if (e.key === 'Enter') {
-                                            if (!e.shiftKey) {
-                                                // Enter alone = send
-                                                e.preventDefault();
-                                                handleSend();
-                                            }
-                                            // Shift+Enter = new line (default behavior)
-                                        }
-                                    }
-                                }}
-                                placeholder="Type your message..."
-                                className="flex-1 rounded-3xl border focus:outline-none transition-all focus:border-purple-500 hover:border-purple-400 body resize-none custom-scrollbar"
-                                style={{
-                                    padding: isDesktop ? '16px 20px' : '14px 12px',
-                                    background: 'rgba(255, 255, 255, 0.05)',
-                                    borderColor: 'rgba(255, 255, 255, 0.15)',
-                                    color: 'var(--foreground)',
-                                    fontWeight: '400',
-                                    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
-                                    minHeight: isDesktop ? '52px' : '46px',
-                                    maxHeight: isDesktop ? '200px' : '120px',
-                                    overflowY: 'auto'
-                                }}
-                                rows={1}
-                                onInput={(e) => {
-                                    const target = e.target as HTMLTextAreaElement;
-                                    target.style.height = 'auto';
-                                    target.style.height = Math.min(target.scrollHeight, isDesktop ? 200 : 120) + 'px';
-                                }}
-                                disabled={loading}
-                            />
-
-
-
-                            <Button
-                                onClick={handleSend}
-                                disabled={!input.trim() || loading}
-                                className="rounded-2xl text-white font-semibold hover:scale-105 active:scale-95 transition-all"
-                                style={{
-                                    padding: isDesktop ? '16px' : '14px',
-                                    background: agent.gradient,
-                                    boxShadow: '0 6px 20px rgba(0, 0, 0, 0.3), 0 0 20px rgba(139, 92, 246, 0.3)'
-                                }}
-                            >
-                                <Send className={isDesktop ? 'w-5 h-5' : 'w-4 h-4'} />
-                            </Button>
                         </div>
                     </div>
                 </div>
-            </div>
 
-        </div >
+            </div >
+
+            {/* Feedback Detail Modal */}
+            <AnimatePresence>
+                {showFeedbackModal && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setShowFeedbackModal(null)}
+                            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+                        />
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                            className="relative w-full max-w-md glass rounded-3xl border border-white/10 p-8 shadow-2xl"
+                            style={{ background: 'var(--background-secondary)' }}
+                        >
+                            <button
+                                onClick={() => setShowFeedbackModal(null)}
+                                className="absolute top-4 right-4 p-2 rounded-full hover:bg-white/10 transition-colors"
+                            >
+                                <X className="w-5 h-5 text-foreground-tertiary" />
+                            </button>
+
+                            <div className="flex flex-col items-center text-center mb-6">
+                                <div className="w-16 h-16 rounded-2xl bg-red-500/20 flex items-center justify-center mb-4">
+                                    <ThumbsDown className="w-8 h-8 text-red-500" />
+                                </div>
+                                <h3 className="text-2xl font-bold mb-2">What was missing?</h3>
+                                <p className="text-foreground-secondary text-sm">
+                                    Your feedback helps us improve BandhanNova AI for everyone.
+                                </p>
+                            </div>
+
+                            <div className="space-y-4">
+                                <Textarea
+                                    value={feedbackText}
+                                    onChange={(e) => setFeedbackText(e.target.value)}
+                                    placeholder="Tell us more about what was missing or wrong..."
+                                    className="w-full min-h-[120px] rounded-2xl border-white/10 bg-white/5 p-4 focus:ring-2 focus:ring-purple-500/50 outline-none resize-none"
+                                />
+
+                                <Button
+                                    onClick={handleFeedbackDetailSubmit}
+                                    disabled={!feedbackText.trim()}
+                                    className="w-full h-12 rounded-2xl font-bold transition-all hover:scale-[1.02] active:scale-[0.98]"
+                                    style={{ background: 'var(--gradient-hero)' }}
+                                >
+                                    Submit Feedback
+                                </Button>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+        </>
     );
 }

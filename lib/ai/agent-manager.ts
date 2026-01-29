@@ -14,7 +14,7 @@ import { searchEnginePrompt } from './agents/search-engine';
 import { getConversationalAgentPrompt } from './agents/conversational';
 import { getOptimizedPrompt } from './optimized-prompts';
 
-type AgentPromptMap = Record<string, string | ((mode: any) => string)>;
+type AgentPromptMap = Record<string, string | ((mode: any, userContext?: any) => string | object)>;
 
 const AGENT_PROMPTS: AgentPromptMap = {
     'creator-social': creatorSocialPrompt,
@@ -34,18 +34,33 @@ const AGENT_PROMPTS: AgentPromptMap = {
  * Get the system prompt for a specific agent
  * Falls back to generic optimized prompt if agent not found
  */
-export function getAgentPrompt(agentType: string, mode: 'quick' | 'normal' | 'thinking' = 'normal'): string {
-    const prompt = AGENT_PROMPTS[agentType];
+export async function getAgentPrompt(
+    agentType: string,
+    mode: 'quick' | 'normal' | 'thinking' = 'normal',
+    userContext?: any
+): Promise<string> {
+    // 1. Get the rigid Master Prompt (Identity, Tone, Language Rules)
+    const masterPrompt = await getOptimizedPrompt(userContext);
 
-    if (!prompt) {
-        // Fallback to generic prompt if agent type is unknown
-        return getOptimizedPrompt();
+    const agentPromptFunc = AGENT_PROMPTS[agentType];
+
+    if (!agentPromptFunc) {
+        return masterPrompt;
     }
 
-    // Handle dynamic prompts (functions) vs static prompts (strings)
-    if (typeof prompt === 'function') {
-        return prompt(mode);
+    // 2. Get Agent-Specific Instructions
+    let agentInstructions = "";
+    if (typeof agentPromptFunc === 'function') {
+        const result = agentPromptFunc(mode, userContext);
+        agentInstructions = typeof result === 'object' ? JSON.stringify(result, null, 2) : result;
+    } else {
+        agentInstructions = agentPromptFunc as string;
     }
 
-    return prompt;
+    // 3. Combine them
+    return `${masterPrompt}
+
+---
+SPECIALIZED AGENT ROLE:
+${agentInstructions}`;
 }

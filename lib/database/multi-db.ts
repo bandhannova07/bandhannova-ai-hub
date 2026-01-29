@@ -53,6 +53,25 @@ export function getNextDB(): SupabaseClient {
 }
 
 /**
+ * Get next database in rotation with its index
+ */
+export function getNextDBWithIndex(): { db: SupabaseClient, index: number } {
+    if (dbClients.length === 0) {
+        throw new Error('No databases configured! Add DB URLs to .env.local');
+    }
+
+    const index = currentDBIndex;
+    const db = dbClients[index];
+    const dbNumber = index + 1;
+
+    console.log(`🔄 Assigning user to DB${dbNumber}/${dbClients.length}`);
+
+    currentDBIndex = (currentDBIndex + 1) % dbClients.length;
+
+    return { db, index };
+}
+
+/**
  * Get database by index
  */
 export function getDB(index: number): SupabaseClient {

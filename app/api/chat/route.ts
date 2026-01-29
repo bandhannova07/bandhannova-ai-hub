@@ -18,7 +18,7 @@ import { buildOptimizedPrompt } from '@/lib/ai/optimized-prompts';
 import { getAgentPrompt } from '@/lib/ai/agent-manager';
 import { getModelIdentityPrompt } from '@/lib/ai/model-prompts';
 import { COMPANY_KEYWORDS, getCompanyKnowledgeJSON } from '@/lib/ai/company-knowledge';
-import { searchWithTavily } from '@/lib/ai/tavily-search';
+import { qaCache } from '@/lib/ai/qa-cache-manager';
 
 type AIMode = 'quick' | 'normal' | 'thinking';
 
@@ -43,6 +43,18 @@ export async function POST(req: NextRequest) {
                 JSON.stringify({ error: 'Missing required fields: message and modelId' }),
                 { status: 400, headers: { 'Content-Type': 'application/json' } }
             );
+        }
+
+        // 0. CHECK QA CACHE
+        // Only cache for simple/normal modes, and if no search/files involved
+        if (!enableSearch && (!responseMode || responseMode === 'quick' || responseMode === 'normal')) {
+            const cachedResponse = await qaCache.get(message, modelId);
+            if (cachedResponse) {
+                console.log('⚡ QA Cache Hit! Serving valid cached response.');
+                return new Response(cachedResponse, {
+                    headers: { 'X-Cache': 'HIT', 'X-Model-Used': modelId }
+                });
+            }
         }
 
         // Get user's subscription tier
@@ -124,17 +136,47 @@ export async function POST(req: NextRequest) {
         const mode = (responseMode as AIMode) || 'normal';
         let systemPrompt: string;
 
+        // 0.5 Fetch User Onboarding Data for Context
+        let userContext = null;
+        if (userId) {
+            try {
+                // Assuming simple query for now
+                const { supabase } = await import('@/lib/supabase');
+                const { data } = await supabase
+                    .from('user_onboarding')
+                    .select('*')
+                    .eq('user_id', userId)
+                    .single();
+
+                if (data) userContext = data;
+            } catch (err) {
+                console.warn('Failed to fetch user context:', err);
+            }
+        }
+
+        // 1. Get Agent Persona
         // 1. Get Agent Persona
         if (agentType) {
-            systemPrompt = getAgentPrompt(agentType, mode);
+            systemPrompt = await getAgentPrompt(agentType, mode, userContext);
         } else {
-            systemPrompt = buildOptimizedPrompt(mode, message);
+            // For standard search, we specifically inject it via the updated prompt function
+            if (modelId === 'bandhannova-research' || modelId === 'bandhannova-extreme') {
+                const { searchEnginePrompt } = await import('@/lib/ai/agents/search-engine');
+                // Ensure searchEnginePrompt is a function before calling, handle backward compatibility
+                if (typeof searchEnginePrompt === 'function') {
+                    systemPrompt = searchEnginePrompt(userContext);
+                } else {
+                    systemPrompt = searchEnginePrompt;
+                }
+            } else {
+                systemPrompt = await buildOptimizedPrompt(userContext);
+            }
         }
 
         // 2. Inject Model Identity (Top Layer)
-        // This makes sure Groq/Gemini models pretend to be the selected model
         const modelIdentity = getModelIdentityPrompt(modelId as ModelId);
         systemPrompt = `${modelIdentity}\n\n${systemPrompt}`;
+
 
         // 3. Inject Company Knowledge (Conditional Layer)
         // Check if message contains any company keywords
@@ -202,7 +244,7 @@ export async function POST(req: NextRequest) {
                             temperature: modelConfig.temperature,
                             max_tokens: modelConfig.maxTokens,
                         }),
-                        signal: AbortSignal.timeout(40000), // 40s timeout for OpenRouter
+                        signal: AbortSignal.timeout(60000), // 60s timeout for OpenRouter
                     });
 
                     if (!response.ok) {
@@ -218,12 +260,10 @@ export async function POST(req: NextRequest) {
 
                 } else if (backend.provider === 'groq') {
                     // Groq Logic
-                    // Note: callGroqAPIStreaming handles its own retries/rotation internally
                     responseStream = await callGroqAPIStreaming(messages, currentModelId);
 
                 } else if (backend.provider === 'gemini') {
                     // Gemini Logic
-                    // Note: callGeminiAPIStreaming handles its own retries/rotation internally
                     responseStream = await callGeminiAPIStreaming(messages, currentModelId);
 
                 } else {
@@ -233,8 +273,47 @@ export async function POST(req: NextRequest) {
 
                 console.log(`${logPrefix} ✅ Success!`);
 
+                // Tee the stream to capture for caching
+                const [stream1, stream2] = responseStream.tee();
+
+                // Process stream2 to cache content (fire and forget)
+                (async () => {
+                    try {
+                        const reader = stream2.getReader();
+                        const decoder = new TextDecoder();
+                        let fullText = '';
+
+                        while (true) {
+                            const { done, value } = await reader.read();
+                            if (done) break;
+
+                            const chunk = decoder.decode(value, { stream: true });
+                            // We need to parse SSE data format "data: {...}"
+                            const lines = chunk.split('\n');
+                            for (const line of lines) {
+                                if (line.startsWith('data: ')) {
+                                    try {
+                                        const json = JSON.parse(line.substring(6));
+                                        if (json.choices?.[0]?.delta?.content) {
+                                            fullText += json.choices[0].delta.content;
+                                        }
+                                    } catch (e) { /* ignore parse error */ }
+                                }
+                            }
+                        }
+
+                        // Cache the full text
+                        if (fullText.length > 10) {
+                            await qaCache.set(message, modelId, fullText);
+                            console.log('💾 Response cached for future queries.');
+                        }
+                    } catch (err) {
+                        console.warn('Failed to cache stream:', err);
+                    }
+                })();
+
                 // Return streaming response
-                return new Response(responseStream, {
+                return new Response(stream1, {
                     headers: {
                         'Content-Type': 'text/event-stream; charset=utf-8',
                         'Cache-Control': 'no-cache',
@@ -243,6 +322,7 @@ export async function POST(req: NextRequest) {
                         'X-Provider': backend.provider,
                         'X-User-Tier': userTier,
                         'X-Attempt': String(i + 1),
+                        'X-Cache': 'MISS'
                     },
                 });
 

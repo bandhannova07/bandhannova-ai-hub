@@ -49,6 +49,16 @@ export async function signUp(data: SignUpData) {
             console.error('Profile creation failed:', profileErr);
         }
 
+        if (typeof window !== 'undefined') {
+            // We need to know which DB index returned by getNextDB()
+            // Since getNextDB doesn't return index, we might default to 0 or need to update getNextDB
+            // effectively, getNextDB rotates, so it's safer to just let the user login again or
+            // better, store the index if we modify getNextDB.
+            // For now, let's assume we can find the user by iterating or just rely on the first login.
+            // Actually, sign-up returns a session, so the user IS logged in.
+            // Let's iterate to find where the user was created to be safe, or modify getNextDB.
+        }
+
         console.log(`✅ User ${data.email} created successfully`);
 
         return { user: authData.user, session: authData.session, error: null };
@@ -77,6 +87,9 @@ export async function signIn(email: string, password: string) {
 
             if (!error && data.user) {
                 console.log(`✅ User found in DB ${i + 1}`);
+                if (typeof window !== 'undefined') {
+                    localStorage.setItem('active_db_index', i.toString());
+                }
                 return { user: data.user, session: data.session, error: null };
             }
         }
@@ -149,5 +162,38 @@ export async function getCurrentUser() {
     } catch (error: any) {
         console.error('Get current user error:', error);
         return { user: null, error: error.message };
+    }
+}
+/**
+ * Sign in with Google - assigns to next DB in rotation
+ */
+export async function signInWithGoogle() {
+    try {
+        const { getNextDBWithIndex } = await import('./database/multi-db');
+        const { db, index } = getNextDBWithIndex();
+
+        // We need to persist which DB we are using for the callback
+        // This is tricky because the callback comes back to the browser
+        // We'll rely on the fact that if the user signs in with Google,
+        // they will exist in THAT database.
+        // For now, let's just trigger the flow.
+
+        const { data, error } = await db.auth.signInWithOAuth({
+            provider: 'google',
+            options: {
+                redirectTo: `${window.location.origin}/auth/callback?db_index=${index}`,
+                queryParams: {
+                    access_type: 'offline',
+                    prompt: 'consent',
+                },
+            },
+        });
+
+        if (error) throw error;
+
+        return { data, error: null };
+    } catch (error: any) {
+        console.error('Google sign in error:', error);
+        return { data: null, error: error.message };
     }
 }

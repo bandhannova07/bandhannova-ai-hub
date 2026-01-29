@@ -77,50 +77,52 @@ export default function InstallPage() {
 
     async function handleInstall() {
         if (!deferredPrompt) {
-            // Show manual installation instructions
-            const userAgent = navigator.userAgent.toLowerCase();
-            let instructions = '';
-
-            if (userAgent.includes('chrome') && !userAgent.includes('edg')) {
-                instructions = '📱 **Chrome Installation:**\n\n1. Tap the menu (⋮) in the top right\n2. Select "Install app" or "Add to Home screen"\n3. Follow the prompts';
-            } else if (userAgent.includes('safari')) {
-                instructions = '📱 **Safari Installation:**\n\n1. Tap the Share button (□↑)\n2. Scroll and tap "Add to Home Screen"\n3. Tap "Add"';
-            } else if (userAgent.includes('firefox')) {
-                instructions = '📱 **Firefox Installation:**\n\n1. Tap the menu (⋮)\n2. Select "Install"\n3. Follow the prompts';
-            } else if (userAgent.includes('edg')) {
-                instructions = '📱 **Edge Installation:**\n\n1. Tap the menu (⋯)\n2. Select "Apps" > "Install this site as an app"\n3. Follow the prompts';
-            } else {
-                instructions = '📱 **Manual Installation:**\n\nLook for an "Install" or "Add to Home Screen" option in your browser menu.';
+            // Check if it's already installed
+            if (isInstalled) {
+                router.push('/dashboard');
+                return;
             }
 
-            alert(`BandhanNova can be installed!\n\n${instructions}\n\nOr continue using in browser.`);
-            localStorage.setItem('installPromptShown', 'manual');
-            router.push('/dashboard');
+            // Show manual installation instructions based on browser
+            const userAgent = navigator.userAgent.toLowerCase();
+            const isIOS = /ipad|iphone|ipod/.test(userAgent);
+            const isSafari = /^((?!chrome|android).)*safari/i.test(userAgent);
+
+            if (isIOS || isSafari) {
+                alert('To install BandhanNova on iOS:\n\n1. Tap the Share button (□↑) at the bottom.\n2. Scroll down and tap "Add to Home Screen".\n3. Tap "Add" in the top right corner.');
+            } else {
+                alert('To install BandhanNova:\n\n1. Open your browser menu (⋮ or ⋯).\n2. Look for "Install app" or "Add to Home screen".');
+            }
             return;
         }
 
         try {
-            // Show the install prompt
+            // Show the native browser install prompt
             await deferredPrompt.prompt();
 
-            // Wait for user choice
+            // Wait for the user to respond to the prompt
             const { outcome } = await deferredPrompt.userChoice;
+            console.log(`User response to the install prompt: ${outcome}`);
 
             if (outcome === 'accepted') {
+                console.log('User accepted the install prompt');
+                setIsInstalled(true);
+                setDeferredPrompt(null);
+                setIsInstallable(false);
+
+                // Track success locally
                 localStorage.setItem('appInstalled', 'true');
-                localStorage.setItem('installPromptShown', 'accepted');
-                // Redirect to dashboard after installation
+
+                // Small delay before redirecting to show success state if needed
                 setTimeout(() => {
                     router.push('/dashboard');
-                }, 500);
+                }, 1000);
             } else {
-                localStorage.setItem('installPromptShown', 'dismissed');
-                router.push('/dashboard');
+                console.log('User dismissed the install prompt');
             }
-
-            setDeferredPrompt(null);
-        } catch (error) {
-            console.error('Install error:', error);
+        } catch (err) {
+            console.error('Error during installation:', err);
+            // Fallback to manual if something goes wrong
             router.push('/dashboard');
         }
     }

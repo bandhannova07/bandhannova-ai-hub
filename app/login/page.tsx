@@ -153,6 +153,47 @@ export default function LoginPage() {
                                     </motion.div>
                                 )}
 
+                                {/* Google Sign In - Premium Design */}
+                                <div className="relative group" style={{ padding: '10px' }}>
+                                    <div
+                                        className="absolute -inset-0.5 rounded-xl opacity-75 group-hover:opacity-100 blur transition duration-300"
+                                    />
+                                    <Button
+                                        type="button"
+                                        onClick={async () => {
+                                            setLoading(true);
+                                            const { signInWithGoogle } = await import('@/lib/auth-simple');
+                                            await signInWithGoogle();
+                                        }}
+                                        variant="outline"
+                                        className="relative w-full h-14 rounded-xl font-semibold transition-all duration-300 hover:scale-[1.02] flex items-center justify-center gap-3 mb-6 overflow-hidden"
+                                        style={{
+                                            background: 'var(--card)',
+                                            border: 'none',
+                                            color: 'var(--foreground)'
+                                        }}
+                                        disabled={loading}
+                                    >
+                                        <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-green-500/10 to-red-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                                        <Image
+                                            src="/google-icon-logo-svgrepo-com.svg"
+                                            alt="Google"
+                                            width={24}
+                                            height={24}
+                                            className="relative z-10"
+                                        />
+                                        <span className="relative z-10 text-base">Continue with Google</span>
+                                    </Button>
+                                </div>
+
+                                <div className="relative flex items-center justify-center mb-6">
+                                    <div className="relative flex justify-center text-xs uppercase">
+                                        <span style={{ color: 'var(--foreground-tertiary)', fontWeight: '500' }}>
+                                            Or continue with
+                                        </span>
+                                    </div>
+                                </div>
+
                                 {/* Email Field */}
                                 <div className="space-y-2">
                                     <Label htmlFor="email" className="body" style={{ color: 'var(--foreground)' }}>

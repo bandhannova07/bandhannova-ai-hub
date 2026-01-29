@@ -3,6 +3,8 @@ import { Inter, Outfit, Space_Grotesk } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ServiceWorkerRegistration } from "@/components/service-worker-registration";
+import AuthGuard from "@/components/auth-guard";
+import Script from "next/script";
 import "./globals.css";
 
 const inter = Inter({
@@ -27,7 +29,7 @@ export const metadata: Metadata = {
   title: "BandhanNova Platforms– Building AI that actually helps",
   description: "India's first next-generation AI life-growing platform designed for the Gen-Z era. Multi-brain AI system for learning, creativity, social media, decision making, career building, and personal growth.",
   keywords: ["AI platform", "Indian AI", "Gen-Z", "personal growth", "AI learning", "career building", "multi-language AI"],
-  authors: [{ name: "BandhanNova" }],
+  authors: [{ name: "BandhanNova Platforms" }],
   openGraph: {
     title: "BandhanNova Platforms– Building AI that actually helps",
     description: "India's first next-generation AI life-growing platform for Gen-Z",
@@ -57,13 +59,29 @@ export default function RootLayout({
       <body
         className={`${inter.variable} ${outfit.variable} ${spaceGrotesk.variable} antialiased`}
       >
+        {/* Google Analytics */}
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-Q7VGR0XGG3"
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+
+            gtag('config', 'G-Q7VGR0XGG3');
+          `}
+        </Script>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
           enableSystem={true}
         >
           <ServiceWorkerRegistration />
-          {children}
+          <AuthGuard>
+            {children}
+          </AuthGuard>
           <Analytics />
         </ThemeProvider>
       </body>

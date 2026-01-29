@@ -42,7 +42,7 @@ export const AI_MODELS: Record<ModelId, ModelConfig> = {
         displayName: 'BDN: Ispat V2 Flash',
         description: 'Fast and efficient for quick responses',
         backends: [
-            { provider: 'openrouter', modelId: 'google/gemma-3-27b-it:free' },
+            { provider: 'openrouter', modelId: 'upstage/solar-pro-3:free' },
             { provider: 'groq', modelId: 'llama-3.3-70b-versatile' },
             { provider: 'gemini', modelId: 'gemini-2.0-flash' }
         ],

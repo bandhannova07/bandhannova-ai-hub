@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -10,6 +11,55 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+
+// Language Grid Component with Geolocation
+const LanguageGrid = () => {
+  const [isIndia, setIsIndia] = useState(true); // Default to India initially
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    // Check location
+    fetch('https://ipwho.is/')
+      .then(res => res.json())
+      .then(data => {
+        if (data.country_code !== 'IN') {
+          setIsIndia(false);
+        }
+        setLoaded(true);
+      })
+      .catch(err => {
+        console.error("GeoIP fetch failed, defaulting to India:", err);
+        setLoaded(true);
+      });
+  }, []);
+
+  const indianLanguages = ['English', 'हिंदी', 'বাংলা', 'मराठी', 'தமிழ்', 'ગુજરાતી', 'తెలుగు', 'ಕನ್ನಡ', 'മലയാളം', 'ਪੰਜਾਬੀ', 'ଓଡ଼ିଆ', 'اردو'];
+  const globalLanguages = ['English', 'Spanish', 'French', 'German', 'Italian', 'Portuguese', 'Japanese', 'Korean', 'Chinese', 'Russian', 'Arabic', 'Turkish', 'Dutch', 'Indonesian', 'Hindi', 'Bengali'];
+
+  const languages = isIndia ? indianLanguages : globalLanguages;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 30 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.8 }}
+      className="flex flex-wrap justify-center gap-4"
+    >
+      {languages.map((lang, index) => (
+        <motion.div
+          key={index}
+          whileHover={{ scale: 1.1 }}
+          className="glass px-4 md:px-8 py-2 md:py-4 rounded-2xl min-w-[80px] md:min-w-[120px] flex items-center justify-center font-medium text-sm md:text-lg"
+          style={{ color: 'var(--foreground)' }}
+        >
+          {lang}
+        </motion.div>
+      ))}
+    </motion.div>
+  );
+};
+
 
 export default function Home() {
   const router = useRouter();
@@ -344,29 +394,13 @@ export default function Home() {
             </h2>
             <div className="flex justify-center items-center w-full" style={{ marginBottom: '40px' }}>
               <p className="body-large max-w-2xl text-center" style={{ color: 'var(--foreground-secondary)' }}>
-                High-quality AI guidance accessible across India
+                High-quality AI guidance accessible across the globe
               </p>
             </div>
           </motion.div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
-            className="flex flex-wrap justify-center gap-4"
-          >
-            {['English', 'हिंदी', 'বাংলা', 'मराठी', 'தமிழ்', 'ગુજરાતી', 'తెలుగు', 'ಕನ್ನಡ', 'മലയാളം', 'ਪੰਜਾਬੀ', 'ଓଡ଼ିଆ', 'اردو'].map((lang, index) => (
-              <motion.div
-                key={index}
-                whileHover={{ scale: 1.1 }}
-                className="glass px-4 md:px-8 py-2 md:py-4 rounded-2xl min-w-[80px] md:min-w-[120px] flex items-center justify-center font-medium text-sm md:text-lg"
-                style={{ color: 'var(--foreground)' }}
-              >
-                {lang}
-              </motion.div>
-            ))}
-          </motion.div>
+          <LanguageGrid />
+
         </div>
       </section>
 
