@@ -50,7 +50,7 @@ export function TTSPlayer({
             setIsLoading(true)
             setError(null)
 
-            const baseUrl = "https://bandhannova-tts.onrender.com"
+            const baseUrl = "https://tts.bandhannova.in"
             const url = `${baseUrl}/${language.toLowerCase()}/${gender.toLowerCase()}/generate`
             const apiKey = process.env.NEXT_PUBLIC_TTS_API_KEY;
 

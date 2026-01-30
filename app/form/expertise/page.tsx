@@ -6,9 +6,8 @@ import { motion } from "framer-motion"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Slider } from "@/components/ui/slider"
 import { useState } from "react"
-import { Check, Sparkles, Sparkle } from "lucide-react"
+import { Check, Sparkle } from "lucide-react"
 
 const interestsList = [
     "Web Development", "AI & ML", "Data Science", "Mobile Apps",
