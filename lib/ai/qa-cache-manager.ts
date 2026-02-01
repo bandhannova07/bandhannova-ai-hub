@@ -1,7 +1,7 @@
 // QA Cache Manager - KeyDB/Redis Implementation
 // Caches User Query -> LLM Response pairs for instant answers
 
-import { keydb } from '@/lib/cache/keydb';
+import { redisPool } from '@/lib/cache/redis';
 import crypto from 'crypto';
 
 interface CachedResponse {
@@ -32,7 +32,7 @@ class QACacheManager {
      */
     async get(message: string, modelId: string): Promise<string | null> {
         const key = this.generateKey(message, modelId);
-        const redis = keydb.getClient();
+        const redis = redisPool.getClient();
 
         try {
             const cached = await redis.get(key);
@@ -58,7 +58,7 @@ class QACacheManager {
         }
 
         const key = this.generateKey(message, modelId);
-        const redis = keydb.getClient();
+        const redis = redisPool.getClient();
 
         try {
             await redis.setex(key, QA_TTL, content);

@@ -3,6 +3,7 @@ import { Inter, Outfit, Space_Grotesk } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ServiceWorkerRegistration } from "@/components/service-worker-registration";
+import { PWAProvider } from "@/contexts/PWAContext";
 import AuthGuard from "@/components/auth-guard";
 import Script from "next/script";
 import "./globals.css";
@@ -46,15 +47,15 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover" />
-        <link rel="icon" href="/favicon.ico" type="image/x-icon" />
-        <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+        <link rel="icon" href="/icon-192.png" type="image/png" />
+        <link rel="shortcut icon" href="/icon-192.png" type="image/png" />
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#667eea" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="BandhanNova" />
-        <link rel="apple-touch-icon" href="/favicon.ico" />
+        <link rel="apple-touch-icon" href="/icon-192.png" />
       </head>
       <body
         className={`${inter.variable} ${outfit.variable} ${spaceGrotesk.variable} antialiased`}
@@ -78,11 +79,13 @@ export default function RootLayout({
           defaultTheme="system"
           enableSystem={true}
         >
-          <ServiceWorkerRegistration />
-          <AuthGuard>
-            {children}
-          </AuthGuard>
-          <Analytics />
+          <PWAProvider>
+            <ServiceWorkerRegistration />
+            <AuthGuard>
+              {children}
+            </AuthGuard>
+            <Analytics />
+          </PWAProvider>
         </ThemeProvider>
       </body>
     </html>

@@ -1,5 +1,5 @@
-// Redis Pool Manager (Supports KeyDB & Upstash Rotation)
-// Rotates specific operations across multiple Redis connections to distribute load
+// Redis Pool Manager (Supports Upstash & Multi-Instance Rotation)
+// Rotates specific operations across multiple Redis connections to distribute load and bypass free-tier limits
 
 import Redis from 'ioredis';
 
@@ -24,9 +24,9 @@ class RedisPoolManager {
      * Load all available Redis URLs from env
      */
     private loadConnectionUrls() {
-        // 1. Check for dedicated KeyDB URL
-        if (process.env.KEYDB_URL) {
-            this.connectionUrls.push(process.env.KEYDB_URL);
+        // 1. Check for primary Redis/KeyDB URL
+        if (process.env.REDIS_URL || process.env.KEYDB_URL) {
+            this.connectionUrls.push((process.env.REDIS_URL || process.env.KEYDB_URL) as string);
         }
 
         // 2. Check for rotated Upstash URLs (1-5)
@@ -54,7 +54,7 @@ class RedisPoolManager {
                 maxRetriesPerRequest: 3,
                 retryStrategy: (times) => Math.min(times * 50, 2000),
                 lazyConnect: true,
-                connectionName: `bandhannova-pool-${index}`
+                connectionName: `bandhannova-redis-pool-${index}`
             });
 
             // Silent error handling to prevent crashing on one bad connection
@@ -94,4 +94,4 @@ class RedisPoolManager {
     }
 }
 
-export const keydb = RedisPoolManager.getInstance();
+export const redisPool = RedisPoolManager.getInstance();

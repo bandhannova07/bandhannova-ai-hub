@@ -12,28 +12,51 @@ function AuthCallbackContent() {
     useEffect(() => {
         const handleCallback = async () => {
             try {
-                // Get params
-                const code = searchParams.get('code');
-                const dbIndexStr = searchParams.get('db_index');
+                // Detailed debug logging
+                console.log('🔍 Auth Callback Triggered');
+                console.log('📍 Current URL:', window.location.href);
+                console.log('📁 Search Params:', Object.fromEntries(searchParams.entries()));
+
+                // Get params from search
+                let code = searchParams.get('code');
+                let dbIndexStr = searchParams.get('db_index');
                 const error = searchParams.get('error');
                 const error_description = searchParams.get('error_description');
 
+                // Fallback for code if it's in the hash (implicit flow or custom redirect)
+                if (!code && window.location.hash) {
+                    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+                    code = hashParams.get('access_token') || hashParams.get('code');
+                    console.log('🔗 Falling back to hash params for code:', code ? 'Found' : 'Not found');
+                }
+
+                // Fallback for db_index from localStorage
+                if (!dbIndexStr) {
+                    dbIndexStr = localStorage.getItem('auth_db_index');
+                    console.log('📦 Falling back to localStorage for db_index:', dbIndexStr);
+                }
+
                 if (error) {
+                    console.error('❌ Auth Error search param:', error, error_description);
                     throw new Error(error_description || error);
                 }
 
                 if (!code || !dbIndexStr) {
-                    // Start auth flow? No, we are in callback.
-                    console.error('Missing code or db_index', { code, dbIndexStr });
-                    throw new Error('Invalid authentication response from Google');
+                    console.error('❌ Missing code or db_index at final check', {
+                        code: code ? 'Present' : 'Missing',
+                        dbIndexStr: dbIndexStr || 'Missing'
+                    });
+                    throw new Error('Invalid authentication response: Missing required parameters');
                 }
 
                 const dbIndex = parseInt(dbIndexStr);
+                console.log(`🔌 Connecting to Database Index: ${dbIndex}`);
 
                 // Get the correct DB instance
                 const db = getDB(dbIndex);
 
                 // Exchange code for session
+                console.log('🔄 Exchanging code/session with Supabase...');
                 const { data, error: sessionError } = await db.auth.exchangeCodeForSession(code);
 
                 if (sessionError) throw sessionError;

@@ -17,34 +17,16 @@ import {
     X
 } from 'lucide-react';
 import { getCurrentUser } from '@/lib/auth-simple';
-
-interface BeforeInstallPromptEvent extends Event {
-    prompt: () => Promise<void>;
-    userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
-}
+import { usePWA } from '@/contexts/PWAContext';
 
 export default function InstallPage() {
     const router = useRouter();
-    const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
-    const [isInstallable, setIsInstallable] = useState(false);
+    const { deferredPrompt, isInstallable, clearPrompt } = usePWA();
     const [isInstalled, setIsInstalled] = useState(false);
 
     useEffect(() => {
         checkAuth();
         checkInstallStatus();
-
-        // Capture the install prompt event
-        const handleBeforeInstallPrompt = (e: Event) => {
-            e.preventDefault();
-            setDeferredPrompt(e as BeforeInstallPromptEvent);
-            setIsInstallable(true);
-        };
-
-        window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-
-        return () => {
-            window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-        };
     }, []);
 
     async function checkAuth() {
@@ -65,13 +47,6 @@ export default function InstallPage() {
         // If already installed, redirect to dashboard
         if (installed) {
             router.push('/dashboard');
-        }
-
-        // Check if user has already seen the prompt
-        const promptShown = localStorage.getItem('installPromptShown');
-        if (promptShown === 'skipped') {
-            // User skipped before, but we can show again
-            // Don't auto-redirect, let them see the page
         }
     }
 
@@ -97,6 +72,7 @@ export default function InstallPage() {
         }
 
         try {
+            console.log('🚀 Triggering Official Install Prompt');
             // Show the native browser install prompt
             await deferredPrompt.prompt();
 
@@ -105,10 +81,9 @@ export default function InstallPage() {
             console.log(`User response to the install prompt: ${outcome}`);
 
             if (outcome === 'accepted') {
-                console.log('User accepted the install prompt');
+                console.log('✅ User accepted the install prompt');
                 setIsInstalled(true);
-                setDeferredPrompt(null);
-                setIsInstallable(false);
+                clearPrompt();
 
                 // Track success locally
                 localStorage.setItem('appInstalled', 'true');
@@ -118,7 +93,7 @@ export default function InstallPage() {
                     router.push('/dashboard');
                 }, 1000);
             } else {
-                console.log('User dismissed the install prompt');
+                console.log('❌ User dismissed the install prompt');
             }
         } catch (err) {
             console.error('Error during installation:', err);

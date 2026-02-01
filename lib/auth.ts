@@ -19,6 +19,21 @@ export type SignInData = {
 };
 
 /**
+ * Get the base URL for redirects
+ */
+const getURL = () => {
+    let url =
+        process?.env?.NEXT_PUBLIC_APP_URL ?? // Use environment variable if set
+        (typeof window !== 'undefined' ? window.location.origin : ''); // Fallback to current origin
+
+    // Make sure to include `https://` when not localhost
+    url = url.includes('http') ? url : `https://${url}`;
+    // Remove trailing slash
+    url = url.charAt(url.length - 1) === '/' ? url.slice(0, -1) : url;
+    return url;
+};
+
+/**
  * Sign up a new user
  */
 export async function signUp(data: SignUpData) {
@@ -150,7 +165,7 @@ export async function updateUserProfile(userId: string, updates: Partial<Profile
 export async function resetPassword(email: string) {
     try {
         const { error } = await supabase.auth.resetPasswordForEmail(email, {
-            redirectTo: `${window.location.origin}/reset-password`,
+            redirectTo: `${getURL()}/reset-password`,
         });
 
         if (error) throw error;

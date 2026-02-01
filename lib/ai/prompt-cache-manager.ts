@@ -1,7 +1,7 @@
 // Prompt Cache Manager - KeyDB/Redis Implementation
 // Shared server-side memory cache for system prompts
 
-import { keydb } from '@/lib/cache/keydb';
+import { redisPool } from '@/lib/cache/redis';
 
 interface CachedPrompt {
     content: string;
@@ -20,7 +20,7 @@ class PromptCacheManager {
      */
     async get(key: string, generator: () => string, ttlSeconds: number = DEFAULT_TTL): Promise<string> {
         const cacheKey = this.prefix + key;
-        const redis = keydb.getClient();
+        const redis = redisPool.getClient();
 
         try {
             // Try to get from Redis
@@ -53,7 +53,7 @@ class PromptCacheManager {
      */
     async set(key: string, content: string, ttlSeconds: number = DEFAULT_TTL): Promise<void> {
         const cacheKey = this.prefix + key;
-        const redis = keydb.getClient();
+        const redis = redisPool.getClient();
         try {
             await redis.setex(cacheKey, ttlSeconds, content);
         } catch (error) {
@@ -66,7 +66,7 @@ class PromptCacheManager {
      */
     async invalidate(key: string): Promise<void> {
         const cacheKey = this.prefix + key;
-        const redis = keydb.getClient();
+        const redis = redisPool.getClient();
         await redis.del(cacheKey);
     }
 }

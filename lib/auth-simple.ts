@@ -143,6 +143,21 @@ export async function getSession() {
 }
 
 /**
+ * Get the base URL for redirects
+ */
+const getURL = () => {
+    let url =
+        process?.env?.NEXT_PUBLIC_APP_URL ?? // Use environment variable if set
+        window.location.origin; // Fallback to current origin
+
+    // Make sure to include `https://` when not localhost
+    url = url.includes('http') ? url : `https://${url}`;
+    // Remove trailing slash
+    url = url.charAt(url.length - 1) === '/' ? url.slice(0, -1) : url;
+    return url;
+};
+
+/**
  * Get current user - checks all databases
  */
 export async function getCurrentUser() {
@@ -173,15 +188,17 @@ export async function signInWithGoogle() {
         const { db, index } = getNextDBWithIndex();
 
         // We need to persist which DB we are using for the callback
-        // This is tricky because the callback comes back to the browser
-        // We'll rely on the fact that if the user signs in with Google,
-        // they will exist in THAT database.
-        // For now, let's just trigger the flow.
+        // This is tricky because the callback comes back to the browser.
+        // We'll store it in localStorage as a fallback.
+        if (typeof window !== 'undefined') {
+            localStorage.setItem('auth_db_index', index.toString());
+            console.log(`📡 Preparing Google Auth: Using DB ${index + 1}. Persisted to localStorage.`);
+        }
 
         const { data, error } = await db.auth.signInWithOAuth({
             provider: 'google',
             options: {
-                redirectTo: `${window.location.origin}/auth/callback?db_index=${index}`,
+                redirectTo: `${getURL()}/auth/callback?db_index=${index}`,
                 queryParams: {
                     access_type: 'offline',
                     prompt: 'consent',
