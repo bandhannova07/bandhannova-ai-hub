@@ -13,27 +13,20 @@ function AuthCallbackContent() {
         const handleCallback = async () => {
             try {
                 // Detailed debug logging
-                console.log('🔍 Auth Callback Triggered');
+                console.log('🔍 Auth Callback Triggered (Single DB Mode)');
                 console.log('📍 Current URL:', window.location.href);
                 console.log('📁 Search Params:', Object.fromEntries(searchParams.entries()));
 
                 // Get params from search
                 let code = searchParams.get('code');
-                let dbIndexStr = searchParams.get('db_index');
                 const error = searchParams.get('error');
                 const error_description = searchParams.get('error_description');
 
-                // Fallback for code if it's in the hash (implicit flow or custom redirect)
+                // Fallback for code if it's in the hash
                 if (!code && window.location.hash) {
                     const hashParams = new URLSearchParams(window.location.hash.substring(1));
                     code = hashParams.get('access_token') || hashParams.get('code');
                     console.log('🔗 Falling back to hash params for code:', code ? 'Found' : 'Not found');
-                }
-
-                // Fallback for db_index from localStorage
-                if (!dbIndexStr) {
-                    dbIndexStr = localStorage.getItem('auth_db_index');
-                    console.log('📦 Falling back to localStorage for db_index:', dbIndexStr);
                 }
 
                 if (error) {
@@ -41,35 +34,31 @@ function AuthCallbackContent() {
                     throw new Error(error_description || error);
                 }
 
-                if (!code || !dbIndexStr) {
-                    console.error('❌ Missing code or db_index at final check', {
-                        code: code ? 'Present' : 'Missing',
-                        dbIndexStr: dbIndexStr || 'Missing'
-                    });
-                    throw new Error('Invalid authentication response: Missing required parameters');
+                if (!code) {
+                    console.error('❌ Missing code at final check');
+                    throw new Error('Invalid authentication response: Missing code');
                 }
 
-                const dbIndex = parseInt(dbIndexStr);
-                console.log(`🔌 Connecting to Database Index: ${dbIndex}`);
-
-                // Get the correct DB instance
-                const db = getDB(dbIndex);
+                // Always use Primary DB
+                const db = getDB(0);
+                console.log('🔌 Connected to Primary Database');
 
                 // Exchange code for session
-                console.log('🔄 Exchanging code/session with Supabase...');
+                console.log('🔄 Exchanging code for session with Supabase...');
                 const { data, error: sessionError } = await db.auth.exchangeCodeForSession(code);
 
-                if (sessionError) throw sessionError;
+                if (sessionError) {
+                    console.error('❌ Session exchange failed:', sessionError);
+                    throw sessionError;
+                }
 
                 if (data?.user) {
                     console.log('✅ Google Auth Successful:', data.user.email);
 
-                    // Persist active DB index
-                    localStorage.setItem('active_db_index', dbIndex.toString());
+                    // Persist active DB index (always 0)
+                    localStorage.setItem('active_db_index', '0');
 
                     // Create/Check Profile
-                    // We try to insert a profile. If it exists, we might update it or ignore error.
-                    // Since Google provides name and avatar, let's try to capture them.
                     try {
                         const { error: profileError } = await db.from('profiles').upsert({
                             id: data.user.id,
@@ -107,6 +96,9 @@ function AuthCallbackContent() {
             } catch (err: any) {
                 console.error('Callback error:', err);
                 setStatus('Login failed: ' + err.message);
+
+                // If the error is about a missing session or something that might be fixed by re-trying
+                // we still redirect to login after a delay.
                 setTimeout(() => router.push('/login'), 3000);
             }
         };

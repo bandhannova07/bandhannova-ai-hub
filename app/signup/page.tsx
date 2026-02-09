@@ -26,11 +26,18 @@ export default function SignupPage() {
     const [error, setError] = useState('');
     const [isSmallScreen, setIsSmallScreen] = useState(false);
 
-    // Detect small screen
+    // Detect small screen and cleanup legacy keys
     useEffect(() => {
         const checkScreen = () => setIsSmallScreen(window.innerWidth <= 400);
         checkScreen();
         window.addEventListener('resize', checkScreen);
+
+        // Cleanup legacy multi-db keys
+        if (typeof window !== 'undefined') {
+            localStorage.removeItem('auth_db_index');
+            localStorage.removeItem('active_db_index');
+        }
+
         return () => window.removeEventListener('resize', checkScreen);
     }, []);
 
@@ -136,7 +143,7 @@ export default function SignupPage() {
                     router.push('/dashboard');
                 } else {
                     // Browser user, show install prompt
-                    router.push('/install');
+                    router.push('/dashboard');
                 }
             }
         } catch (err: any) {
@@ -215,10 +222,19 @@ export default function SignupPage() {
                                     <Button
                                         type="button"
                                         onClick={async () => {
-                                            setLoading(true);
-                                            const { signInWithGoogle } = await import('@/lib/auth-simple');
-                                            await signInWithGoogle();
-                                            // No need to set loading false as it redirects
+                                            try {
+                                                setLoading(true);
+                                                const { signInWithGoogle } = await import('@/lib/auth-simple');
+                                                const { error: googleError } = await signInWithGoogle();
+                                                if (googleError) {
+                                                    setError(googleError);
+                                                    setLoading(false);
+                                                }
+                                            } catch (err: any) {
+                                                console.error('Google Sign-In Error:', err);
+                                                setError('Google Sign-In failed to start');
+                                                setLoading(false);
+                                            }
                                         }}
                                         variant="outline"
                                         className="relative w-full h-14 rounded-xl font-semibold transition-all duration-300 hover:scale-[1.02] flex items-center justify-center gap-3 mb-6 overflow-hidden"

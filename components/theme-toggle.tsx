@@ -46,27 +46,30 @@ export function ThemeToggle({ variant = "compact" }: ThemeToggleProps) {
         );
     }
 
-    // Full variant for dashboard sidebar
+    // Full variant for dashboard sidebar & settings
     return (
         <Button
             onClick={() => setTheme(isDark ? "light" : "dark")}
             variant="ghost"
-            className="flex items-center gap-3 rounded-xl transition-all hover:scale-105 justify-start text-white"
+            className="flex items-center gap-3 rounded-2xl transition-all hover:scale-105"
             style={{
-                padding: '14px 16px',
-                width: '100%',
-                background: 'rgba(255, 255, 255, 0.1)'
+                padding: '10px 16px',
+                width: 'fit-content',
+                marginLeft: 'auto',
+                background: 'var(--background-tertiary)',
+                color: 'var(--foreground)',
+                border: '1px solid var(--background-tertiary)'
             }}
         >
             {isDark ? (
                 <>
-                    <Sun className="w-5 h-5" />
-                    <span className="body font-medium">Light Mode</span>
+                    <Sun className="w-4 h-4" />
+                    <span className="text-sm font-semibold">Light</span>
                 </>
             ) : (
                 <>
-                    <Moon className="w-5 h-5" />
-                    <span className="body font-medium">Dark Mode</span>
+                    <Moon className="w-4 h-4 text-primary-purple" />
+                    <span className="text-sm font-semibold">Dark</span>
                 </>
             )}
         </Button>

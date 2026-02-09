@@ -6,7 +6,8 @@ import {
     getModelConfig,
     hasModelAccess,
     ModelId,
-    AI_MODELS
+    AI_MODELS,
+    SubscriptionTier
 } from '@/lib/ai/model-tiers';
 import { getRotatedApiKey } from '@/lib/ai/api-keys';
 import { callGroqAPIStreaming } from '@/lib/ai/groq-api';
@@ -14,11 +15,15 @@ import { callGeminiAPIStreaming } from '@/lib/ai/gemini-api';
 import { getUserTierSimple } from '@/lib/db/get-user-tier';
 import { checkAndIncrementExtremeUsage } from '@/lib/ai/usage-tracker';
 import { detectLanguage, getLanguageInstruction } from '@/lib/ai/language-detection';
+import { COMPANY_KEYWORDS, getCompanyKnowledgeJSON } from '@/lib/ai/company-knowledge';
+import { qaCache } from '@/lib/ai/qa-cache-manager';
+import { generateAppIdHeader } from '@/lib/ai/app-identification';
+import { trackGuestQuery } from '@/lib/guest/tracking';
+import { supabase } from '@/lib/supabase';
+import { getCurrentUser } from '@/lib/auth';
 import { buildOptimizedPrompt } from '@/lib/ai/optimized-prompts';
 import { getAgentPrompt } from '@/lib/ai/agent-manager';
 import { getModelIdentityPrompt } from '@/lib/ai/model-prompts';
-import { COMPANY_KEYWORDS, getCompanyKnowledgeJSON } from '@/lib/ai/company-knowledge';
-import { qaCache } from '@/lib/ai/qa-cache-manager';
 
 type AIMode = 'quick' | 'normal' | 'thinking';
 
@@ -57,9 +62,51 @@ export async function POST(req: NextRequest) {
             }
         }
 
-        // Get user's subscription tier
-        const userTier = userId ? await getUserTierSimple(userId) : 'free';
-        console.log(`🎯 User tier: ${userTier}`);
+        // 0. CHECK GUEST LIMITS (If no userId)
+        if (!userId || userId === 'guest') {
+            const ip = req.headers.get('x-forwarded-for')?.split(',')[0] || req.headers.get('x-real-ip') || '127.0.0.1';
+
+            const usage = await trackGuestQuery(ip);
+            if (!usage.success) {
+                return new Response(
+                    JSON.stringify({
+                        error: 'Guest limit reached',
+                        message: usage.error || 'You have used your 5 free queries for this 48-hour window. Please login to continue.',
+                        remaining: 0,
+                        resetAt: usage.resetAt
+                    }),
+                    { status: 429, headers: { 'Content-Type': 'application/json' } }
+                );
+            }
+        }
+
+        // Initialize with default values
+        let userTier: SubscriptionTier = 'free';
+        let userContext: any = null;
+        let userName: string | undefined = undefined;
+
+        // Parallelize pre-fetching logic
+        if (userId && userId !== 'guest') {
+            try {
+                const [tier, contextResult, authResult] = await Promise.all([
+                    getUserTierSimple(userId),
+                    supabase.from('user_onboarding').select('*').eq('user_id', userId).single(),
+                    getCurrentUser()
+                ]);
+
+                userTier = tier;
+                if (contextResult.data) userContext = contextResult.data;
+
+                const user = authResult.user;
+                if (user?.user_metadata?.full_name) {
+                    userName = user.user_metadata.full_name.split(' ')[0];
+                }
+            } catch (err) {
+                console.warn('⚠️ Performance: Failed to fetch full user context in parallel:', err);
+            }
+        }
+
+        console.log(`🎯 Context: ${userId === 'guest' ? 'Guest' : userTier} mode`);
 
         // Validate model access
         if (!hasModelAccess(userTier, modelId as ModelId)) {
@@ -83,7 +130,7 @@ export async function POST(req: NextRequest) {
         }
 
         // Check usage limits for BandhanNova 2.0 eXtreme
-        if (modelConfig.isExtreme && userId) {
+        if (modelConfig.isExtreme && userId && userId !== 'guest') {
             const usageCheck = await checkAndIncrementExtremeUsage(userId, userTier);
             if (!usageCheck.allowed) {
                 return new Response(
@@ -136,41 +183,28 @@ export async function POST(req: NextRequest) {
         const mode = (responseMode as AIMode) || 'normal';
         let systemPrompt: string;
 
-        // 0.5 Fetch User Onboarding Data for Context
-        let userContext = null;
-        if (userId) {
-            try {
-                // Assuming simple query for now
-                const { supabase } = await import('@/lib/supabase');
-                const { data } = await supabase
-                    .from('user_onboarding')
-                    .select('*')
-                    .eq('user_id', userId)
-                    .single();
-
-                if (data) userContext = data;
-            } catch (err) {
-                console.warn('Failed to fetch user context:', err);
-            }
-        }
-
-        // 1. Get Agent Persona
         // 1. Get Agent Persona
         if (agentType) {
-            systemPrompt = await getAgentPrompt(agentType, mode, userContext);
+            systemPrompt = await getAgentPrompt(agentType, mode, userContext, userName);
         } else {
             // For standard search, we specifically inject it via the updated prompt function
             if (modelId === 'bandhannova-research' || modelId === 'bandhannova-extreme') {
                 const { searchEnginePrompt } = await import('@/lib/ai/agents/search-engine');
                 // Ensure searchEnginePrompt is a function before calling, handle backward compatibility
                 if (typeof searchEnginePrompt === 'function') {
-                    systemPrompt = searchEnginePrompt(userContext);
+                    systemPrompt = searchEnginePrompt(userContext, userName);
                 } else {
                     systemPrompt = searchEnginePrompt;
                 }
             } else {
-                systemPrompt = await buildOptimizedPrompt(userContext);
+                systemPrompt = await buildOptimizedPrompt(userContext, userName);
             }
+        }
+
+        // 1.5 Inject Custom Instructions (Highest Priority)
+        if (userContext?.custom_instructions) {
+            systemPrompt = `**USER'S CUSTOM INSTRUCTIONS:**\n${userContext.custom_instructions}\n\n${systemPrompt}`;
+            console.log('✨ Custom instructions applied');
         }
 
         // 2. Inject Model Identity (Top Layer)
@@ -236,6 +270,7 @@ export async function POST(req: NextRequest) {
                             'Authorization': `Bearer ${apiKey}`,
                             'HTTP-Referer': process.env.NEXT_PUBLIC_APP_URL || 'https://www.bandhannova.in',
                             'X-Title': 'BandhanNova AI Hub',
+                            'X-App-ID': generateAppIdHeader('OpenRouter'),
                         },
                         body: JSON.stringify({
                             model: currentModelId,

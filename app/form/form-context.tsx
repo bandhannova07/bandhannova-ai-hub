@@ -11,6 +11,7 @@ export interface OnboardingData {
     message_tone: string
     language: string
     voice_gender?: string
+    custom_instructions?: string
 }
 
 interface FormContextType {

@@ -45,14 +45,14 @@ export function ThinkingProcess({ content, isComplete }: ThinkingProcessProps) {
                 )}
                 <Brain className="w-4 h-4" style={{ color: '#8b5cf6' }} />
                 <span
-                    className="font-semibold text-sm"
+                    className="body font-semibold"
                     style={{ color: 'var(--foreground)' }}
                 >
                     {isExpanded ? 'AI Thinking Process' : 'View AI Thinking Process'}
                 </span>
                 {!isComplete && (
                     <span
-                        className="ml-auto text-xs animate-pulse"
+                        className="ml-auto small animate-pulse"
                         style={{ color: '#8b5cf6' }}
                     >
                         Thinking...

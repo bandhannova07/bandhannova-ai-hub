@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Target, Eye, Heart, Zap, Users, Globe, Shield, Sparkles } from 'lucide-react';
+import { Target, Eye, Heart, Zap, Users, Globe, Shield, Sparkles, User, Code, BookOpen } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 export default function AboutPage() {
@@ -526,11 +526,88 @@ export default function AboutPage() {
                         </div>
                     </motion.div>
 
+                    {/* About Founder */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 30 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.6 }}
+                        className="glass rounded-3xl border mx-auto overflow-hidden"
+                        style={{
+                            borderColor: 'rgba(255, 255, 255, 0.1)',
+                            backdropFilter: 'blur(20px)',
+                            marginBottom: '100px',
+                            maxWidth: '1200px'
+                        }}
+                    >
+                        <div className="p-8 lg:p-16">
+                            {/* Diagram Header: Photo (Left) | Details (Right) */}
+                            <div className="flex flex-col lg:flex-row gap-12 lg:gap-16 items-start mb-16">
+                                {/* Left: Photo Box */}
+                                <div className="w-full lg:w-96 flex-shrink-0 px-4" style={{ padding: '30px' }}>
+                                    <div className="relative aspect-square rounded-[2rem] overflow-hidden border-2 border-white/10 shadow-2xl bg-white/5 group">
+                                        <Image
+                                            src="/founder-pic-lbd.jpg"
+                                            alt="Bandhan Das"
+                                            fill
+                                            className="object-cover transition-transform duration-700 group-hover:scale-110"
+                                            priority
+                                        />
+                                    </div>
+                                </div>
+                                {/* Right: Details */}
+                                <div className="flex-1 text-left pt-6 px-4" style={{ marginTop: '30px' }}>
+                                    <h3 className="text-5xl lg:text-7xl font-black mb-2 tracking-tighter" style={{ color: 'var(--foreground)' }}>
+                                        Bandhan Das
+                                    </h3>
+                                    <p className="text-xs uppercase font-black opacity-40 tracking-widest mb-2" style={{ marginTop: '20px' }}>Role</p>
+                                    <p className="text-xl lg:text-2xl font-bold uppercase tracking-widest mb-10" style={{ color: 'var(--accent-cyan)' }}>
+                                        Founder, Product Lead & Developer
+                                    </p>
+
+                                    <div className="space-y-8">
+                                        <div className="text-left">
+                                            <p className="text-xs uppercase font-black opacity-40 tracking-widest mb-2" style={{ marginTop: '20px' }}>Background</p>
+                                            <p className="text-xl lg:text-3xl font-black">Student & Self-taught Developer</p>
+                                        </div>
+                                        <div className="text-left">
+                                            <p className="text-xs uppercase font-black opacity-40 tracking-widest mb-2" style={{ marginTop: '20px' }}>Location</p>
+                                            <p className="text-xl lg:text-3xl font-black">Kharagpur, West Bengal</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Diagram Body: Narrative sections below */}
+                            <div className="space-y-16 pt-16 border-t border-white/5">
+                                {/* About Founder */}
+                                <div className="text-left max-w-4xl px-4 lg:px-8" style={{ padding: '16px' }}>
+                                    <h2 className="text-xl lg:text-3xl font-black mb-4 italic">About <span className="gradient-text">Founder</span></h2>
+                                    <p className="text-base lg:text-lg leading-relaxed opacity-90 font-medium" style={{ color: 'var(--foreground)' }}>
+                                        Bandhan Das is a student and self-taught developer building BandhanNova as an independent AI web platform. He is responsible for product development, AI feature integration, testing, and deployment.
+                                    </p>
+                                </div>
+
+                                {/* The Vision */}
+                                <div className="text-left max-w-4xl px-4 lg:px-8" style={{ padding: '16px' }}>
+                                    <h2 className="text-xl md:text-3xl font-black mb-4 italic">The <span className="gradient-text">Vision</span></h2>
+                                    <p className="text-base lg:text-xl leading-relaxed italic opacity-95 font-serif" style={{ color: 'var(--foreground-secondary)' }}>
+                                        "BandhanNova was started after experiencing difficulties with scattered and complex AI tools, with the goal of creating a simple, all-in-one AI solution for students and creators. I am committed to developing BandhanNova as a long-term venture alongside my academic journey."
+                                    </p>
+                                    <p className="text-lg font-bold opacity-40 mt-10 uppercase border-primary-purple/30">
+                                        Independent AI Era Pioneer
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </motion.div>
+
                     {/* Our Story */}
                     <motion.div
                         initial={{ opacity: 0, y: 30 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 1.8 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ delay: 0.2 }}
                         className="glass rounded-3xl border mx-auto"
                         style={{
                             padding: '64px 48px',

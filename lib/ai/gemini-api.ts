@@ -2,6 +2,7 @@
 // Fallback when OpenRouter is rate limited
 
 import { geminiKeyManager } from './gemini-key-manager';
+import { generateAppIdHeader } from './app-identification';
 
 export async function callGeminiAPI(
     messages: Array<{ role: string; content: string }>,
@@ -41,6 +42,7 @@ export async function callGeminiAPI(
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        'X-App-ID': generateAppIdHeader('Gemini')
                     },
                     body: JSON.stringify({
                         contents: [{
@@ -112,6 +114,7 @@ export async function callGeminiAPIStreaming(
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        'X-App-ID': generateAppIdHeader('Gemini')
                     },
                     body: JSON.stringify({
                         contents: [{

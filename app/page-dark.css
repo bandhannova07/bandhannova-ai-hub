@@ -1,0 +1,316 @@
+/* ============================================
+   CHAT - DARK MODE STYLES
+   ============================================ */
+
+/* ============================================
+   SIDEBAR STYLING
+   ============================================ */
+
+/* Sidebar glass effect */
+aside {
+    background: rgba(26, 26, 36, 0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+}
+
+aside .glass {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+aside .glass-strong {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(30px);
+    -webkit-backdrop-filter: blur(30px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Sidebar button styling */
+aside button {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--foreground);
+}
+
+aside button:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+/* ============================================
+   MESSAGE BUBBLES
+   ============================================ */
+
+/* User message bubble */
+.user-message-book {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
+    border-right: 4px solid rgba(99, 102, 241, 0.5);
+}
+
+/* AI message bubble */
+.ai-message-book {
+    background: rgba(255, 255, 255, 0.02);
+    border-left: 4px solid rgba(139, 92, 246, 0.3);
+}
+
+/* Message content */
+.message-content-book {
+    color: var(--foreground);
+}
+
+/* ============================================
+   GLASS EFFECTS
+   ============================================ */
+
+.glass {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.glass-strong {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(30px);
+    -webkit-backdrop-filter: blur(30px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* ============================================
+   INPUT BOX
+   ============================================ */
+
+/* Textarea styling - Scoped to avoid conflicts */
+/* .chat-input-box and global textarea removed to fix "double box" issue */
+textarea:focus {
+    border-color: rgba(139, 92, 246, 0.5);
+    outline: none;
+}
+
+/* ============================================
+   BUTTONS
+   ============================================ */
+
+/* Plus menu button */
+.plus-menu-btn {
+    background: rgba(139, 92, 246, 0.8);
+    box-shadow: 0 4px 16px rgba(139, 92, 246, 0.3);
+}
+
+.plus-menu-btn:hover {
+    background: rgba(139, 92, 246, 0.9);
+}
+
+/* Send button */
+.send-btn {
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3), 0 0 20px rgba(139, 92, 246, 0.3);
+}
+
+/* Copy button */
+button.copy-btn {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--foreground-secondary);
+}
+
+button.copy-btn:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+/* ============================================
+   DROPDOWN MENU
+   ============================================ */
+
+.plus-menu-dropdown {
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+}
+
+.plus-menu-dropdown button {
+    background: transparent;
+    color: var(--foreground);
+}
+
+.plus-menu-dropdown button:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.plus-menu-dropdown button[style*="rgba(139, 92, 246, 0.2)"] {
+    background: rgba(139, 92, 246, 0.2);
+}
+
+/* ============================================
+   CONVERSATION LIST
+   ============================================ */
+
+.conversation-item {
+    background: transparent;
+    border: 1px solid transparent;
+}
+
+.conversation-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.conversation-item.active {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* ============================================
+   MOBILE TOGGLE BUTTON
+   ============================================ */
+
+.mobile-toggle-btn {
+    background: rgba(26, 26, 36, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.mobile-toggle-btn svg {
+    color: var(--foreground);
+}
+
+/* ============================================
+   SCROLLBAR
+   ============================================ */
+
+::-webkit-scrollbar {
+    width: 0px !important;
+    display: none !important;
+}
+
+::-webkit-scrollbar-thumb {
+    background: transparent !important;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent !important;
+}
+
+/* Custom smaller scrollbar for chat input */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(198, 131, 215, 0.5);
+    border-radius: 2px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(198, 131, 215, 0.8);
+}
+
+/* ============================================
+   THINKING PROCESS SECTION
+   ============================================ */
+
+.thinking-section {
+    margin: 16px 0;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.thinking-toggle {
+    transition: all 0.2s ease;
+}
+
+.thinking-toggle:hover {
+    transform: translateX(2px);
+}
+
+.thinking-content {
+    animation: slideDown 0.3s ease-out;
+}
+
+/* ============================================
+   ANIMATIONS
+   ============================================ */
+
+/* Sidebar slide animation */
+.sidebar-slide {
+    transition: transform 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Message fade in */
+@keyframes message-fade-in {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.message-fade-in {
+    animation: message-fade-in 0.3s ease-out;
+}
+
+/* Thinking section slide down */
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        max-height: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        max-height: 2000px;
+        transform: translateY(0);
+    }
+}
+
+.animate-slideDown {
+    animation: slideDown 0.3s ease-out;
+}
+
+/* ============================================
+   MOBILE OPTIMIZATIONS
+   ============================================ */
+
+@media (max-width: 1024px) {
+
+    /* Mobile sidebar */
+    .mobile-sidebar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        height: 100vh;
+        width: 70vw;
+        max-width: 320px;
+        z-index: 50;
+        transform: translateX(-100%);
+    }
+
+    .mobile-sidebar.open {
+        transform: translateX(0);
+    }
+
+    /* Touch-friendly tap targets */
+    .mobile-sidebar button,
+    .mobile-sidebar a {
+        min-height: 48px;
+        min-width: 48px;
+    }
+}
+
+/* Mobile sidebar overlay */
+.sidebar-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 40;
+    transition: opacity 300ms ease-in-out;
+}

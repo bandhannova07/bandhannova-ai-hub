@@ -2,7 +2,28 @@
 
 import { useEffect, useState } from "react"
 import { useRouter, usePathname } from "next/navigation"
-import { getSupabase, findUserInAllDBs } from "@/lib/supabase"
+import { getSupabase } from "@/lib/supabase"
+
+// Public routes that don't require authentication
+const PUBLIC_ROUTES = [
+    "/",
+    "/login",
+    "/signup",
+    "/guest-chat",
+    "/landing",
+    "/about",
+    "/contact",
+    "/privacy",
+    "/terms",
+    "/refunds",
+    "/shipping",
+    "/faq",
+    "/products",
+    "/forgot-password",
+    "/reset-password",
+    "/install",
+    "/search",
+]
 
 export default function AuthGuard({ children }: { children: React.ReactNode }) {
     const router = useRouter()
@@ -12,28 +33,21 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
     useEffect(() => {
         const checkAuth = async () => {
             try {
-                let supabase = getSupabase()
-                let { data: { session } } = await supabase.auth.getSession()
+                const supabase = getSupabase()
+                const { data: { session } } = await supabase.auth.getSession()
 
-                // If no session found on default client, try to recover (find user in other DBs)
-                if (!session) {
-                    const recovery = await findUserInAllDBs();
-                    if (recovery) {
-                        supabase = recovery.client; // Update client to the correct one
-                        session = recovery.session;
-                    }
-                }
+                // Check if current path is public
+                const isPublicRoute = PUBLIC_ROUTES.some(route => pathname === route || pathname.startsWith(route))
 
                 // 1. Not logged in
                 if (!session) {
-                    // Allow access to public pages (add more if needed)
-                    if (pathname === "/login" || pathname === "/signup" || pathname === "/") {
+                    // Allow access to public pages
+                    if (isPublicRoute || pathname.startsWith("/auth/")) {
                         setIsLoading(false)
                         return
                     }
-                    // Redirect to login for protected pages
-                    // router.push("/login") // Commented out to avoid aggressive redirects during dev
-                    setIsLoading(false)
+                    // Redirect protected routes to login
+                    router.push("/login")
                     return
                 }
 
@@ -49,19 +63,23 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
                 // Case A: User is on Onboarding pages
                 if (pathname.startsWith("/form")) {
                     if (hasCompletedOnboarding) {
-                        // If done, kick them out to dashboard
                         router.push("/dashboard")
+                        return
                     }
-                    // If not done, let them stay
+                    setIsLoading(false)
+                    return
                 }
 
-                // Case B: User is on Dashboard or other protected pages
-                else if (pathname.startsWith("/dashboard") || pathname === "/") {
+                // Case B: User is on Dashboard or Chat - check onboarding
+                if (pathname.startsWith("/dashboard") || pathname.startsWith("/chat")) {
                     if (!hasCompletedOnboarding) {
-                        // If not done, force them to onboarding
                         router.push("/form")
+                        return
                     }
                 }
+
+                // Case C: Root page - allow both guest and logged-in users
+                // Logged-in users can use it as chat interface or navigate to dashboard via sidebar
 
                 setIsLoading(false)
             } catch (error) {
@@ -74,7 +92,12 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
     }, [pathname, router])
 
     if (isLoading) {
-        return null // Or a loading spinner
+        // Return a premium loading state
+        return (
+            <div className="flex items-center justify-center min-h-screen bg-black">
+                <div className="w-12 h-12 border-4 border-primary-purple border-t-transparent rounded-full animate-spin"></div>
+            </div>
+        )
     }
 
     return <>{children}</>

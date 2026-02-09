@@ -1,7 +1,7 @@
 // Tavily AI Search Manager with Multi-API Key Rotation
 // Handles rate limits by automatically switching between available API keys
 
-import { tavily } from '@tavily/core';
+import { generateAppIdHeader } from './app-identification';
 
 interface TavilySearchResult {
     query: string;
@@ -151,22 +151,37 @@ class TavilySearchManager {
             try {
                 console.log(`🔍 Searching with Tavily (attempt ${attempt + 1}/${this.maxRetries})...`);
 
-                const client = tavily({ apiKey });
-                const response = await client.search(query, {
-                    searchDepth,
-                    maxResults,
-                    includeAnswer,
-                    includeImages
+                const response = await fetch('https://api.tavily.com/search', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-App-ID': generateAppIdHeader('Tavily')
+                    },
+                    body: JSON.stringify({
+                        api_key: apiKey,
+                        query,
+                        search_depth: searchDepth,
+                        max_results: maxResults,
+                        include_answer: includeAnswer,
+                        include_images: includeImages
+                    })
                 });
 
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+                    const error = new Error(errorData.detail || response.statusText);
+                    (error as any).status = response.status;
+                    throw error;
+                }
+
+                const data = await response.json();
                 console.log(`✅ Tavily search successful`);
 
-                // Return properly typed response
                 return {
-                    query: response.query,
-                    results: response.results,
-                    answer: response.answer,
-                    images: response.images?.map((img: any) =>
+                    query: data.query,
+                    results: data.results,
+                    answer: data.answer,
+                    images: data.images?.map((img: any) =>
                         typeof img === 'string' ? img : img.url
                     )
                 };
@@ -220,10 +235,27 @@ class TavilySearchManager {
         try {
             console.log(`🔬 Starting advanced research with Tavily...`);
 
-            const client = tavily({ apiKey });
+            // Start research task
+            const response = await fetch('https://api.tavily.com/research', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-App-ID': generateAppIdHeader('Tavily')
+                },
+                body: JSON.stringify({
+                    api_key: apiKey,
+                    query,
+                    max_results: options.maxResults || 5,
+                    include_images: options.includeImages || false
+                })
+            });
 
-            // Start research task with type assertion
-            const researchResponse: any = await client.research(query, options);
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.detail || response.statusText);
+            }
+
+            const researchResponse = await response.json();
             const request_id = researchResponse?.request_id;
 
             if (!request_id) {
@@ -238,7 +270,17 @@ class TavilySearchManager {
                 const maxAttempts = 30; // 60 seconds max (30 * 2s)
 
                 while (attempts < maxAttempts) {
-                    const result: any = await client.getResearch(request_id);
+                    const statusResponse = await fetch(`https://api.tavily.com/get_research?api_key=${apiKey}&request_id=${request_id}`, {
+                        headers: {
+                            'X-App-ID': generateAppIdHeader()
+                        }
+                    });
+
+                    if (!statusResponse.ok) {
+                        throw new Error(`Polling failed: ${statusResponse.statusText}`);
+                    }
+
+                    const result = await statusResponse.json();
 
                     if (result.status === 'completed') {
                         console.log(`✅ Research completed successfully`);

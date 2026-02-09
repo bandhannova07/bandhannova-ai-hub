@@ -46,10 +46,14 @@ import {
     HelpCircle,
     Globe,
     ShoppingBag,
-    BookOpen as BookOpenIcon
+    BookOpen as BookOpenIcon,
+    Settings,
+    Download
 } from 'lucide-react';
 import { getCurrentUser, signOut } from '@/lib/auth-simple';
 import { getAllDBs } from '@/lib/database/multi-db';
+import { SettingsView } from './components/settings-view';
+import { usePWA } from '@/contexts/PWAContext';
 
 const AI_AGENTS = [
     {
@@ -156,13 +160,15 @@ const AI_AGENTS = [
 export default function DashboardPage() {
     const router = useRouter();
     const { resolvedTheme } = useTheme();
+    const { deferredPrompt, isInstallable } = usePWA();
     const [user, setUser] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [comingSoonOpen, setComingSoonOpen] = useState(false);
     const [isDesktop, setIsDesktop] = useState(false);
-    const [activeView, setActiveView] = useState<'dashboard' | 'plans' | 'about'>('dashboard');
+    const [activeView, setActiveView] = useState<'dashboard' | 'plans' | 'about' | 'settings'>('dashboard');
     const [recentAgents, setRecentAgents] = useState<string[]>([]);
+    const [isAppInstalled, setIsAppInstalled] = useState(false);
     const [stats, setStats] = useState({
         conversations: 0,
         messages: 0,
@@ -229,6 +235,20 @@ export default function DashboardPage() {
             }
         };
         loadRecentAgents();
+    }, []);
+
+    // Check if PWA is installed
+    useEffect(() => {
+        const checkPWAInstalled = () => {
+            // Check if running as installed PWA (standalone mode)
+            const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
+            // Check for iOS standalone
+            const isInWebAppiOS = (window.navigator as any).standalone === true;
+
+            setIsAppInstalled(isStandalone || isInWebAppiOS);
+        };
+
+        checkPWAInstalled();
     }, []);
 
     async function checkAuth() {
@@ -301,10 +321,34 @@ export default function DashboardPage() {
     }
 
     // Handle view change and close sidebar on mobile
-    const handleViewChange = (view: 'dashboard' | 'plans' | 'about') => {
+    const handleViewChange = (view: 'dashboard' | 'plans' | 'about' | 'settings') => {
         setActiveView(view);
         if (!isDesktop) {
             setSidebarOpen(false);
+        }
+    };
+
+    // Handle PWA Install
+    const handleInstallApp = async () => {
+        if (!deferredPrompt) {
+            alert('⚠️ PWA Install not available.\n\nPossible reasons:\n1. App already installed\n2. Not using HTTPS (except localhost)\n3. Browser doesn\'t support PWA\n4. beforeinstallprompt not fired yet\n\nCheck console for PWA status.');
+            return;
+        }
+
+        try {
+            // Show the browser's install prompt
+            await deferredPrompt.prompt();
+
+            // Wait for the user's response
+            const { outcome } = await deferredPrompt.userChoice;
+
+            if (outcome === 'accepted') {
+                console.log('✅ User accepted the install prompt');
+            } else {
+                console.log('❌ User dismissed the install prompt');
+            }
+        } catch (error) {
+            console.error('Error showing install prompt:', error);
         }
     };
 
@@ -347,36 +391,38 @@ export default function DashboardPage() {
                 className={`fixed inset-y-0 left-0 z-50 glass border-r transition-all duration-300 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'
                     }`}
                 style={{
-                    width: isDesktop ? '380px' : '70vw',
+                    width: isDesktop ? '380px' : '85vw',
                     borderColor: 'var(--background-tertiary)',
                     backdropFilter: 'blur(20px)',
                 }}
             >
                 <div
                     className="flex flex-col h-full sidebar-content-wrapper"
-                    style={{ padding: '24px 8px' }}
+                    style={{ padding: '18px' }}
                 >
                     {/* Logo */}
-                    <div style={{ marginBottom: '40px', marginTop: '36px' }}>
+                    <div className="flex items-center gap-4 mb-10 px-4 cursor-pointer transition-transform hover:scale-[1.02]" style={{ marginTop: '50px' }} onClick={() => router.push('/')}>
                         <Image
                             src="/bandhannova-logo-final.svg"
-                            alt="BandhanNova AI Hub"
-                            width={240}
-                            height={80}
-                            style={{ marginBottom: '8px' }}
+                            alt="BandhanNova Logo"
+                            width={200}
+                            height={44}
+                            className="object-contain"
                         />
-                        <p className="sidebar-subtitle" style={{ color: 'var(--foreground-tertiary)', fontSize: '18px' }}>
-                            AI Hub Dashboard
-                        </p>
                     </div>
+                    <p className="sidebar-subtitle px-4 opacity-70" style={{ color: 'var(--foreground-tertiary)', fontSize: '14px', fontWeight: '500', letterSpacing: '0.05em' }}>
+                        AI HUB DASHBOARD
+                    </p>
 
                     {/* User Info */}
                     <div
-                        className="glass rounded-2xl"
+                        className="glass-strong rounded-3xl"
                         style={{
-                            padding: '16px',
-                            marginBottom: '32px',
-                            border: '1px solid var(--background-tertiary)'
+                            padding: '20px',
+                            marginBottom: '36px',
+                            marginTop: '24px',
+                            border: '1px solid rgba(255, 255, 255, 0.08)',
+                            background: 'rgba(255, 255, 255, 0.03)'
                         }}
                     >
                         <div className="flex items-center gap-3" style={{ marginBottom: '12px' }}>
@@ -443,22 +489,23 @@ export default function DashboardPage() {
 
                     {/* Navigation */}
                     <nav className="flex-1" style={{ marginBottom: '24px' }}>
-                        <div style={{ marginBottom: '8px' }}>
+                        <div style={{ marginBottom: '12px' }}>
                             <p
-                                className="body font-semibold"
+                                className="text-[11px] font-bold"
                                 style={{
                                     color: 'var(--foreground-tertiary)',
                                     textTransform: 'uppercase',
-                                    letterSpacing: '0.5px',
-                                    marginBottom: '12px',
-                                    paddingLeft: '16px'
+                                    letterSpacing: '0.1em',
+                                    marginBottom: '16px',
+                                    paddingLeft: '20px',
+                                    opacity: 0.6
                                 }}
                             >
-                                Menu
+                                Navigation Menu
                             </p>
                         </div>
 
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                             <Button
                                 onClick={() => handleViewChange('dashboard')}
                                 variant="ghost"
@@ -466,7 +513,8 @@ export default function DashboardPage() {
                                 style={{
                                     padding: '14px 16px',
                                     background: activeView === 'dashboard' ? 'var(--gradient-hero)' : sidebarBtnBg,
-                                    width: '100%'
+                                    width: '100%',
+                                    color: 'var(--foreground)'
                                 }}
                             >
                                 <Home className="w-5 h-5" />
@@ -480,25 +528,47 @@ export default function DashboardPage() {
                                 style={{
                                     padding: '14px 16px',
                                     background: activeView === 'plans' ? 'var(--gradient-hero)' : sidebarBtnBg,
-                                    width: '100%'
+                                    width: '100%',
+                                    color: 'var(--foreground)'
                                 }}
                             >
                                 <CreditCard className="w-5 h-5" />
                                 <span className="body font-medium">Plans</span>
                             </Button>
 
+                            {/* PWA Install Button - Hide if already installed */}
+                            {!isAppInstalled && (
+                                <Button
+                                    onClick={handleInstallApp}
+                                    variant="ghost"
+                                    className="flex items-center gap-3 rounded-xl transition-all hover:scale-105 justify-start"
+                                    style={{
+                                        padding: '14px 16px',
+                                        background: sidebarBtnBg,
+                                        width: '100%',
+                                        color: 'var(--foreground)'
+                                    }}
+                                >
+                                    <Download className="w-5 h-5" />
+                                    <span className="body font-medium">Install App</span>
+                                </Button>
+                            )}
+
+
                             <Button
                                 onClick={() => handleViewChange('about')}
                                 variant="ghost"
-                                className="flex items-center gap-3 rounded-xl transition-all hover:scale-105 justify-start"
+                                className="flex items-center gap-4 rounded-2xl transition-all hover:scale-105 justify-start group"
                                 style={{
-                                    padding: '14px 16px',
+                                    padding: '14px 20px',
                                     background: activeView === 'about' ? 'var(--gradient-hero)' : sidebarBtnBg,
-                                    width: '100%'
+                                    width: '100%',
+                                    border: activeView === 'about' ? 'none' : '1px solid rgba(255, 255, 255, 0.05)',
+                                    color: 'var(--foreground)'
                                 }}
                             >
-                                <Info className="w-5 h-5" />
-                                <span className="body font-medium">About</span>
+                                <Info className="w-5 h-5 transition-colors group-hover:text-primary-purple" />
+                                <span className="body font-semibold">About</span>
                             </Button>
 
                             <Button
@@ -508,7 +578,8 @@ export default function DashboardPage() {
                                 style={{
                                     padding: '12px 16px',
                                     background: sidebarBtnBg,
-                                    width: '100%'
+                                    width: '100%',
+                                    color: 'var(--foreground)'
                                 }}
                             >
                                 <Link href="/contact">
@@ -547,12 +618,21 @@ export default function DashboardPage() {
                         </div>
                     </nav>
 
-                    {/* Theme Toggle */}
-                    <div style={{ marginBottom: '12px' }}>
-                        <ThemeToggle variant="full" />
-                    </div>
+                    <Button
+                        onClick={() => handleViewChange('settings')}
+                        variant="ghost"
+                        className="flex items-center gap-3 rounded-xl transition-all hover:scale-105 justify-start"
+                        style={{
+                            padding: '14px 16px',
+                            background: activeView === 'settings' ? 'var(--gradient-hero)' : sidebarBtnBg,
+                            width: '100%',
+                            color: 'var(--foreground)'
+                        }}
+                    >
+                        <Settings className="w-5 h-5" />
+                        <span className="body font-medium">Settings</span>
+                    </Button>
 
-                    {/* Sign Out */}
                     <Button
                         onClick={handleSignOut}
                         variant="ghost"
@@ -560,7 +640,8 @@ export default function DashboardPage() {
                         style={{
                             padding: '14px 16px',
                             width: '100%',
-                            background: sidebarBtnBg
+                            background: sidebarBtnBg,
+                            marginTop: '12px'
                         }}
                     >
                         <LogOut className="w-5 h-5" />
@@ -584,17 +665,17 @@ export default function DashboardPage() {
             {!isDesktop && (
                 <button
                     onClick={() => setSidebarOpen(!sidebarOpen)}
-                    className="fixed top-5 left-5 z-50 flex items-center justify-center rounded-2xl glass transition-all hover:scale-105"
+                    className="fixed top-5 left-5 z-50 flex items-center justify-center rounded-2xl glass transition-all hover:scale-105 cursor-pointer"
                     style={{
-                        width: '44px',
-                        height: '44px',
+                        width: '48px',
+                        height: '48px',
                         border: '1px solid rgba(255, 255, 255, 0.1)',
                     }}
                 >
                     {sidebarOpen ? (
-                        <X className="w-5 h-5" style={{ color: 'var(--foreground)' }} />
+                        <X className="w-6 h-6" style={{ color: 'var(--foreground)' }} />
                     ) : (
-                        <Menu className="w-5 h-5" style={{ color: 'var(--foreground)' }} />
+                        <Menu className="w-6 h-6" style={{ color: 'var(--foreground)' }} />
                     )}
                 </button>
             )}
@@ -1214,6 +1295,17 @@ export default function DashboardPage() {
                                 })}
                             </div>
                         </>
+                    )}
+
+                    {/* Settings View - User Preferences */}
+                    {activeView === 'settings' && (
+                        <motion.div
+                            initial={{ opacity: 0, y: 30 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            style={{ marginTop: '32px' }}
+                        >
+                            <SettingsView />
+                        </motion.div>
                     )}
 
                     {/* About View - Navigation Cards */}

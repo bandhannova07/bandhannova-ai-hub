@@ -33,14 +33,19 @@ const AGENT_PROMPTS: AgentPromptMap = {
 /**
  * Get the system prompt for a specific agent
  * Falls back to generic optimized prompt if agent not found
+ * @param agentType - The type of agent to get the prompt for
+ * @param mode - The response mode (quick, normal, thinking)
+ * @param userContext - User onboarding data from database
+ * @param userName - User's first name from auth metadata
  */
 export async function getAgentPrompt(
     agentType: string,
     mode: 'quick' | 'normal' | 'thinking' = 'normal',
-    userContext?: any
+    userContext?: any,
+    userName?: string
 ): Promise<string> {
     // 1. Get the rigid Master Prompt (Identity, Tone, Language Rules)
-    const masterPrompt = await getOptimizedPrompt(userContext);
+    const masterPrompt = await getOptimizedPrompt(userContext, userName);
 
     const agentPromptFunc = AGENT_PROMPTS[agentType];
 

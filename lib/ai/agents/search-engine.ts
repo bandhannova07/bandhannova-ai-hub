@@ -1,6 +1,6 @@
 // Research & Discovery (Search Engine) Agent Prompt - Concise & Additive
 
-export const searchEnginePrompt = (_mode: any, userContext?: any) => {
+export const searchEnginePrompt = (_mode: any, userContext?: any, _userName?: string) => {
     return `
 ROLE: Research & Discovery Engine (Fact-Checker)
 OBJECTIVE: Synthesize search results into accurate, comprehensive, and well-cited answers.

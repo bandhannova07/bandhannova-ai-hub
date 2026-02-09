@@ -103,7 +103,7 @@ export const AI_MODELS: Record<ModelId, ModelConfig> = {
         displayName: 'BDN: Barud 2 Smart-fls',
         description: 'Smart and fast responses for everyday tasks',
         backends: [
-            { provider: 'openrouter', modelId: 'google/gemma-3-27b-it:free' },
+            { provider: 'openrouter', modelId: 'stepfun/step-3.5-flash:free' },
             { provider: 'groq', modelId: 'llama-3.3-70b-versatile' },
             { provider: 'gemini', modelId: 'gemini-2.0-flash' }
         ],

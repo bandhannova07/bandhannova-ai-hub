@@ -2,6 +2,7 @@
 // Supports multi-key rotation and rate-limit handling
 
 import { groqKeyManager } from './groq-key-manager';
+import { generateAppIdHeader } from './app-identification';
 
 interface GroqMessage {
     role: 'system' | 'user' | 'assistant';
@@ -29,7 +30,8 @@ export async function callGroqAPI(
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${apiKey}`,
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'X-App-ID': generateAppIdHeader('Groq')
                 },
                 body: JSON.stringify({
                     messages: groqMessages,
@@ -85,7 +87,8 @@ export async function callGroqAPIStreaming(
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${apiKey}`,
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'X-App-ID': generateAppIdHeader('Groq')
                 },
                 body: JSON.stringify({
                     messages: groqMessages,

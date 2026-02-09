@@ -1,17 +1,15 @@
-import { getDB, getAllDBs } from './database/multi-db';
+import { getDB } from './database/multi-db';
 
 /**
  * SIMPLIFIED SUPABASE CLIENT
  * Always uses DB1 (first database) for consistency
- * Multi-database rotation is handled by auth-simple.ts during signup
  */
 
 /**
  * Get the Supabase client - ALWAYS returns DB1
- * This ensures all operations use the same database
  */
 export function getSupabase() {
-    return getDB(0); // Always use first database
+    return getDB(0);
 }
 
 /**
@@ -20,29 +18,22 @@ export function getSupabase() {
 export const supabase = getDB(0);
 
 /**
- * Find which database a user exists in (for migration/recovery)
- * This is expensive - only use when absolutely necessary
+ * Find which database a user exists in - DEPRECATED: Now only checks DB1
  */
 export const findUserInAllDBs = async () => {
-    const dbs = getAllDBs();
-    for (let i = 0; i < dbs.length; i++) {
-        const { data: { session } } = await dbs[i].auth.getSession();
-        if (session) {
-            console.log(`✅ User found in DB${i + 1}`);
-            if (typeof window !== 'undefined') {
-                localStorage.setItem('active_db_index', i.toString());
-            }
-            return { client: dbs[i], index: i, session };
-        }
+    const db = getDB(0);
+    const { data: { session } } = await db.auth.getSession();
+    if (session) {
+        return { client: db, index: 0, session };
     }
     return null;
 }
 
 /**
- * Get all database clients
+ * Get all database clients - Now just the primary one
  */
 export function getAllSupabaseClients() {
-    return getAllDBs();
+    return [getDB(0)];
 }
 
 // ============================================

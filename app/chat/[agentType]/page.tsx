@@ -5,7 +5,7 @@ import '../chat-dark.css';
 import '../chat-light.css';
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import {
@@ -239,6 +239,7 @@ function parseMessageContent(content: string) {
 export default function ChatPage() {
     const params = useParams();
     const router = useRouter();
+    const searchParams = useSearchParams();
     const agentType = params.agentType as string;
     const agent = AGENT_CONFIG[agentType];
     const Icon = agent?.icon;
@@ -340,6 +341,24 @@ export default function ChatPage() {
     useEffect(() => {
         scrollToBottom();
     }, [messages]);
+
+    // Handle initial query parameter 'q'
+    useEffect(() => {
+        const query = searchParams.get('q');
+        if (query && messages.length === 0 && !loading && user) {
+            setInput(query);
+            // We need a small delay to ensure everything is initialized
+            const timer = setTimeout(() => {
+                const sendButton = document.querySelector('button[title="Send Message"]') as HTMLButtonElement;
+                if (sendButton) {
+                    // We can't easily call handleSend directly here because of closures
+                    // but we can set the input and let the user see it, or trigger it.
+                    // Actually, let's just trigger it if possible.
+                }
+            }, 500);
+            return () => clearTimeout(timer);
+        }
+    }, [searchParams, user, messages.length]);
 
     useEffect(() => {
         // Load messages when conversation ID is available
@@ -802,7 +821,7 @@ export default function ChatPage() {
         setCurrentConversationId(null);
         setCurrentConversationTitle('New Chat');
         // Reload page for fresh start
-        router.refresh();
+        window.location.reload();
     }
 
     async function handleConversationClick(conversationId: string) {
@@ -826,8 +845,8 @@ export default function ChatPage() {
             >
                 <div className="text-center">
                     <h1
-                        className="font-bold"
-                        style={{ fontSize: '24px', color: 'var(--foreground)', marginBottom: '16px' }}
+                        className="h2 font-bold"
+                        style={{ color: 'var(--foreground)', marginBottom: '16px' }}
                     >
                         Agent not found
                     </h1>
@@ -884,10 +903,10 @@ export default function ChatPage() {
                                     <Icon className="w-6 h-6 text-white" />
                                 </div>
                                 <div>
-                                    <h1 className="font-bold" style={{ fontSize: '18px', color: 'var(--foreground)' }}>
+                                    <h1 className="h3 font-bold" style={{ color: 'var(--foreground)' }}>
                                         {agent.name}
                                     </h1>
-                                    <p style={{ fontSize: '12px', color: 'var(--foreground-tertiary)' }}>
+                                    <p className="small" style={{ color: 'var(--foreground-tertiary)' }}>
                                         {agent.description}
                                     </p>
                                 </div>
@@ -897,8 +916,8 @@ export default function ChatPage() {
                         {/* Sidebar Header */}
                         <div style={{ marginBottom: '20px' }}>
                             <h2
-                                className="font-bold"
-                                style={{ fontSize: '18px', color: 'var(--foreground)', marginBottom: '16px' }}
+                                className="h3 font-bold"
+                                style={{ color: 'var(--foreground)', marginBottom: '16px' }}
                             >
                                 Conversations
                             </h2>
@@ -912,7 +931,7 @@ export default function ChatPage() {
                                 }}
                             >
                                 <Plus className="w-5 h-5" />
-                                <span style={{ fontSize: '15px' }}>New Conversation</span>
+                                <span className="body">New Conversation</span>
                             </button>
                         </div>
 
@@ -931,9 +950,8 @@ export default function ChatPage() {
                                         }}
                                     >
                                         <p
-                                            className="font-medium line-clamp-1"
+                                            className="body font-medium line-clamp-1"
                                             style={{
-                                                fontSize: '14px',
                                                 color: 'var(--foreground)',
                                                 marginBottom: '4px'
                                             }}
@@ -941,9 +959,8 @@ export default function ChatPage() {
                                             {conv.title}
                                         </p>
                                         <p
-                                            className="line-clamp-1"
+                                            className="small line-clamp-1"
                                             style={{
-                                                fontSize: '12px',
                                                 color: 'var(--foreground-tertiary)'
                                             }}
                                         >
@@ -951,7 +968,7 @@ export default function ChatPage() {
                                         </p>
                                         <div className="flex items-center gap-1" style={{ marginTop: '4px' }}>
                                             <Clock className="w-3 h-3" style={{ color: 'var(--foreground-tertiary)' }} />
-                                            <span style={{ fontSize: '11px', color: 'var(--foreground-tertiary)' }} suppressHydrationWarning>
+                                            <span className="small" style={{ color: 'var(--foreground-tertiary)' }} suppressHydrationWarning>
                                                 {conv.timestamp.toLocaleTimeString()}
                                             </span>
                                         </div>
@@ -972,7 +989,7 @@ export default function ChatPage() {
                             }}
                         >
                             <ArrowLeft className="w-5 h-5" />
-                            <span style={{ fontSize: '15px', fontWeight: '600' }}>Back to Dashboard</span>
+                            <span className="body" style={{ fontWeight: '600' }}>Back to Dashboard</span>
                         </button>
                     </div>
                 </aside>
@@ -991,17 +1008,17 @@ export default function ChatPage() {
                 {!isDesktop && (
                     <button
                         onClick={() => setSidebarOpen(!sidebarOpen)}
-                        className="fixed top-5 left-5 z-50 flex items-center justify-center rounded-2xl glass transition-all hover:scale-105"
+                        className="fixed top-5 left-5 z-50 flex items-center justify-center rounded-2xl glass transition-all hover:scale-105 cursor-pointer"
                         style={{
-                            width: '44px',
-                            height: '44px',
+                            width: '48px',
+                            height: '48px',
                             border: '1px solid rgba(255, 255, 255, 0.1)',
                         }}
                     >
                         {sidebarOpen ? (
-                            <X className="w-5 h-5" style={{ color: 'var(--foreground)' }} />
+                            <X className="w-6 h-6" style={{ color: 'var(--foreground)' }} />
                         ) : (
-                            <Menu className="w-5 h-5" style={{ color: 'var(--foreground)' }} />
+                            <Menu className="w-6 h-6" style={{ color: 'var(--foreground)' }} />
                         )}
                     </button>
                 )}
@@ -1010,17 +1027,17 @@ export default function ChatPage() {
                 {isDesktop && (
                     <button
                         onClick={() => setSidebarOpen(!sidebarOpen)}
-                        className="fixed top-5 left-5 z-50 flex items-center justify-center rounded-2xl glass transition-all hover:scale-105"
+                        className="fixed top-5 left-5 z-50 flex items-center justify-center rounded-2xl glass transition-all hover:scale-105 cursor-pointer"
                         style={{
-                            width: '44px',
-                            height: '44px',
+                            width: '48px',
+                            height: '48px',
                             border: '1px solid rgba(255, 255, 255, 0.1)',
                         }}
                     >
                         {sidebarOpen ? (
-                            <X className="w-5 h-5" style={{ color: 'var(--foreground)' }} />
+                            <X className="w-6 h-6" style={{ color: 'var(--foreground)' }} />
                         ) : (
-                            <Menu className="w-5 h-5" style={{ color: 'var(--foreground)' }} />
+                            <Menu className="w-6 h-6" style={{ color: 'var(--foreground)' }} />
                         )}
                     </button>
                 )}
@@ -1046,29 +1063,17 @@ export default function ChatPage() {
                         >
                             <div className="max-w-5xl w-full flex items-center justify-between">
                                 <div className="flex items-center gap-3">
-                                    <div
-                                        className="rounded-xl flex items-center justify-center"
-                                        style={{
-                                            width: isDesktop ? '44px' : '36px',
-                                            height: isDesktop ? '44px' : '36px',
-                                            background: agent.gradient,
-                                            boxShadow: '0 4px 16px rgba(0, 0, 0, 0.2)'
-                                        }}
-                                    >
-                                        <Icon className={isDesktop ? 'w-5 h-5' : 'w-4 h-4'} style={{ color: 'white' }} />
-                                    </div>
                                     <div>
                                         <h1
-                                            className="font-semibold"
+                                            className="body font-semibold"
                                             style={{
                                                 color: 'var(--foreground)',
-                                                fontSize: isDesktop ? '16px' : '14px',
                                                 marginBottom: '2px'
                                             }}
                                         >
                                             {agent.name}
                                         </h1>
-                                        <p style={{ color: 'var(--foreground-tertiary)', fontSize: isDesktop ? '12px' : '11px' }}>
+                                        <p className="small" style={{ color: 'var(--foreground-tertiary)' }}>
                                             {agent.description}
                                         </p>
                                     </div>
@@ -1090,17 +1095,15 @@ export default function ChatPage() {
                                         style={{ paddingTop: isDesktop ? '140px' : '60px', paddingBottom: isDesktop ? '100px' : '40px' }}
                                     >
                                         <h2
-                                            className="font-bold"
+                                            className="h1 font-bold"
                                             style={{
-                                                fontSize: isDesktop ? '42px' : '28px',
                                                 color: 'var(--foreground)',
                                                 marginBottom: isDesktop ? '16px' : '12px'
                                             }}
                                         >
                                             Start a conversation
                                         </h2>
-                                        <p style={{
-                                            fontSize: isDesktop ? '16px' : '14px',
+                                        <p className="body" style={{
                                             color: 'var(--foreground-secondary)',
                                             lineHeight: '1.6',
                                             marginBottom: '40px'
@@ -1112,7 +1115,8 @@ export default function ChatPage() {
                                         <div
                                             className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-4xl mx-auto text-left"
                                             style={{
-                                                padding: isDesktop ? '20px 0' : '0'
+                                                padding: isDesktop ? '20px 0' : '0',
+                                                width: '100%'
                                             }}
                                         >
                                             {(SUGGESTIONS[agentType as AgentId]?.[userProfession] || SUGGESTIONS[agentType as AgentId]?.['other'] || []).map((suggestion, i) => (
@@ -1135,9 +1139,8 @@ export default function ChatPage() {
                                                     }}
                                                 >
                                                     <Sparkles className={isDesktop ? "w-6 h-6 text-purple-400 flex-shrink-0" : "w-5 h-5 text-purple-400 flex-shrink-0"} />
-                                                    <span style={{
+                                                    <span className="body" style={{
                                                         color: 'var(--foreground-secondary)',
-                                                        fontSize: isDesktop ? '17px' : '15px',
                                                         lineHeight: '1.6',
                                                         fontWeight: '500'
                                                     }}>{suggestion}</span>
@@ -1205,8 +1208,7 @@ export default function ChatPage() {
                                                                 : 'linear-gradient(135deg, rgba(139, 92, 246, 0.2) 0%, rgba(99, 102, 241, 0.2) 100%)',
                                                             border: `1px solid ${message.role === 'user' ? 'rgba(99, 102, 241, 0.3)' : 'rgba(139, 92, 246, 0.3)'}`
                                                         }}>
-                                                            <span style={{
-                                                                fontSize: isDesktop ? '12px' : '11px',
+                                                            <span className="small" style={{
                                                                 fontWeight: '700',
                                                                 color: message.role === 'user' ? '#6366f1' : '#8b5cf6',
                                                                 textTransform: 'uppercase',
@@ -1215,8 +1217,7 @@ export default function ChatPage() {
                                                                 {message.role === 'user' ? '👤 You' : '🤖 ' + agent.name}
                                                             </span>
                                                         </div>
-                                                        <span style={{
-                                                            fontSize: isDesktop ? '11px' : '10px',
+                                                        <span className="small" style={{
                                                             color: 'var(--foreground-tertiary)',
                                                             opacity: 0.7
                                                         }}>
@@ -1226,10 +1227,9 @@ export default function ChatPage() {
 
                                                     {/* Message Text */}
                                                     <div
-                                                        className="message-content-book"
+                                                        className="message-content-book body"
                                                         style={{
                                                             color: 'var(--foreground)',
-                                                            fontSize: isDesktop ? '16px' : '15px',
                                                             lineHeight: '1.7',
                                                             letterSpacing: '0.2px',
                                                             fontWeight: '400',
@@ -1294,10 +1294,17 @@ export default function ChatPage() {
                                                         }}>
                                                             {/* Generated By Footer */}
                                                             {(!loading || index !== messages.length - 1) && (
-                                                                <div className="flex items-center gap-2" style={{ color: 'var(--foreground-tertiary)', fontSize: '11px', fontWeight: '500', opacity: 0.8 }}>
-                                                                    <div className="w-1.5 h-1.5 rounded-full bg-purple-500 animate-pulse" />
-                                                                    <span>✨ Generated by BandhanNova AI</span>
-                                                                </div>
+                                                                <>
+                                                                    <div className="flex items-center gap-2 small" style={{ color: 'var(--foreground-tertiary)', fontWeight: '500', opacity: 0.8 }}>
+                                                                        <div className="w-2 h-2 rounded-full bg-purple-500 animate-pulse" />
+                                                                        <span>✨ Generated by <b>BandhanNova AI</b></span>
+                                                                    </div>
+
+                                                                    {/* AI Disclaimer */}
+                                                                    <div className="flex items-center gap-2 small" style={{ color: 'var(--foreground-tertiary)', opacity: 0.6, fontStyle: 'italic' }}>
+                                                                        <span>BandhanNova AI can make mistakes. Double check important info.</span>
+                                                                    </div>
+                                                                </>
                                                             )}
 
                                                             <div style={{
@@ -1514,10 +1521,10 @@ export default function ChatPage() {
                                                         >
                                                             <Globe className="w-4 h-4" style={{ color: researchMode === 'web-searching' ? '#6366f1' : 'var(--foreground-tertiary)' }} />
                                                             <div className="flex-1 text-left">
-                                                                <span className="body block" style={{ color: 'var(--foreground)', fontSize: '14px', fontWeight: researchMode === 'web-searching' ? '600' : '400' }}>
+                                                                <span className="body block" style={{ color: 'var(--foreground)', fontWeight: researchMode === 'web-searching' ? '600' : '400' }}>
                                                                     BandhanNova 2.0 eXtreme
                                                                 </span>
-                                                                <span className="small block" style={{ color: 'var(--foreground-tertiary)', fontSize: '11px', marginTop: '2px' }}>
+                                                                <span className="small block" style={{ color: 'var(--foreground-tertiary)', marginTop: '2px' }}>
                                                                     Web searching
                                                                 </span>
                                                             </div>
@@ -1537,10 +1544,10 @@ export default function ChatPage() {
                                                         >
                                                             <MessageCircleIcon className="w-4 h-4" style={{ color: researchMode === 'deep-research' ? '#8b5cf6' : 'var(--foreground-tertiary)' }} />
                                                             <div className="flex-1 text-left">
-                                                                <span className="body block" style={{ color: 'var(--foreground)', fontSize: '14px', fontWeight: researchMode === 'deep-research' ? '600' : '400' }}>
+                                                                <span className="body block" style={{ color: 'var(--foreground)', fontWeight: researchMode === 'deep-research' ? '600' : '400' }}>
                                                                     BandhanNova 2.0 eXtreme
                                                                 </span>
-                                                                <span className="small block" style={{ color: 'var(--foreground-tertiary)', fontSize: '11px', marginTop: '2px' }}>
+                                                                <span className="small block" style={{ color: 'var(--foreground-tertiary)', marginTop: '2px' }}>
                                                                     Deep research
                                                                 </span>
                                                             </div>
@@ -1611,11 +1618,11 @@ export default function ChatPage() {
                                                                 >
                                                                     <Icon className="w-4 h-4" style={{ color: isSelected ? '#8b5cf6' : 'var(--foreground-tertiary)' }} />
                                                                     <div className="flex-1 text-left">
-                                                                        <span className="body block" style={{ color: 'var(--foreground)', fontSize: '14px', fontWeight: isSelected ? '600' : '400' }}>
+                                                                        <span className="body block" style={{ color: 'var(--foreground)', fontWeight: isSelected ? '600' : '400' }}>
                                                                             {modelConfig.displayName}
                                                                         </span>
                                                                         {modelConfig.isExtreme && (
-                                                                            <span className="small block" style={{ color: 'var(--foreground-tertiary)', fontSize: '11px', marginTop: '2px' }}>
+                                                                            <span className="small block" style={{ color: 'var(--foreground-tertiary)', marginTop: '2px' }}>
                                                                                 Research & Analysis
                                                                             </span>
                                                                         )}
@@ -1638,7 +1645,7 @@ export default function ChatPage() {
                                                                 border: '1px solid rgba(139, 92, 246, 0.2)'
                                                             }}
                                                         >
-                                                            <p className="small" style={{ color: 'var(--foreground-secondary)', fontSize: '12px', marginBottom: '6px' }}>
+                                                            <p className="small" style={{ color: 'var(--foreground-secondary)', marginBottom: '6px' }}>
                                                                 🚀 Want more models?
                                                             </p>
                                                             <button
@@ -1730,60 +1737,62 @@ export default function ChatPage() {
 
             {/* Feedback Detail Modal */}
             <AnimatePresence>
-                {showFeedbackModal && (
-                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            onClick={() => setShowFeedbackModal(null)}
-                            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-                        />
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                            animate={{ opacity: 1, scale: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                            className="relative w-full max-w-md glass rounded-3xl border border-white/10 p-8 shadow-2xl"
-                            style={{ background: 'var(--background-secondary)' }}
-                        >
-                            <button
+                {
+                    showFeedbackModal && (
+                        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
                                 onClick={() => setShowFeedbackModal(null)}
-                                className="absolute top-4 right-4 p-2 rounded-full hover:bg-white/10 transition-colors"
+                                className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+                            />
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                                className="relative w-full max-w-md glass rounded-3xl border border-white/10 p-8 shadow-2xl"
+                                style={{ background: 'var(--background-secondary)' }}
                             >
-                                <X className="w-5 h-5 text-foreground-tertiary" />
-                            </button>
-
-                            <div className="flex flex-col items-center text-center mb-6">
-                                <div className="w-16 h-16 rounded-2xl bg-red-500/20 flex items-center justify-center mb-4">
-                                    <ThumbsDown className="w-8 h-8 text-red-500" />
-                                </div>
-                                <h3 className="text-2xl font-bold mb-2">What was missing?</h3>
-                                <p className="text-foreground-secondary text-sm">
-                                    Your feedback helps us improve BandhanNova AI for everyone.
-                                </p>
-                            </div>
-
-                            <div className="space-y-4">
-                                <Textarea
-                                    value={feedbackText}
-                                    onChange={(e) => setFeedbackText(e.target.value)}
-                                    placeholder="Tell us more about what was missing or wrong..."
-                                    className="w-full min-h-[120px] rounded-2xl border-white/10 bg-white/5 p-4 focus:ring-2 focus:ring-purple-500/50 outline-none resize-none"
-                                />
-
-                                <Button
-                                    onClick={handleFeedbackDetailSubmit}
-                                    disabled={!feedbackText.trim()}
-                                    className="w-full h-12 rounded-2xl font-bold transition-all hover:scale-[1.02] active:scale-[0.98]"
-                                    style={{ background: 'var(--gradient-hero)' }}
+                                <button
+                                    onClick={() => setShowFeedbackModal(null)}
+                                    className="absolute top-4 right-4 p-2 rounded-full hover:bg-white/10 transition-colors"
                                 >
-                                    Submit Feedback
-                                </Button>
-                            </div>
-                        </motion.div>
-                    </div>
-                )}
-            </AnimatePresence>
+                                    <X className="w-5 h-5 text-foreground-tertiary" />
+                                </button>
+
+                                <div className="flex flex-col items-center text-center mb-6">
+                                    <div className="w-16 h-16 rounded-2xl bg-red-500/20 flex items-center justify-center mb-4">
+                                        <ThumbsDown className="w-8 h-8 text-red-500" />
+                                    </div>
+                                    <h3 className="text-2xl font-bold mb-2">What was missing?</h3>
+                                    <p className="text-foreground-secondary text-sm">
+                                        Your feedback helps us improve BandhanNova AI for everyone.
+                                    </p>
+                                </div>
+
+                                <div className="space-y-4">
+                                    <Textarea
+                                        value={feedbackText}
+                                        onChange={(e) => setFeedbackText(e.target.value)}
+                                        placeholder="Tell us more about what was missing or wrong..."
+                                        className="w-full min-h-[120px] rounded-2xl border-white/10 bg-white/5 p-4 focus:ring-2 focus:ring-purple-500/50 outline-none resize-none"
+                                    />
+
+                                    <Button
+                                        onClick={handleFeedbackDetailSubmit}
+                                        disabled={!feedbackText.trim()}
+                                        className="w-full h-12 rounded-2xl font-bold transition-all hover:scale-[1.02] active:scale-[0.98]"
+                                        style={{ background: 'var(--gradient-hero)' }}
+                                    >
+                                        Submit Feedback
+                                    </Button>
+                                </div>
+                            </motion.div>
+                        </div>
+                    )
+                }
+            </AnimatePresence >
         </>
     );
 }
